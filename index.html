@@ -244,10 +244,18 @@
                     isLoading = false;
                     updateChart();
                     updateDateDisplay();
+                    updateDayButtons();
                 });
         }
         
         function processWeatherData(data) {
+            // Validate API response structure
+            if (!data || !data.hourly || !data.hourly.time || !data.hourly.temperature_2m || !data.hourly.wind_speed_10m) {
+                console.error('Invalid API response structure');
+                loadDefaultData();
+                return;
+            }
+            
             var hourly = data.hourly;
             var times = hourly.time;
             var temperatures = hourly.temperature_2m;
