@@ -181,7 +181,7 @@
             <div class="info-box">
                 <div class="info-title">How to Read This Chart</div>
                 <div class="info-text">
-                    The chart flows from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
+                    The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
                     Each colored layer represents a different metric. Thicker bands indicate better scores 
                     (closer to ideal conditions). The three layers stack to show overall conditions at each time. 
                     Time labels and detailed readings appear around the outside of the chart.
@@ -326,9 +326,9 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Calculate angles (9 o'clock to 3 o'clock, going UP and over = PI to 0, counterclockwise)
+            // Calculate angles (9 o'clock to 3 o'clock, going UP and over = PI to 2*PI, clockwise)
             var startAngle = Math.PI; // 9 o'clock (left side) - 7am
-            var endAngle = 0; // 3 o'clock (right side) - 7pm
+            var endAngle = 2 * Math.PI; // 3 o'clock (right side) - 7pm
             var angleRange = Math.PI; // semicircle going through the top
             
             // Create point arrays for each metric
@@ -339,7 +339,7 @@
             for (var i = 0; i < scores.length; i++) {
                 var s = scores[i];
                 var t = i / (scores.length - 1);
-                var angle = startAngle - t * angleRange; // subtract to go counterclockwise (left to right via top)
+                var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
                 
                 var tempHeight = ((s.tempScore + 1) / 2) * maxHeight;
                 var windHeight = ((s.windScore + 1) / 2) * maxHeight;
@@ -398,7 +398,7 @@
             // Draw temperature layer (innermost)
             ctx.fillStyle = '#ff6b6b';
             ctx.beginPath();
-            ctx.arc(cx, cy, innerRadius, startAngle, endAngle, true); // counterclockwise arc
+            ctx.arc(cx, cy, innerRadius, startAngle, endAngle, false); // clockwise arc
             for (var i = 0; i < smoothTemp.length; i++) {
                 var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
                 var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
