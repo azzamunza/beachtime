@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radial Smooth Spline - Swanbourne Beach</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .day-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .day-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .day-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .day-btn.active {
+            background: white;
+            color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .viz-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .viz-title {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .viz-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1em;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+        
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1em;
+        }
+        
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+        }
+        
+        .info-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .info-text {
+            color: #555;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏖️ Swanbourne Beach Conditions</h1>
+        
+        <div class="day-selector" id="globalDaySelector">
+            <button class="day-btn active" data-day="0">Today (Dec 11)</button>
+            <button class="day-btn" data-day="1">Tomorrow (Dec 12)</button>
+            <button class="day-btn" data-day="2">Day 3 (Dec 13)</button>
+        </div>
+        
+        <div class="viz-card">
+            <h2 class="viz-title">Radial Flow Chart</h2>
+            <p class="viz-subtitle">Stacked smooth curves showing conditions throughout the day</p>
+            
+            <div class="canvas-container">
+                <canvas id="mainCanvas" width="700" height="700"></canvas>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span><strong>Temperature</strong> (ideal: 32°C)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
+                    <span><strong>Wind Speed</strong> (ideal: 0-15 km/h)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #95e1d3;"></div>
+                    <span><strong>Water Temp</strong> (warmer is better)</span>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">How to Read This Chart</div>
+                <div class="info-text">
+                    The chart flows from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
+                    Each colored layer represents a different metric. Thicker bands indicate better scores 
+                    (closer to ideal conditions). The three layers stack to show overall conditions at each time. 
+                    Time labels and detailed readings appear around the outside of the chart.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var weatherData = [
+            {
+                date: 'Dec 11',
+                hours: [7,8,9,10,11,12,13,14,15,16,17,18,19],
+                temp: [22,24,26,27,28,28,27,27,26,25,24,23,22],
+                wind: [15,18,20,23,25,28,25,23,20,18,16,15,12],
+                water: [20,20,20.5,21,21,21.5,21.5,21.5,21,21,20.5,20.5,20]
+            },
+            {
+                date: 'Dec 12',
+                hours: [7,8,9,10,11,12,13,14,15,16,17,18,19],
+                temp: [21,24,27,29,31,32,32,31,30,28,26,24,22],
+                wind: [28,30,30,28,25,25,27,28,28,26,24,22,20],
+                water: [20,20,20.5,21,21.5,21.5,22,22,21.5,21.5,21,21,20.5]
+            },
+            {
+                date: 'Dec 13',
+                hours: [7,8,9,10,11,12,13,14,15,16,17,18,19],
+                temp: [22,25,28,31,33,34,34,33,32,30,28,26,24],
+                wind: [27,28,30,28,26,24,22,20,18,16,20,24,22],
+                water: [20.5,21,21,21.5,22,22.5,22.5,22.5,22,22,21.5,21.5,21]
+            }
+        ];
+        
+        var currentDay = 0;
+        
+        function calculateRating(value, ideal, min, max) {
+            var distance;
+            
+            if (Array.isArray(ideal)) {
+                if (value >= ideal[0] && value <= ideal[1]) {
+                    distance = 0;
+                } else if (value < ideal[0]) {
+                    distance = ideal[0] - value;
+                } else {
+                    distance = value - ideal[1];
+                }
+            } else {
+                distance = Math.abs(value - ideal);
+            }
+            
+            var maxDistance = Math.max(
+                Array.isArray(ideal) ? Math.abs(ideal[0] - min) : Math.abs(ideal - min),
+                Array.isArray(ideal) ? Math.abs(max - ideal[1]) : Math.abs(max - ideal)
+            );
+            
+            var k = 3 / (maxDistance * maxDistance);
+            var score = Math.exp(-k * distance * distance);
+            return 2 * score - 1;
+        }
+        
+        function calculateDayScores(dayData) {
+            var scores = [];
+            for (var i = 0; i < dayData.hours.length; i++) {
+                var tempScore = calculateRating(dayData.temp[i], 32, 22, 40);
+                var windScore = calculateRating(dayData.wind[i], [0, 15], 0, 30);
+                var waterScore = calculateRating(dayData.water[i], 29, 19, 29);
+                var combined = (tempScore + windScore + waterScore) / 3;
+                
+                scores.push({
+                    hour: dayData.hours[i],
+                    temp: dayData.temp[i],
+                    wind: dayData.wind[i],
+                    water: dayData.water[i],
+                    tempScore: tempScore,
+                    windScore: windScore,
+                    waterScore: waterScore,
+                    combined: combined
+                });
+            }
+            return scores;
+        }
+        
+        function formatTime(hour) {
+            if (hour === 12) return '12pm';
+            if (hour < 12) return hour + 'am';
+            return (hour - 12) + 'pm';
+        }
+        
+        // Catmull-Rom spline interpolation
+        function getCatmullRomPoint(t, p0, p1, p2, p3) {
+            var t2 = t * t;
+            var t3 = t2 * t;
+            
+            var v0 = (p2 - p0) * 0.5;
+            var v1 = (p3 - p1) * 0.5;
+            
+            return (2 * p1 - 2 * p2 + v0 + v1) * t3 +
+                   (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 +
+                   v0 * t + p1;
+        }
+        
+        function createSmoothPath(points, segments) {
+            var smoothPoints = [];
+            
+            for (var i = 0; i < points.length - 1; i++) {
+                var p0 = points[Math.max(0, i - 1)];
+                var p1 = points[i];
+                var p2 = points[i + 1];
+                var p3 = points[Math.min(points.length - 1, i + 2)];
+                
+                for (var s = 0; s < segments; s++) {
+                    var t = s / segments;
+                    var angle = getCatmullRomPoint(t, p0.angle, p1.angle, p2.angle, p3.angle);
+                    var radius = getCatmullRomPoint(t, p0.radius, p1.radius, p2.radius, p3.radius);
+                    smoothPoints.push({ angle: angle, radius: radius });
+                }
+            }
+            
+            smoothPoints.push(points[points.length - 1]);
+            return smoothPoints;
+        }
+        
+        function drawRadialSpline(scores) {
+            var canvas = document.getElementById('mainCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            
+            var size = 700;
+            var cx = size / 2;
+            var cy = size / 2;
+            var innerRadius = size * 0.15;
+            var maxHeight = size * 0.28;
+            
+            ctx.clearRect(0, 0, size, size);
+            
+            // Draw center circle
+            ctx.fillStyle = '#f8f9fa';
+            ctx.beginPath();
+            ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Calculate angles (9 o'clock to 3 o'clock, going UP and over = PI to 0, counterclockwise)
+            var startAngle = Math.PI; // 9 o'clock (left side) - 7am
+            var endAngle = 0; // 3 o'clock (right side) - 7pm
+            var angleRange = Math.PI; // semicircle going through the top
+            
+            // Create point arrays for each metric
+            var tempPoints = [];
+            var windPoints = [];
+            var waterPoints = [];
+            
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle - t * angleRange; // subtract to go counterclockwise (left to right via top)
+                
+                var tempHeight = ((s.tempScore + 1) / 2) * maxHeight;
+                var windHeight = ((s.windScore + 1) / 2) * maxHeight;
+                var waterHeight = ((s.waterScore + 1) / 2) * maxHeight;
+                
+                tempPoints.push({ angle: angle, radius: innerRadius + tempHeight });
+                windPoints.push({ angle: angle, radius: innerRadius + tempHeight + windHeight });
+                waterPoints.push({ angle: angle, radius: innerRadius + tempHeight + windHeight + waterHeight });
+            }
+            
+            // Create smooth curves
+            var smoothTemp = createSmoothPath(tempPoints, 10);
+            var smoothWind = createSmoothPath(windPoints, 10);
+            var smoothWater = createSmoothPath(waterPoints, 10);
+            
+            // Draw water layer (outermost)
+            ctx.fillStyle = '#95e1d3';
+            ctx.beginPath();
+            for (var i = 0; i < smoothWind.length; i++) {
+                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothWater.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
+                var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw wind layer (middle)
+            ctx.fillStyle = '#4ecdc4';
+            ctx.beginPath();
+            for (var i = 0; i < smoothTemp.length; i++) {
+                var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
+                var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothWind.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw temperature layer (innermost)
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(cx, cy, innerRadius, startAngle, endAngle, true); // counterclockwise arc
+            for (var i = 0; i < smoothTemp.length; i++) {
+                var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
+                var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw time labels and markers
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle - t * angleRange;
+                
+                // Find the outermost radius for this angle
+                var maxRadius = waterPoints[i].radius;
+                
+                // Draw radial line from inner to outer
+                ctx.strokeStyle = 'rgba(200,200,200,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * innerRadius, cy + Math.sin(angle) * innerRadius);
+                ctx.lineTo(cx + Math.cos(angle) * (maxRadius + 20), cy + Math.sin(angle) * (maxRadius + 20));
+                ctx.stroke();
+                
+                // Time labels - positioned outside the chart
+                var labelDist = maxRadius + 50;
+                var x = cx + Math.cos(angle) * labelDist;
+                var y = cy + Math.sin(angle) * labelDist;
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(formatTime(s.hour), x, y);
+                
+                // Draw data values in a ring around the chart
+                var dataDist = maxRadius + 90;
+                var dx = cx + Math.cos(angle) * dataDist;
+                var dy = cy + Math.sin(angle) * dataDist;
+                
+                ctx.font = '11px sans-serif';
+                ctx.fillStyle = '#ff6b6b';
+                ctx.fillText(s.temp + '°C', dx, dy - 20);
+                ctx.fillStyle = '#4ecdc4';
+                ctx.fillText(s.wind + ' km/h', dx, dy);
+                ctx.fillStyle = '#95e1d3';
+                ctx.fillText(s.water + '°C', dx, dy + 20);
+            }
+            
+            // Center label
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Swanbourne', cx, cy - 20);
+            ctx.font = '18px sans-serif';
+            ctx.fillText('Beach', cx, cy + 5);
+            ctx.font = '14px sans-serif';
+            ctx.fillStyle = '#666';
+            ctx.fillText(weatherData[currentDay].date, cx, cy + 30);
+        }
+        
+        function updateChart() {
+            var scores = calculateDayScores(weatherData[currentDay]);
+            drawRadialSpline(scores);
+        }
+        
+        document.getElementById('globalDaySelector').addEventListener('click', function(e) {
+            if (e.target.classList.contains('day-btn')) {
+                var buttons = document.querySelectorAll('.day-btn');
+                for (var i = 0; i < buttons.length; i++) {
+                    buttons[i].classList.remove('active');
+                }
+                e.target.classList.add('active');
+                currentDay = parseInt(e.target.getAttribute('data-day'));
+                updateChart();
+            }
+        });
+        
+        updateChart();
+        
+        var resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(updateChart, 250);
+        });
+    </script>
+</body>
+</html>
