@@ -162,6 +162,28 @@
             font-size: 1em;
             color: #666;
         }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border: 2px solid #ef5350;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 25px;
+            text-align: center;
+        }
+        
+        .warning-title {
+            font-weight: bold;
+            color: #c62828;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+        
+        .warning-text {
+            color: #d32f2f;
+            font-size: 1em;
+            line-height: 1.6;
+        }
     </style>
 </head>
 <body>
@@ -179,7 +201,7 @@
             <p class="viz-subtitle">Stacked smooth curves showing conditions throughout the day</p>
             
             <div class="canvas-container">
-                <canvas id="mainCanvas" width="700" height="700"></canvas>
+                <canvas id="mainCanvas" width="700" height="400"></canvas>
             </div>
             
             <div class="location-label">
@@ -221,7 +243,7 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var apiUrl = 'https://open-meteo.com/en/docs?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
+            var apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
             
             fetch(apiUrl)
                 .then(function(response) {
@@ -239,12 +261,8 @@
                 })
                 .catch(function(error) {
                     console.error('Error fetching weather data:', error);
-                    // Fallback to default data if API fails
-                    loadDefaultData();
+                    showDataWarning('Failed to load weather data from API');
                     isLoading = false;
-                    updateChart();
-                    updateDateDisplay();
-                    updateDayButtons();
                 });
         }
         
@@ -252,7 +270,7 @@
             // Validate API response structure
             if (!data || !data.hourly || !data.hourly.time || !data.hourly.temperature_2m || !data.hourly.wind_speed_10m) {
                 console.error('Invalid API response structure');
-                loadDefaultData();
+                showDataWarning('Invalid data format received from API');
                 return;
             }
             
@@ -260,6 +278,24 @@
             var times = hourly.time;
             var temperatures = hourly.temperature_2m;
             var windSpeeds = hourly.wind_speed_10m;
+            
+            // Validate that temperature and wind data are arrays with values
+            if (!Array.isArray(temperatures) || !Array.isArray(windSpeeds) || 
+                temperatures.length === 0 || windSpeeds.length === 0) {
+                console.error('Temperature or wind data is missing or invalid');
+                showDataWarning('Temperature or wind data is missing from API response');
+                return;
+            }
+            
+            // Check for invalid data (null, undefined, or non-numeric values)
+            var hasInvalidTemp = temperatures.some(function(t) { return t == null || typeof t !== 'number' || isNaN(t); });
+            var hasInvalidWind = windSpeeds.some(function(w) { return w == null || typeof w !== 'number' || isNaN(w); });
+            
+            if (hasInvalidTemp || hasInvalidWind) {
+                console.error('Temperature or wind data contains invalid values');
+                showDataWarning('Temperature or wind data contains invalid values');
+                return;
+            }
             
             // Group data by day
             var dayMap = {};
@@ -289,20 +325,38 @@
                 }
             }
             
-            // Convert to array
+            // Convert to array and validate we have data
             weatherData = Object.values(dayMap);
+            
+            if (weatherData.length === 0) {
+                console.error('No valid weather data found in the expected time range');
+                showDataWarning('No weather data available for the selected time period');
+                return;
+            }
         }
         
-        function loadDefaultData() {
-            weatherData = [
-                {
-                    date: new Date().toISOString().split('T')[0],
-                    hours: [7,8,9,10,11,12,13,14,15,16,17,18,19],
-                    temp: [22,24,26,27,28,28,27,27,26,25,24,23,22],
-                    wind: [15,18,20,23,25,28,25,23,20,18,16,15,12],
-                    water: [20,20,20.5,21,21,21.5,21.5,21.5,21,21,20.5,20.5,20]
-                }
-            ];
+        function showDataWarning(message) {
+            var vizCard = document.querySelector('.viz-card');
+            var warningBox = document.createElement('div');
+            warningBox.className = 'warning-box';
+            warningBox.innerHTML = '<div class="warning-title">⚠️ Data Error</div><div class="warning-text">' + message + '</div>';
+            
+            // Clear existing content
+            var canvasContainer = document.querySelector('.canvas-container');
+            var legend = document.querySelector('.legend');
+            var infoBox = document.querySelector('.info-box');
+            var locationLabel = document.querySelector('.location-label');
+            
+            if (canvasContainer) canvasContainer.style.display = 'none';
+            if (legend) legend.style.display = 'none';
+            if (infoBox) infoBox.style.display = 'none';
+            if (locationLabel) locationLabel.style.display = 'none';
+            
+            // Insert warning after subtitle
+            var subtitle = document.querySelector('.viz-subtitle');
+            if (subtitle) {
+                subtitle.parentNode.insertBefore(warningBox, subtitle.nextSibling);
+            }
         }
         
         function updateDateDisplay() {
@@ -425,22 +479,14 @@
             if (!canvas) return;
             var ctx = canvas.getContext('2d');
             
-            var size = 700;
-            var cx = size / 2;
-            var cy = size / 2;
-            var innerRadius = size * 0.15;
-            var maxHeight = size * 0.28;
+            var width = 700;
+            var height = 400;
+            var cx = width / 2;
+            var cy = height; // Position center at bottom of canvas
+            var innerRadius = width * 0.15;
+            var maxHeight = width * 0.28;
             
-            ctx.clearRect(0, 0, size, size);
-            
-            // Draw center circle
-            ctx.fillStyle = '#f8f9fa';
-            ctx.beginPath();
-            ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#ddd';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            ctx.clearRect(0, 0, width, height);
             
             // Calculate angles (9 o'clock to 3 o'clock, going UP and over = PI to 2*PI, clockwise)
             var startAngle = Math.PI; // 9 o'clock (left side) - 7am
