@@ -221,7 +221,7 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=31.96&longitude=115.76&hourly=temperature_2m,wind_speed_10m&timezone=Asia%2FSingapore&forecast_days=3';
+            var apiUrl = 'https://open-meteo.com/en/docs?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
             
             fetch(apiUrl)
                 .then(function(response) {
