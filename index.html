@@ -414,7 +414,7 @@
             for (var i = 0; i < scores.length; i++) {
                 var s = scores[i];
                 var t = i / (scores.length - 1);
-                var angle = startAngle - t * angleRange;
+                var angle = startAngle + t * angleRange;
                 
                 // Find the outermost radius for this angle
                 var maxRadius = waterPoints[i].radius;
