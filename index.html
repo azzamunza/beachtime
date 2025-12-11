@@ -143,6 +143,25 @@
             font-size: 0.95em;
             line-height: 1.6;
         }
+        
+        .location-label {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .location-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .location-date {
+            font-size: 1em;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -161,6 +180,11 @@
             
             <div class="canvas-container">
                 <canvas id="mainCanvas" width="700" height="700"></canvas>
+            </div>
+            
+            <div class="location-label">
+                <div class="location-name">Swanbourne Beach</div>
+                <div class="location-date" id="currentDate">Loading...</div>
             </div>
             
             <div class="legend">
@@ -191,31 +215,115 @@
     </div>
     
     <script>
-        var weatherData = [
-            {
-                date: 'Dec 11',
-                hours: [7,8,9,10,11,12,13,14,15,16,17,18,19],
-                temp: [22,24,26,27,28,28,27,27,26,25,24,23,22],
-                wind: [15,18,20,23,25,28,25,23,20,18,16,15,12],
-                water: [20,20,20.5,21,21,21.5,21.5,21.5,21,21,20.5,20.5,20]
-            },
-            {
-                date: 'Dec 12',
-                hours: [7,8,9,10,11,12,13,14,15,16,17,18,19],
-                temp: [21,24,27,29,31,32,32,31,30,28,26,24,22],
-                wind: [28,30,30,28,25,25,27,28,28,26,24,22,20],
-                water: [20,20,20.5,21,21.5,21.5,22,22,21.5,21.5,21,21,20.5]
-            },
-            {
-                date: 'Dec 13',
-                hours: [7,8,9,10,11,12,13,14,15,16,17,18,19],
-                temp: [22,25,28,31,33,34,34,33,32,30,28,26,24],
-                wind: [27,28,30,28,26,24,22,20,18,16,20,24,22],
-                water: [20.5,21,21,21.5,22,22.5,22.5,22.5,22,22,21.5,21.5,21]
-            }
-        ];
-        
+        var weatherData = [];
         var currentDay = 0;
+        var isLoading = true;
+        
+        // Fetch weather data from Open-Meteo API
+        function fetchWeatherData() {
+            var apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=31.96&longitude=115.76&hourly=temperature_2m,wind_speed_10m&timezone=Asia%2FSingapore&forecast_days=3';
+            
+            fetch(apiUrl)
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch weather data');
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    processWeatherData(data);
+                    isLoading = false;
+                    updateChart();
+                    updateDateDisplay();
+                    updateDayButtons();
+                })
+                .catch(function(error) {
+                    console.error('Error fetching weather data:', error);
+                    // Fallback to default data if API fails
+                    loadDefaultData();
+                    isLoading = false;
+                    updateChart();
+                    updateDateDisplay();
+                });
+        }
+        
+        function processWeatherData(data) {
+            var hourly = data.hourly;
+            var times = hourly.time;
+            var temperatures = hourly.temperature_2m;
+            var windSpeeds = hourly.wind_speed_10m;
+            
+            // Group data by day
+            var dayMap = {};
+            
+            for (var i = 0; i < times.length; i++) {
+                var dateTime = new Date(times[i]);
+                var dateKey = dateTime.toISOString().split('T')[0];
+                var hour = dateTime.getHours();
+                
+                // Only include hours from 7am to 7pm
+                if (hour >= 7 && hour <= 19) {
+                    if (!dayMap[dateKey]) {
+                        dayMap[dateKey] = {
+                            date: dateKey,
+                            hours: [],
+                            temp: [],
+                            wind: [],
+                            water: []
+                        };
+                    }
+                    
+                    dayMap[dateKey].hours.push(hour);
+                    dayMap[dateKey].temp.push(Math.round(temperatures[i]));
+                    dayMap[dateKey].wind.push(Math.round(windSpeeds[i]));
+                    // Estimate water temperature (typically 2-3°C cooler than air)
+                    dayMap[dateKey].water.push(Math.round((temperatures[i] - 2.5) * 10) / 10);
+                }
+            }
+            
+            // Convert to array
+            weatherData = Object.values(dayMap);
+        }
+        
+        function loadDefaultData() {
+            weatherData = [
+                {
+                    date: new Date().toISOString().split('T')[0],
+                    hours: [7,8,9,10,11,12,13,14,15,16,17,18,19],
+                    temp: [22,24,26,27,28,28,27,27,26,25,24,23,22],
+                    wind: [15,18,20,23,25,28,25,23,20,18,16,15,12],
+                    water: [20,20,20.5,21,21,21.5,21.5,21.5,21,21,20.5,20.5,20]
+                }
+            ];
+        }
+        
+        function updateDateDisplay() {
+            if (weatherData.length > 0 && weatherData[currentDay]) {
+                var dateStr = weatherData[currentDay].date;
+                var dateObj = new Date(dateStr + 'T00:00:00');
+                var options = { month: 'short', day: 'numeric', year: 'numeric' };
+                var formattedDate = dateObj.toLocaleDateString('en-US', options);
+                document.getElementById('currentDate').textContent = formattedDate;
+            }
+        }
+        
+        function updateDayButtons() {
+            var daySelector = document.getElementById('globalDaySelector');
+            daySelector.innerHTML = '';
+            
+            for (var i = 0; i < weatherData.length && i < 3; i++) {
+                var btn = document.createElement('button');
+                btn.className = 'day-btn' + (i === currentDay ? ' active' : '');
+                btn.setAttribute('data-day', i);
+                
+                var dateObj = new Date(weatherData[i].date + 'T00:00:00');
+                var dayLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : 'Day ' + (i + 1);
+                var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                btn.textContent = dayLabel + ' (' + monthDay + ')';
+                
+                daySelector.appendChild(btn);
+            }
+        }
         
         function calculateRating(value, ideal, min, max) {
             var distance;
@@ -452,22 +560,15 @@
                 ctx.fillText(s.water + '°C', dx, dy + 20);
             }
             
-            // Center label
-            ctx.fillStyle = '#333';
-            ctx.font = 'bold 24px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('Swanbourne', cx, cy - 20);
-            ctx.font = '18px sans-serif';
-            ctx.fillText('Beach', cx, cy + 5);
-            ctx.font = '14px sans-serif';
-            ctx.fillStyle = '#666';
-            ctx.fillText(weatherData[currentDay].date, cx, cy + 30);
+            // Center circle is now empty (no label)
         }
         
         function updateChart() {
-            var scores = calculateDayScores(weatherData[currentDay]);
-            drawRadialSpline(scores);
+            if (weatherData.length > 0 && weatherData[currentDay]) {
+                var scores = calculateDayScores(weatherData[currentDay]);
+                drawRadialSpline(scores);
+                updateDateDisplay();
+            }
         }
         
         document.getElementById('globalDaySelector').addEventListener('click', function(e) {
@@ -482,7 +583,8 @@
             }
         });
         
-        updateChart();
+        // Initialize by fetching weather data
+        fetchWeatherData();
         
         var resizeTimer;
         window.addEventListener('resize', function() {
