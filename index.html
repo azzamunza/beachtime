@@ -563,8 +563,9 @@
             
             // Make canvas responsive to container width
             var container = canvas.parentElement;
+            if (!container) return;
             var containerWidth = container.clientWidth;
-            var width = containerWidth;
+            var width = containerWidth || 700; // Fallback to default width
             var height = width * (400 / 700); // Maintain aspect ratio
             
             // Set canvas dimensions
