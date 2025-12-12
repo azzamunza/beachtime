@@ -491,7 +491,8 @@
                     dayLabel = 'Day ' + (dayOffset + 1);
                 } else {
                     // Handle past dates (negative offset)
-                    dayLabel = dayOffset + ' days ago';
+                    var daysAgo = Math.abs(dayOffset);
+                    dayLabel = daysAgo + (daysAgo === 1 ? ' day ago' : ' days ago');
                 }
                 
                 var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
