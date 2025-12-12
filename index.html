@@ -246,8 +246,8 @@
             var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
             var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&forecast_days=3';
             
-            // Fetch both weather and marine data
-            Promise.all([
+            // Fetch both weather and marine data (marine is optional)
+            Promise.allSettled([
                 fetch(weatherApiUrl).then(function(response) {
                     if (!response.ok) throw new Error('Failed to fetch weather data');
                     return response.json();
@@ -258,8 +258,23 @@
                 })
             ])
                 .then(function(results) {
-                    var weatherData = results[0];
-                    var marineData = results[1];
+                    var weatherResult = results[0];
+                    var marineResult = results[1];
+                    
+                    if (weatherResult.status === 'rejected') {
+                        console.error('Error fetching weather data:', weatherResult.reason);
+                        showDataWarning('Failed to load weather data from API');
+                        isLoading = false;
+                        return;
+                    }
+                    
+                    var weatherData = weatherResult.value;
+                    var marineData = marineResult.status === 'fulfilled' ? marineResult.value : null;
+                    
+                    if (marineResult.status === 'rejected') {
+                        console.warn('Marine data unavailable, using estimated values:', marineResult.reason);
+                    }
+                    
                     processWeatherData(weatherData, marineData);
                     isLoading = false;
                     updateChart();
@@ -267,7 +282,7 @@
                     updateDayButtons();
                 })
                 .catch(function(error) {
-                    console.error('Error fetching data:', error);
+                    console.error('Unexpected error:', error);
                     showDataWarning('Failed to load data from API');
                     isLoading = false;
                 });
@@ -355,6 +370,8 @@
                     
                     // Get water temperature from marine API with fuzzy matching or estimate if not available
                     var waterTemp = null;
+                    var ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+                    
                     if (Object.keys(marineDataMap).length > 0) {
                         var currentTime = new Date(times[i]).getTime();
                         var exactMatch = marineDataMap[times[i]];
@@ -364,7 +381,7 @@
                         } else {
                             // Find nearest time within 1 hour tolerance
                             var closestTime = null;
-                            var minDiff = 3600000; // 1 hour in milliseconds
+                            var minDiff = ONE_HOUR_MS;
                             
                             for (var marineKey in marineDataMap) {
                                 var timeDiff = Math.abs(marineDataMap[marineKey].timestamp - currentTime);
@@ -380,6 +397,7 @@
                         }
                     }
                     
+                    // Using != null to check for both null and undefined
                     if (waterTemp != null && typeof waterTemp === 'number' && !isNaN(waterTemp)) {
                         dayMap[dateKey].water.push(Math.round(waterTemp * 10) / 10);
                     } else {
