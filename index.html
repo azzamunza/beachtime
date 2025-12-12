@@ -22,7 +22,7 @@
         }
         
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             width: 100%;
         }
         
@@ -90,7 +90,7 @@
         .canvas-container {
             position: relative;
             width: 100%;
-            max-width: 700px;
+            max-width: 100%;
             margin: 0 auto;
             display: flex;
             justify-content: center;
@@ -197,8 +197,8 @@
         </div>
         
         <div class="viz-card">
-            <h2 class="viz-title">Radial Flow Chart</h2>
-            <p class="viz-subtitle">Stacked smooth curves showing conditions throughout the day</p>
+            <h2 class="viz-title">Swanbourne Beach</h2>
+            <p class="viz-subtitle" id="chartDate">Loading...</p>
             
             <div class="canvas-container">
                 <canvas id="mainCanvas"></canvas>
@@ -454,6 +454,11 @@
                 var options = { month: 'short', day: 'numeric', year: 'numeric' };
                 var formattedDate = dateObj.toLocaleDateString('en-US', options);
                 document.getElementById('currentDate').textContent = formattedDate;
+                // Also update the chart subtitle with the date
+                var chartDateElement = document.getElementById('chartDate');
+                if (chartDateElement) {
+                    chartDateElement.textContent = formattedDate;
+                }
             }
         }
         
@@ -538,6 +543,8 @@
                     combined: combined
                 });
             }
+            // Sort scores by hour to ensure chronological order (7am to 7pm)
+            scores.sort(function(a, b) { return a.hour - b.hour; });
             return scores;
         }
         
@@ -590,8 +597,8 @@
             var container = canvas.parentElement;
             if (!container) return;
             var containerWidth = container.clientWidth;
-            var width = containerWidth || 700; // Fallback to default width
-            var height = width * (400 / 700); // Maintain aspect ratio
+            var width = containerWidth || 1000; // Fallback to default width
+            var height = width * 0.6; // Maintain aspect ratio (60% height)
             
             // Set canvas dimensions
             canvas.width = width;
