@@ -281,20 +281,23 @@
                 return;
             }
             
-            if (!marineData || !marineData.hourly || !marineData.hourly.time || !marineData.hourly.sea_surface_temperature) {
-                console.error('Invalid marine API response structure');
-                showDataWarning('Invalid marine data format received from API');
-                return;
-            }
-            
             var hourly = data.hourly;
             var times = hourly.time;
             var temperatures = hourly.temperature_2m;
             var windSpeeds = hourly.wind_speed_10m;
             
-            var marineHourly = marineData.hourly;
-            var marineTimes = marineHourly.time;
-            var seaTemperatures = marineHourly.sea_surface_temperature;
+            // Process marine data if available, but don't fail if it's invalid
+            var marineHourly = null;
+            var marineTimes = null;
+            var seaTemperatures = null;
+            
+            if (marineData && marineData.hourly && marineData.hourly.time && marineData.hourly.sea_surface_temperature) {
+                marineHourly = marineData.hourly;
+                marineTimes = marineHourly.time;
+                seaTemperatures = marineHourly.sea_surface_temperature;
+            } else {
+                console.warn('Marine data not available, will use estimated water temperatures');
+            }
             
             // Validate that temperature and wind data are arrays with values
             if (!Array.isArray(temperatures) || !Array.isArray(windSpeeds) || 
@@ -314,10 +317,16 @@
                 return;
             }
             
-            // Create a map of marine data for easy lookup
+            // Create a map of marine data for easy lookup with fuzzy matching
             var marineDataMap = {};
-            for (var i = 0; i < marineTimes.length; i++) {
-                marineDataMap[marineTimes[i]] = seaTemperatures[i];
+            if (marineTimes && seaTemperatures) {
+                for (var i = 0; i < marineTimes.length; i++) {
+                    var marineTime = new Date(marineTimes[i]).getTime();
+                    marineDataMap[marineTimes[i]] = {
+                        timestamp: marineTime,
+                        temperature: seaTemperatures[i]
+                    };
+                }
             }
             
             // Group data by day
@@ -344,8 +353,33 @@
                     dayMap[dateKey].temp.push(Math.round(temperatures[i]));
                     dayMap[dateKey].wind.push(Math.round(windSpeeds[i]));
                     
-                    // Get water temperature from marine API or estimate if not available
-                    var waterTemp = marineDataMap[times[i]];
+                    // Get water temperature from marine API with fuzzy matching or estimate if not available
+                    var waterTemp = null;
+                    if (Object.keys(marineDataMap).length > 0) {
+                        var currentTime = new Date(times[i]).getTime();
+                        var exactMatch = marineDataMap[times[i]];
+                        
+                        if (exactMatch) {
+                            waterTemp = exactMatch.temperature;
+                        } else {
+                            // Find nearest time within 1 hour tolerance
+                            var closestTime = null;
+                            var minDiff = 3600000; // 1 hour in milliseconds
+                            
+                            for (var marineKey in marineDataMap) {
+                                var timeDiff = Math.abs(marineDataMap[marineKey].timestamp - currentTime);
+                                if (timeDiff < minDiff) {
+                                    minDiff = timeDiff;
+                                    closestTime = marineKey;
+                                }
+                            }
+                            
+                            if (closestTime) {
+                                waterTemp = marineDataMap[closestTime].temperature;
+                            }
+                        }
+                    }
+                    
                     if (waterTemp != null && typeof waterTemp === 'number' && !isNaN(waterTemp)) {
                         dayMap[dateKey].water.push(Math.round(waterTemp * 10) / 10);
                     } else {
