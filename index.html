@@ -600,14 +600,19 @@
             var cx = width / 2;
             var innerRadius = width * 0.15;
             
-            // Calculate maxHeight to ensure chart fits within canvas bounds
-            // The semicircle extends from bottom to top, so cy must be positioned such that
-            // the maximum radius (innerRadius + 3*maxHeight) doesn't exceed cy
-            var maxCy = height * 0.95; // Leave 5% margin to prevent edge clipping artifacts
-            var maxTotalRadius = maxCy; // Maximum radius we can afford
-            var maxHeight = (maxTotalRadius - innerRadius) / 3; // Divide remaining space among 3 layers
+            // Calculate maxHeight to ensure chart AND labels fit within canvas bounds
+            // At the top of the semicircle (angle = 3π/2):
+            // - Chart edge is at: cy - maxRadius
+            // - Labels are at: cy - (maxRadius + 50)
+            // - Data values are at: cy - (maxRadius + 90)
+            // We need: cy - (maxRadius + 90) >= 0, so maxRadius <= cy - 90
             
-            var cy = maxCy; // Position center to allow full semicircle within canvas
+            var dataLabelOffset = 90; // Distance from chart edge to data labels
+            var topMargin = 10; // Small safety margin
+            
+            var cy = height; // Position center at bottom of canvas
+            var maxAllowedRadius = cy - dataLabelOffset - topMargin; // Maximum radius to keep labels visible
+            var maxHeight = (maxAllowedRadius - innerRadius) / 3; // Divide remaining space among 3 layers
             
             ctx.clearRect(0, 0, width, height);
             
