@@ -494,6 +494,16 @@
                 Array.isArray(ideal) ? Math.abs(max - ideal[1]) : Math.abs(max - ideal)
             );
             
+            // If already at ideal, return perfect score
+            if (distance === 0) {
+                return 1.0;
+            }
+            
+            // If maxDistance is 0, all values are ideal, return perfect score
+            if (maxDistance === 0) {
+                return 1.0;
+            }
+            
             // Exponential decay function: exp(-k * distance^2)
             // k is chosen so that at maxDistance, score ≈ 0.05 (5%)
             var k = 3 / (maxDistance * maxDistance);
@@ -603,14 +613,15 @@
                 var t = i / (scores.length - 1);
                 var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
                 
-                // Scores are now 0-1, use directly
-                var tempHeight = s.tempScore * maxHeight;
-                var windHeight = s.windScore * maxHeight;
-                var waterHeight = s.waterScore * maxHeight;
+                // Scores are now 0-1, calculate layer thicknesses
+                var tempLayerHeight = s.tempScore * maxHeight;
+                var windLayerHeight = s.windScore * maxHeight;
+                var waterLayerHeight = s.waterScore * maxHeight;
                 
-                tempPoints.push({ angle: angle, radius: innerRadius + tempHeight });
-                windPoints.push({ angle: angle, radius: innerRadius + tempHeight + windHeight });
-                waterPoints.push({ angle: angle, radius: innerRadius + tempHeight + windHeight + waterHeight });
+                // Layers are stacked: temp (innermost), wind (middle), water (outermost)
+                tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
+                windPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight });
+                waterPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight + waterLayerHeight });
             }
             
             // Create smooth curves
