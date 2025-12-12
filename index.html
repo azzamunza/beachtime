@@ -98,7 +98,7 @@
         
         canvas {
             display: block;
-            max-width: 100%;
+            width: 100%;
             height: auto;
         }
         
@@ -201,7 +201,7 @@
             <p class="viz-subtitle">Stacked smooth curves showing conditions throughout the day</p>
             
             <div class="canvas-container">
-                <canvas id="mainCanvas" width="700" height="400"></canvas>
+                <canvas id="mainCanvas"></canvas>
             </div>
             
             <div class="location-label">
@@ -243,30 +243,52 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
+            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
+            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&forecast_days=3&timezone=Asia%2FSingapore';
             
-            fetch(apiUrl)
-                .then(function(response) {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch weather data');
-                    }
+            // Fetch both weather and marine data (marine is optional)
+            Promise.allSettled([
+                fetch(weatherApiUrl).then(function(response) {
+                    if (!response.ok) throw new Error('Failed to fetch weather data');
+                    return response.json();
+                }),
+                fetch(marineApiUrl).then(function(response) {
+                    if (!response.ok) throw new Error('Failed to fetch marine data');
                     return response.json();
                 })
-                .then(function(data) {
-                    processWeatherData(data);
+            ])
+                .then(function(results) {
+                    var weatherResult = results[0];
+                    var marineResult = results[1];
+                    
+                    if (weatherResult.status === 'rejected') {
+                        console.error('Error fetching weather data:', weatherResult.reason);
+                        showDataWarning('Failed to load weather data from API');
+                        isLoading = false;
+                        return;
+                    }
+                    
+                    var weatherData = weatherResult.value;
+                    var marineData = marineResult.status === 'fulfilled' ? marineResult.value : null;
+                    
+                    if (marineResult.status === 'rejected') {
+                        console.warn('Marine data unavailable, using estimated values:', marineResult.reason);
+                    }
+                    
+                    processWeatherData(weatherData, marineData);
                     isLoading = false;
                     updateChart();
                     updateDateDisplay();
                     updateDayButtons();
                 })
                 .catch(function(error) {
-                    console.error('Error fetching weather data:', error);
-                    showDataWarning('Failed to load weather data from API');
+                    console.error('Unexpected error:', error);
+                    showDataWarning('Failed to load data from API');
                     isLoading = false;
                 });
         }
         
-        function processWeatherData(data) {
+        function processWeatherData(data, marineData) {
             // Validate API response structure
             if (!data || !data.hourly || !data.hourly.time || !data.hourly.temperature_2m || !data.hourly.wind_speed_10m) {
                 console.error('Invalid API response structure');
@@ -278,6 +300,17 @@
             var times = hourly.time;
             var temperatures = hourly.temperature_2m;
             var windSpeeds = hourly.wind_speed_10m;
+            
+            // Process marine data if available, but don't fail if it's invalid
+            var marineTimes = null;
+            var seaTemperatures = null;
+            
+            if (marineData && marineData.hourly && marineData.hourly.time && marineData.hourly.sea_surface_temperature) {
+                marineTimes = marineData.hourly.time;
+                seaTemperatures = marineData.hourly.sea_surface_temperature;
+            } else {
+                console.warn('Marine data not available, will use estimated water temperatures');
+            }
             
             // Validate that temperature and wind data are arrays with values
             if (!Array.isArray(temperatures) || !Array.isArray(windSpeeds) || 
@@ -295,6 +328,25 @@
                 console.error('Temperature or wind data contains invalid values');
                 showDataWarning('Temperature or wind data contains invalid values');
                 return;
+            }
+            
+            // Create a map of marine data for easy lookup with fuzzy matching
+            var marineDataMap = {};
+            if (marineTimes && seaTemperatures) {
+                // Validate seaTemperatures contains only valid numbers
+                var hasInvalidSeaTemp = seaTemperatures.some(function(t) { return t == null || typeof t !== 'number' || isNaN(t); });
+                
+                if (hasInvalidSeaTemp) {
+                    console.warn('Sea temperature data contains invalid values, will use estimated water temperatures');
+                } else {
+                    for (var i = 0; i < marineTimes.length; i++) {
+                        var marineTime = new Date(marineTimes[i]).getTime();
+                        marineDataMap[marineTimes[i]] = {
+                            timestamp: marineTime,
+                            temperature: seaTemperatures[i]
+                        };
+                    }
+                }
             }
             
             // Group data by day
@@ -320,8 +372,44 @@
                     dayMap[dateKey].hours.push(hour);
                     dayMap[dateKey].temp.push(Math.round(temperatures[i]));
                     dayMap[dateKey].wind.push(Math.round(windSpeeds[i]));
-                    // Estimate water temperature (typically 2-3°C cooler than air)
-                    dayMap[dateKey].water.push(Math.round((temperatures[i] - 2.5) * 10) / 10);
+                    
+                    // Get water temperature from marine API with fuzzy matching or estimate if not available
+                    var waterTemp = null;
+                    var ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+                    
+                    if (Object.keys(marineDataMap).length > 0) {
+                        var currentTime = new Date(times[i]).getTime();
+                        var exactMatch = marineDataMap[times[i]];
+                        
+                        if (exactMatch) {
+                            waterTemp = exactMatch.temperature;
+                        } else {
+                            // Find nearest time within 1 hour tolerance
+                            var closestTime = null;
+                            var minDiff = Infinity;
+                            
+                            for (var marineKey in marineDataMap) {
+                                var timeDiff = Math.abs(marineDataMap[marineKey].timestamp - currentTime);
+                                if (timeDiff < minDiff) {
+                                    minDiff = timeDiff;
+                                    closestTime = marineKey;
+                                }
+                            }
+                            
+                            // Only use the closest match if it's within 1 hour tolerance
+                            if (closestTime && minDiff <= ONE_HOUR_MS) {
+                                waterTemp = marineDataMap[closestTime].temperature;
+                            }
+                        }
+                    }
+                    
+                    // Using != null to check for both null and undefined
+                    if (waterTemp != null && typeof waterTemp === 'number' && !isNaN(waterTemp)) {
+                        dayMap[dateKey].water.push(Math.round(waterTemp * 10) / 10);
+                    } else {
+                        // Fallback to estimate
+                        dayMap[dateKey].water.push(Math.round((temperatures[i] - 2.5) * 10) / 10);
+                    }
                 }
             }
             
@@ -387,29 +475,48 @@
             }
         }
         
+        // Calculate a normalized score from 0 to 1 based on how close value is to ideal
+        // Uses exponential decay: closer to ideal = higher score
         function calculateRating(value, ideal, min, max) {
             var distance;
             
             if (Array.isArray(ideal)) {
+                // Ideal is a range [min_ideal, max_ideal]
                 if (value >= ideal[0] && value <= ideal[1]) {
-                    distance = 0;
+                    distance = 0; // Perfect score
                 } else if (value < ideal[0]) {
                     distance = ideal[0] - value;
                 } else {
                     distance = value - ideal[1];
                 }
             } else {
+                // Ideal is a single value
                 distance = Math.abs(value - ideal);
             }
             
+            // Calculate maximum possible distance from ideal
             var maxDistance = Math.max(
                 Array.isArray(ideal) ? Math.abs(ideal[0] - min) : Math.abs(ideal - min),
                 Array.isArray(ideal) ? Math.abs(max - ideal[1]) : Math.abs(max - ideal)
             );
             
+            // If already at ideal, return perfect score
+            if (distance === 0) {
+                return 1.0;
+            }
+            
+            // If maxDistance is 0, all values are ideal, return perfect score
+            if (maxDistance === 0) {
+                return 1.0;
+            }
+            
+            // Exponential decay function: exp(-k * distance^2)
+            // k = 3/maxDistance² so that at maxDistance, score = exp(-3) ≈ 0.05
             var k = 3 / (maxDistance * maxDistance);
             var score = Math.exp(-k * distance * distance);
-            return 2 * score - 1;
+            
+            // Score is now 0-1, where 1 = ideal, 0 = worst possible
+            return score;
         }
         
         function calculateDayScores(dayData) {
@@ -479,12 +586,38 @@
             if (!canvas) return;
             var ctx = canvas.getContext('2d');
             
-            var width = 700;
-            var height = 400;
+            // Make canvas responsive to container width
+            var container = canvas.parentElement;
+            if (!container) return;
+            var containerWidth = container.clientWidth;
+            var width = containerWidth || 700; // Fallback to default width
+            var height = width * (400 / 700); // Maintain aspect ratio
+            
+            // Set canvas dimensions
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Calculate spacing for labels around the chart
+            // Labels are positioned at radius + 50, data values at radius + 90
+            // Reserve space on all sides for these labels
+            var sidePadding = 120; // Space needed on left/right for labels + data values
+            var topPadding = 100; // Space needed at top for labels + data values
+            var bottomPadding = 20; // Small space at bottom
+            
+            // Calculate center position and maximum radius
             var cx = width / 2;
-            var cy = height; // Position center at bottom of canvas
-            var innerRadius = width * 0.15;
-            var maxHeight = width * 0.28;
+            var cy = height - bottomPadding; // Position near bottom with small margin
+            
+            // Maximum radius is constrained by available space:
+            // 1. Vertical: cy - topPadding (for top labels)
+            // 2. Horizontal: cx - sidePadding (for left/right labels, center is at width/2)
+            var maxRadiusVertical = cy - topPadding;
+            var maxRadiusHorizontal = cx - sidePadding;
+            var maxAllowedRadius = Math.min(maxRadiusVertical, maxRadiusHorizontal);
+            
+            // Calculate inner radius and layer heights
+            var innerRadius = maxAllowedRadius * 0.25; // Inner radius is 25% of max radius
+            var maxHeight = (maxAllowedRadius - innerRadius) / 3; // Divide remaining space among 3 layers
             
             ctx.clearRect(0, 0, width, height);
             
@@ -503,13 +636,15 @@
                 var t = i / (scores.length - 1);
                 var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
                 
-                var tempHeight = ((s.tempScore + 1) / 2) * maxHeight;
-                var windHeight = ((s.windScore + 1) / 2) * maxHeight;
-                var waterHeight = ((s.waterScore + 1) / 2) * maxHeight;
+                // Scores are now 0-1, calculate layer thicknesses
+                var tempLayerHeight = s.tempScore * maxHeight;
+                var windLayerHeight = s.windScore * maxHeight;
+                var waterLayerHeight = s.waterScore * maxHeight;
                 
-                tempPoints.push({ angle: angle, radius: innerRadius + tempHeight });
-                windPoints.push({ angle: angle, radius: innerRadius + tempHeight + windHeight });
-                waterPoints.push({ angle: angle, radius: innerRadius + tempHeight + windHeight + waterHeight });
+                // Layers are stacked: temp (innermost), wind (middle), water (outermost)
+                tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
+                windPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight });
+                waterPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight + waterLayerHeight });
             }
             
             // Create smooth curves
@@ -517,8 +652,8 @@
             var smoothWind = createSmoothPath(windPoints, 10);
             var smoothWater = createSmoothPath(waterPoints, 10);
             
-            // Draw water layer (outermost)
-            ctx.fillStyle = '#95e1d3';
+            // Draw water layer (outermost) - 50% transparent
+            ctx.fillStyle = 'rgba(149, 225, 211, 0.5)';
             ctx.beginPath();
             for (var i = 0; i < smoothWind.length; i++) {
                 var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
@@ -537,8 +672,8 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw wind layer (middle)
-            ctx.fillStyle = '#4ecdc4';
+            // Draw wind layer (middle) - 50% transparent
+            ctx.fillStyle = 'rgba(78, 205, 196, 0.5)';
             ctx.beginPath();
             for (var i = 0; i < smoothTemp.length; i++) {
                 var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
@@ -557,8 +692,8 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw temperature layer (innermost)
-            ctx.fillStyle = '#ff6b6b';
+            // Draw temperature layer (innermost) - 50% transparent
+            ctx.fillStyle = 'rgba(255, 107, 107, 0.5)';
             ctx.beginPath();
             ctx.arc(cx, cy, innerRadius, startAngle, endAngle, false); // clockwise arc
             for (var i = 0; i < smoothTemp.length; i++) {
