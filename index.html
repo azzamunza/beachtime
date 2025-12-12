@@ -244,7 +244,7 @@
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
             var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
-            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&forecast_days=3';
+            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&forecast_days=3&timezone=Asia%2FSingapore';
             
             // Fetch both weather and marine data (marine is optional)
             Promise.allSettled([
@@ -302,14 +302,12 @@
             var windSpeeds = hourly.wind_speed_10m;
             
             // Process marine data if available, but don't fail if it's invalid
-            var marineHourly = null;
             var marineTimes = null;
             var seaTemperatures = null;
             
             if (marineData && marineData.hourly && marineData.hourly.time && marineData.hourly.sea_surface_temperature) {
-                marineHourly = marineData.hourly;
-                marineTimes = marineHourly.time;
-                seaTemperatures = marineHourly.sea_surface_temperature;
+                marineTimes = marineData.hourly.time;
+                seaTemperatures = marineData.hourly.sea_surface_temperature;
             } else {
                 console.warn('Marine data not available, will use estimated water temperatures');
             }
@@ -335,12 +333,19 @@
             // Create a map of marine data for easy lookup with fuzzy matching
             var marineDataMap = {};
             if (marineTimes && seaTemperatures) {
-                for (var i = 0; i < marineTimes.length; i++) {
-                    var marineTime = new Date(marineTimes[i]).getTime();
-                    marineDataMap[marineTimes[i]] = {
-                        timestamp: marineTime,
-                        temperature: seaTemperatures[i]
-                    };
+                // Validate seaTemperatures contains only valid numbers
+                var hasInvalidSeaTemp = seaTemperatures.some(function(t) { return t == null || typeof t !== 'number' || isNaN(t); });
+                
+                if (hasInvalidSeaTemp) {
+                    console.warn('Sea temperature data contains invalid values, will use estimated water temperatures');
+                } else {
+                    for (var i = 0; i < marineTimes.length; i++) {
+                        var marineTime = new Date(marineTimes[i]).getTime();
+                        marineDataMap[marineTimes[i]] = {
+                            timestamp: marineTime,
+                            temperature: seaTemperatures[i]
+                        };
+                    }
                 }
             }
             
@@ -381,7 +386,7 @@
                         } else {
                             // Find nearest time within 1 hour tolerance
                             var closestTime = null;
-                            var minDiff = ONE_HOUR_MS;
+                            var minDiff = Infinity;
                             
                             for (var marineKey in marineDataMap) {
                                 var timeDiff = Math.abs(marineDataMap[marineKey].timestamp - currentTime);
@@ -391,7 +396,8 @@
                                 }
                             }
                             
-                            if (closestTime) {
+                            // Only use the closest match if it's within 1 hour tolerance
+                            if (closestTime && minDiff <= ONE_HOUR_MS) {
                                 waterTemp = marineDataMap[closestTime].temperature;
                             }
                         }
@@ -592,9 +598,17 @@
             canvas.height = height;
             
             var cx = width / 2;
-            var cy = height; // Position center at bottom of canvas
             var innerRadius = width * 0.15;
-            var maxHeight = width * 0.28;
+            
+            // Calculate maxHeight to ensure chart fits within canvas bounds
+            // The semicircle extends from bottom to top, so cy must be positioned such that
+            // the maximum radius (innerRadius + 3*maxHeight) doesn't exceed cy
+            // Also need space for labels below, so use height * 0.9 as max cy
+            var maxCy = height * 0.95; // Leave 5% at bottom for potential labels
+            var maxTotalRadius = maxCy; // Maximum radius we can afford
+            var maxHeight = (maxTotalRadius - innerRadius) / 3; // Divide remaining space among 3 layers
+            
+            var cy = maxCy; // Position center to allow full semicircle within canvas
             
             ctx.clearRect(0, 0, width, height);
             
