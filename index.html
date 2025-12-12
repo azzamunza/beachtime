@@ -268,14 +268,14 @@
                         return;
                     }
                     
-                    var weatherData = weatherResult.value;
+                    var weatherApiData = weatherResult.value;
                     var marineData = marineResult.status === 'fulfilled' ? marineResult.value : null;
                     
                     if (marineResult.status === 'rejected') {
                         console.warn('Marine data unavailable, using estimated values:', marineResult.reason);
                     }
                     
-                    processWeatherData(weatherData, marineData);
+                    processWeatherData(weatherApiData, marineData);
                     isLoading = false;
                     updateChart();
                     updateDateDisplay();
