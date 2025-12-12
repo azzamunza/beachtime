@@ -768,13 +768,15 @@
         }
         
         document.getElementById('globalDaySelector').addEventListener('click', function(e) {
-            if (e.target.classList.contains('day-btn')) {
+            // Use closest() to handle clicks on button or any child elements
+            var button = e.target.closest('.day-btn');
+            if (button) {
                 var buttons = document.querySelectorAll('.day-btn');
                 for (var i = 0; i < buttons.length; i++) {
                     buttons[i].classList.remove('active');
                 }
-                e.target.classList.add('active');
-                currentDay = parseInt(e.target.getAttribute('data-day'));
+                button.classList.add('active');
+                currentDay = parseInt(button.getAttribute('data-day'));
                 updateChart();
             }
         });
