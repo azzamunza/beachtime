@@ -603,8 +603,7 @@
             // Calculate maxHeight to ensure chart fits within canvas bounds
             // The semicircle extends from bottom to top, so cy must be positioned such that
             // the maximum radius (innerRadius + 3*maxHeight) doesn't exceed cy
-            // Also need space for labels below, so use height * 0.9 as max cy
-            var maxCy = height * 0.95; // Leave 5% at bottom for potential labels
+            var maxCy = height * 0.95; // Leave 5% margin to prevent edge clipping artifacts
             var maxTotalRadius = maxCy; // Maximum radius we can afford
             var maxHeight = (maxTotalRadius - innerRadius) / 3; // Divide remaining space among 3 layers
             
