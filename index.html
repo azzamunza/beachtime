@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<! DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,8 +12,8 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family:  'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:  linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 20px;
             min-height: 100vh;
             display: flex;
@@ -49,18 +49,18 @@
             background: rgba(255,255,255,0.2);
             color: white;
             cursor: pointer;
-            font-size: 1.1em;
+            font-size: 1. 1em;
             font-weight: bold;
             transition: all 0.3s;
             backdrop-filter: blur(10px);
         }
         
-        .day-btn:hover {
+        . day-btn: hover {
             background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
         }
         
-        .day-btn.active {
+        .day-btn. active {
             background: white;
             color: #667eea;
             transform: scale(1.05);
@@ -84,7 +84,7 @@
             text-align: center;
             color: #666;
             margin-bottom: 30px;
-            font-size: 1em;
+            font-size:  1em;
         }
         
         .canvas-container {
@@ -106,7 +106,7 @@
             display: flex;
             justify-content: center;
             gap: 30px;
-            margin-top: 30px;
+            margin-top:  30px;
             flex-wrap: wrap;
         }
         
@@ -120,14 +120,14 @@
         .legend-color {
             width: 30px;
             height: 30px;
-            border-radius: 6px;
+            border-radius:  6px;
         }
         
         .info-box {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             border-radius: 12px;
             padding: 20px;
-            margin-top: 25px;
+            margin-top:  25px;
             text-align: center;
         }
         
@@ -141,7 +141,7 @@
         .info-text {
             color: #555;
             font-size: 0.95em;
-            line-height: 1.6;
+            line-height:  1.6;
         }
         
         .location-label {
@@ -165,9 +165,9 @@
         
         .warning-box {
             background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
-            border: 2px solid #ef5350;
-            border-radius: 12px;
-            padding: 30px;
+            border:  2px solid #ef5350;
+            border-radius:  12px;
+            padding:  30px;
             margin-top: 25px;
             text-align: center;
         }
@@ -176,7 +176,7 @@
             font-weight: bold;
             color: #c62828;
             margin-bottom: 10px;
-            font-size: 1.3em;
+            font-size:  1.3em;
         }
         
         .warning-text {
@@ -191,9 +191,6 @@
         <h1>🏖️ Swanbourne Beach Conditions</h1>
         
         <div class="day-selector" id="globalDaySelector">
-            <button class="day-btn active" data-day="0">Today (Dec 11)</button>
-            <button class="day-btn" data-day="1">Tomorrow (Dec 12)</button>
-            <button class="day-btn" data-day="2">Day 3 (Dec 13)</button>
         </div>
         
         <div class="viz-card">
@@ -212,7 +209,7 @@
             <div class="legend">
                 <div class="legend-item">
                     <div class="legend-color" style="background: #ff6b6b;"></div>
-                    <span><strong>Temperature</strong> (ideal: 32°C)</span>
+                    <span><strong>Temperature</strong> (ideal:  32°C)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #4ecdc4;"></div>
@@ -228,8 +225,8 @@
                 <div class="info-title">How to Read This Chart</div>
                 <div class="info-text">
                     The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
-                    Each colored layer represents a different metric. Thicker bands indicate better scores 
-                    (closer to ideal conditions). The three layers stack to show overall conditions at each time. 
+                    Each colored layer represents a different metric.  Thicker bands indicate better scores 
+                    (closer to ideal conditions). The three layers stack to show overall conditions at each time.  
                     Time labels and detailed readings appear around the outside of the chart.
                 </div>
             </div>
@@ -243,8 +240,8 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
-            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
+            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast? latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
+            var marineApiUrl = 'https://marine-api.open-meteo. com/v1/marine? latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
             
             // Fetch both weather and marine data (marine is optional)
             Promise.allSettled([
@@ -262,7 +259,7 @@
                     var marineResult = results[1];
                     
                     if (weatherResult.status === 'rejected') {
-                        console.error('Error fetching weather data:', weatherResult.reason);
+                        console.error('Error fetching weather data:', weatherResult. reason);
                         showDataWarning('Failed to load weather data from API');
                         isLoading = false;
                         return;
@@ -290,7 +287,7 @@
         
         function processWeatherData(data, marineData) {
             // Validate API response structure
-            if (!data || !data.hourly || !data.hourly.time || !data.hourly.temperature_2m || !data.hourly.wind_speed_10m) {
+            if (!data || !data.hourly || !data.hourly. time || !data.hourly.temperature_2m || !data.hourly.wind_speed_10m) {
                 console.error('Invalid API response structure');
                 showDataWarning('Invalid data format received from API');
                 return;
@@ -306,7 +303,7 @@
             var seaTemperatures = null;
             
             if (marineData && marineData.hourly && marineData.hourly.time && marineData.hourly.sea_surface_temperature) {
-                marineTimes = marineData.hourly.time;
+                marineTimes = marineData. hourly.time;
                 seaTemperatures = marineData.hourly.sea_surface_temperature;
             } else {
                 console.warn('Marine data not available, will use estimated water temperatures');
@@ -337,7 +334,7 @@
                 var hasInvalidSeaTemp = seaTemperatures.some(function(t) { return t == null || typeof t !== 'number' || isNaN(t); });
                 
                 if (hasInvalidSeaTemp) {
-                    console.warn('Sea temperature data contains invalid values, will use estimated water temperatures');
+                    console. warn('Sea temperature data contains invalid values, will use estimated water temperatures');
                 } else {
                     for (var i = 0; i < marineTimes.length; i++) {
                         var marineTime = new Date(marineTimes[i]).getTime();
@@ -389,7 +386,7 @@
                             var minDiff = Infinity;
                             
                             for (var marineKey in marineDataMap) {
-                                var timeDiff = Math.abs(marineDataMap[marineKey].timestamp - currentTime);
+                                var timeDiff = Math.abs(marineDataMap[marineKey]. timestamp - currentTime);
                                 if (timeDiff < minDiff) {
                                     minDiff = timeDiff;
                                     closestTime = marineKey;
@@ -417,7 +414,7 @@
             weatherData = Object.values(dayMap);
             
             if (weatherData.length === 0) {
-                console.error('No valid weather data found in the expected time range');
+                console. error('No valid weather data found in the expected time range');
                 showDataWarning('No weather data available for the selected time period');
                 return;
             }
@@ -463,16 +460,16 @@
         }
         
         function updateDayButtons() {
-            var daySelector = document.getElementById('globalDaySelector');
+            var daySelector = document. getElementById('globalDaySelector');
             daySelector.innerHTML = '';
             
-            for (var i = 0; i < weatherData.length && i < 3; i++) {
+            for (var i = 0; i < weatherData. length && i < 3; i++) {
                 var btn = document.createElement('button');
                 btn.className = 'day-btn' + (i === currentDay ? ' active' : '');
                 btn.setAttribute('data-day', i);
                 
                 var dateObj = new Date(weatherData[i].date + 'T00:00:00');
-                var dayLabel = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : 'Day ' + (i + 1);
+                var dayLabel = i === 0 ?  'Today' :  i === 1 ? 'Tomorrow' : 'Day ' + (i + 1);
                 var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 btn.textContent = dayLabel + ' (' + monthDay + ')';
                 
@@ -481,7 +478,7 @@
         }
         
         // Calculate a normalized score from 0 to 1 based on how close value is to ideal
-        // Uses exponential decay: closer to ideal = higher score
+        // Uses exponential decay:  closer to ideal = higher score
         function calculateRating(value, ideal, min, max) {
             var distance;
             
@@ -544,7 +541,7 @@
                 });
             }
             // Sort scores by hour to ensure chronological order (7am to 7pm)
-            scores.sort(function(a, b) { return a.hour - b.hour; });
+            scores. sort(function(a, b) { return a.hour - b.hour; });
             return scores;
         }
         
@@ -595,7 +592,7 @@
             
             // Make canvas responsive to container width
             var container = canvas.parentElement;
-            if (!container) return;
+            if (! container) return;
             var containerWidth = container.clientWidth;
             var width = containerWidth || 1000; // Fallback to default width
             var height = width * 0.6; // Aspect ratio adjusted for larger display (60% height)
@@ -615,8 +612,8 @@
             var cx = width / 2;
             var cy = height - bottomPadding; // Position near bottom with small margin
             
-            // Maximum radius is constrained by available space:
-            // 1. Vertical: cy - topPadding (for top labels)
+            // Maximum radius is constrained by available space: 
+            // 1. Vertical:  cy - topPadding (for top labels)
             // 2. Horizontal: cx - sidePadding (for left/right labels, center is at width/2)
             var maxRadiusVertical = cy - topPadding;
             var maxRadiusHorizontal = cx - sidePadding;
@@ -648,7 +645,7 @@
                 var windLayerHeight = s.windScore * maxHeight;
                 var waterLayerHeight = s.waterScore * maxHeight;
                 
-                // Layers are stacked: temp (innermost), wind (middle), water (outermost)
+                // Layers are stacked:  temp (innermost), wind (middle), water (outermost)
                 tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
                 windPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight });
                 waterPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight + waterLayerHeight });
@@ -664,12 +661,12 @@
             ctx.beginPath();
             for (var i = 0; i < smoothWind.length; i++) {
                 var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
-                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math. sin(smoothWind[i]. angle) * smoothWind[i].radius;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             for (var i = smoothWater.length - 1; i >= 0; i--) {
-                var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
+                var x = cx + Math. cos(smoothWater[i]. angle) * smoothWater[i].radius;
                 var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
                 ctx.lineTo(x, y);
             }
@@ -684,14 +681,14 @@
             ctx.beginPath();
             for (var i = 0; i < smoothTemp.length; i++) {
                 var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
-                var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
+                var y = cy + Math.sin(smoothTemp[i]. angle) * smoothTemp[i].radius;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             for (var i = smoothWind.length - 1; i >= 0; i--) {
                 var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
                 var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
-                ctx.lineTo(x, y);
+                ctx. lineTo(x, y);
             }
             ctx.closePath();
             ctx.fill();
@@ -753,7 +750,7 @@
                 ctx.fillStyle = '#4ecdc4';
                 ctx.fillText(s.wind + ' km/h', dx, dy);
                 ctx.fillStyle = '#95e1d3';
-                ctx.fillText(s.water + '°C', dx, dy + 20);
+                ctx. fillText(s.water + '°C', dx, dy + 20);
             }
             
             // Center circle is now empty (no label)
