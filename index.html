@@ -598,8 +598,8 @@
             canvas.height = height;
             
             // Calculate spacing for labels around the chart
-            // Labels need space on all sides: top, left, and right
-            var dataLabelOffset = 90; // Distance from chart edge to data labels (outer ring)
+            // Labels are positioned at radius + 50, data values at radius + 90
+            // Reserve space on all sides for these labels
             var sidePadding = 120; // Space needed on left/right for labels + data values
             var topPadding = 100; // Space needed at top for labels + data values
             var bottomPadding = 20; // Small space at bottom
@@ -608,11 +608,11 @@
             var cx = width / 2;
             var cy = height - bottomPadding; // Position near bottom with small margin
             
-            // Maximum radius is constrained by:
-            // 1. Vertical space: cy - topPadding (for top labels)
-            // 2. Horizontal space: min(cx - sidePadding, width - cx - sidePadding) (for left/right labels)
+            // Maximum radius is constrained by available space:
+            // 1. Vertical: cy - topPadding (for top labels)
+            // 2. Horizontal: cx - sidePadding (for left/right labels, center is at width/2)
             var maxRadiusVertical = cy - topPadding;
-            var maxRadiusHorizontal = Math.min(cx - sidePadding, width - cx - sidePadding);
+            var maxRadiusHorizontal = cx - sidePadding;
             var maxAllowedRadius = Math.min(maxRadiusVertical, maxRadiusHorizontal);
             
             // Calculate inner radius and layer heights
