@@ -98,7 +98,7 @@
         
         canvas {
             display: block;
-            max-width: 100%;
+            width: 100%;
             height: auto;
         }
         
@@ -201,7 +201,7 @@
             <p class="viz-subtitle">Stacked smooth curves showing conditions throughout the day</p>
             
             <div class="canvas-container">
-                <canvas id="mainCanvas" width="700" height="400"></canvas>
+                <canvas id="mainCanvas"></canvas>
             </div>
             
             <div class="location-label">
@@ -243,30 +243,37 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var apiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
+            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
+            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&forecast_days=3';
             
-            fetch(apiUrl)
-                .then(function(response) {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch weather data');
-                    }
+            // Fetch both weather and marine data
+            Promise.all([
+                fetch(weatherApiUrl).then(function(response) {
+                    if (!response.ok) throw new Error('Failed to fetch weather data');
+                    return response.json();
+                }),
+                fetch(marineApiUrl).then(function(response) {
+                    if (!response.ok) throw new Error('Failed to fetch marine data');
                     return response.json();
                 })
-                .then(function(data) {
-                    processWeatherData(data);
+            ])
+                .then(function(results) {
+                    var weatherData = results[0];
+                    var marineData = results[1];
+                    processWeatherData(weatherData, marineData);
                     isLoading = false;
                     updateChart();
                     updateDateDisplay();
                     updateDayButtons();
                 })
                 .catch(function(error) {
-                    console.error('Error fetching weather data:', error);
-                    showDataWarning('Failed to load weather data from API');
+                    console.error('Error fetching data:', error);
+                    showDataWarning('Failed to load data from API');
                     isLoading = false;
                 });
         }
         
-        function processWeatherData(data) {
+        function processWeatherData(data, marineData) {
             // Validate API response structure
             if (!data || !data.hourly || !data.hourly.time || !data.hourly.temperature_2m || !data.hourly.wind_speed_10m) {
                 console.error('Invalid API response structure');
@@ -274,10 +281,20 @@
                 return;
             }
             
+            if (!marineData || !marineData.hourly || !marineData.hourly.time || !marineData.hourly.sea_surface_temperature) {
+                console.error('Invalid marine API response structure');
+                showDataWarning('Invalid marine data format received from API');
+                return;
+            }
+            
             var hourly = data.hourly;
             var times = hourly.time;
             var temperatures = hourly.temperature_2m;
             var windSpeeds = hourly.wind_speed_10m;
+            
+            var marineHourly = marineData.hourly;
+            var marineTimes = marineHourly.time;
+            var seaTemperatures = marineHourly.sea_surface_temperature;
             
             // Validate that temperature and wind data are arrays with values
             if (!Array.isArray(temperatures) || !Array.isArray(windSpeeds) || 
@@ -295,6 +312,12 @@
                 console.error('Temperature or wind data contains invalid values');
                 showDataWarning('Temperature or wind data contains invalid values');
                 return;
+            }
+            
+            // Create a map of marine data for easy lookup
+            var marineDataMap = {};
+            for (var i = 0; i < marineTimes.length; i++) {
+                marineDataMap[marineTimes[i]] = seaTemperatures[i];
             }
             
             // Group data by day
@@ -320,8 +343,15 @@
                     dayMap[dateKey].hours.push(hour);
                     dayMap[dateKey].temp.push(Math.round(temperatures[i]));
                     dayMap[dateKey].wind.push(Math.round(windSpeeds[i]));
-                    // Estimate water temperature (typically 2-3°C cooler than air)
-                    dayMap[dateKey].water.push(Math.round((temperatures[i] - 2.5) * 10) / 10);
+                    
+                    // Get water temperature from marine API or estimate if not available
+                    var waterTemp = marineDataMap[times[i]];
+                    if (waterTemp != null && typeof waterTemp === 'number' && !isNaN(waterTemp)) {
+                        dayMap[dateKey].water.push(Math.round(waterTemp * 10) / 10);
+                    } else {
+                        // Fallback to estimate
+                        dayMap[dateKey].water.push(Math.round((temperatures[i] - 2.5) * 10) / 10);
+                    }
                 }
             }
             
@@ -479,8 +509,16 @@
             if (!canvas) return;
             var ctx = canvas.getContext('2d');
             
-            var width = 700;
-            var height = 400;
+            // Make canvas responsive to container width
+            var container = canvas.parentElement;
+            var containerWidth = container.clientWidth;
+            var width = containerWidth;
+            var height = width * (400 / 700); // Maintain aspect ratio
+            
+            // Set canvas dimensions
+            canvas.width = width;
+            canvas.height = height;
+            
             var cx = width / 2;
             var cy = height; // Position center at bottom of canvas
             var innerRadius = width * 0.15;
@@ -517,8 +555,8 @@
             var smoothWind = createSmoothPath(windPoints, 10);
             var smoothWater = createSmoothPath(waterPoints, 10);
             
-            // Draw water layer (outermost)
-            ctx.fillStyle = '#95e1d3';
+            // Draw water layer (outermost) - 50% transparent
+            ctx.fillStyle = 'rgba(149, 225, 211, 0.5)';
             ctx.beginPath();
             for (var i = 0; i < smoothWind.length; i++) {
                 var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
@@ -537,8 +575,8 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw wind layer (middle)
-            ctx.fillStyle = '#4ecdc4';
+            // Draw wind layer (middle) - 50% transparent
+            ctx.fillStyle = 'rgba(78, 205, 196, 0.5)';
             ctx.beginPath();
             for (var i = 0; i < smoothTemp.length; i++) {
                 var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
@@ -557,8 +595,8 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw temperature layer (innermost)
-            ctx.fillStyle = '#ff6b6b';
+            // Draw temperature layer (innermost) - 50% transparent
+            ctx.fillStyle = 'rgba(255, 107, 107, 0.5)';
             ctx.beginPath();
             ctx.arc(cx, cy, innerRadius, startAngle, endAngle, false); // clockwise arc
             for (var i = 0; i < smoothTemp.length; i++) {
