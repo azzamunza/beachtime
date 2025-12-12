@@ -423,6 +423,11 @@
             // Convert to array and validate we have data
             weatherData = Object.values(dayMap);
             
+            // Sort weatherData by date to ensure chronological order
+            weatherData.sort(function(a, b) {
+                return new Date(a.date) - new Date(b.date);
+            });
+            
             if (weatherData.length === 0) {
                 console. error('No valid weather data found in the expected time range');
                 showDataWarning('No weather data available for the selected time period');
@@ -479,24 +484,10 @@
                 btn.setAttribute('data-day', i);
                 
                 var dateObj = new Date(weatherData[i].date + 'T00:00:00');
-                var dayOffset = weatherData[i].dayOffset;
-                
-                // Generate label based on actual day offset from today
-                var dayLabel;
-                if (dayOffset === 0) {
-                    dayLabel = 'Today';
-                } else if (dayOffset === 1) {
-                    dayLabel = 'Tomorrow';
-                } else if (dayOffset > 1) {
-                    dayLabel = 'Day ' + (dayOffset + 1);
-                } else {
-                    // Handle past dates (negative offset)
-                    var daysAgo = Math.abs(dayOffset);
-                    dayLabel = daysAgo + (daysAgo === 1 ? ' day ago' : ' days ago');
-                }
-                
                 var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                btn.textContent = dayLabel + ' (' + monthDay + ')';
+                
+                // Display the actual date for each sequential day
+                btn.textContent = monthDay;
                 
                 daySelector.appendChild(btn);
             }
