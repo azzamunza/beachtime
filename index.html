@@ -469,29 +469,38 @@
             }
         }
         
+        // Calculate a normalized score from 0 to 1 based on how close value is to ideal
+        // Uses exponential decay: closer to ideal = higher score
         function calculateRating(value, ideal, min, max) {
             var distance;
             
             if (Array.isArray(ideal)) {
+                // Ideal is a range [min_ideal, max_ideal]
                 if (value >= ideal[0] && value <= ideal[1]) {
-                    distance = 0;
+                    distance = 0; // Perfect score
                 } else if (value < ideal[0]) {
                     distance = ideal[0] - value;
                 } else {
                     distance = value - ideal[1];
                 }
             } else {
+                // Ideal is a single value
                 distance = Math.abs(value - ideal);
             }
             
+            // Calculate maximum possible distance from ideal
             var maxDistance = Math.max(
                 Array.isArray(ideal) ? Math.abs(ideal[0] - min) : Math.abs(ideal - min),
                 Array.isArray(ideal) ? Math.abs(max - ideal[1]) : Math.abs(max - ideal)
             );
             
+            // Exponential decay function: exp(-k * distance^2)
+            // k is chosen so that at maxDistance, score ≈ 0.05 (5%)
             var k = 3 / (maxDistance * maxDistance);
             var score = Math.exp(-k * distance * distance);
-            return 2 * score - 1;
+            
+            // Score is now 0-1, where 1 = ideal, 0 = worst possible
+            return score;
         }
         
         function calculateDayScores(dayData) {
@@ -594,9 +603,10 @@
                 var t = i / (scores.length - 1);
                 var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
                 
-                var tempHeight = ((s.tempScore + 1) / 2) * maxHeight;
-                var windHeight = ((s.windScore + 1) / 2) * maxHeight;
-                var waterHeight = ((s.waterScore + 1) / 2) * maxHeight;
+                // Scores are now 0-1, use directly
+                var tempHeight = s.tempScore * maxHeight;
+                var windHeight = s.windScore * maxHeight;
+                var waterHeight = s.waterScore * maxHeight;
                 
                 tempPoints.push({ angle: angle, radius: innerRadius + tempHeight });
                 windPoints.push({ angle: angle, radius: innerRadius + tempHeight + windHeight });
