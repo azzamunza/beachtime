@@ -346,6 +346,11 @@
                 }
             }
             
+            // Get today's date (normalized to midnight in local timezone)
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            var todayKey = today.toISOString().split('T')[0];
+            
             // Group data by day
             var dayMap = {};
             
@@ -357,8 +362,13 @@
                 // Only include hours from 7am to 7pm
                 if (hour >= 7 && hour <= 19) {
                     if (!dayMap[dateKey]) {
+                        // Calculate day offset from today
+                        var dataDate = new Date(dateKey + 'T00:00:00');
+                        var dayOffset = Math.round((dataDate - today) / (1000 * 60 * 60 * 24));
+                        
                         dayMap[dateKey] = {
                             date: dateKey,
+                            dayOffset: dayOffset,
                             hours: [],
                             temp: [],
                             wind: [],
@@ -469,7 +479,22 @@
                 btn.setAttribute('data-day', i);
                 
                 var dateObj = new Date(weatherData[i].date + 'T00:00:00');
-                var dayLabel = i === 0 ?  'Today' :  i === 1 ? 'Tomorrow' : 'Day ' + (i + 1);
+                var dayOffset = weatherData[i].dayOffset;
+                
+                // Generate label based on actual day offset from today
+                var dayLabel;
+                if (dayOffset === 0) {
+                    dayLabel = 'Today';
+                } else if (dayOffset === 1) {
+                    dayLabel = 'Tomorrow';
+                } else if (dayOffset > 1) {
+                    dayLabel = 'Day ' + (dayOffset + 1);
+                } else {
+                    // Handle past dates (negative offset)
+                    var daysAgo = Math.abs(dayOffset);
+                    dayLabel = daysAgo + (daysAgo === 1 ? ' day ago' : ' days ago');
+                }
+                
                 var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 btn.textContent = dayLabel + ' (' + monthDay + ')';
                 
