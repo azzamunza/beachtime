@@ -243,8 +243,8 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&forecast_days=3&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
-            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&forecast_days=3&timezone=Asia%2FSingapore';
+            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
+            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
             
             // Fetch both weather and marine data (marine is optional)
             Promise.allSettled([
