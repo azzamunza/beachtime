@@ -505,7 +505,7 @@
             }
             
             // Exponential decay function: exp(-k * distance^2)
-            // k is chosen so that at maxDistance, score ≈ 0.05 (5%)
+            // k = 3/maxDistance² so that at maxDistance, score = exp(-3) ≈ 0.05
             var k = 3 / (maxDistance * maxDistance);
             var score = Math.exp(-k * distance * distance);
             
