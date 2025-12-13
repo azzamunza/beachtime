@@ -246,7 +246,7 @@
             };
             
             document.title = 'Swanbourne Beach, Western Australia, Australia - BeachTime';
-            getWeatherData(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
+            getWeatherData();
         }
 
         function showDataWarning(message) {
@@ -284,8 +284,8 @@
                     var displayName = result.name + (result.admin1 ? ', ' + result.admin1 : '') + (result.country ? ', ' + result.country : '');
                     document.title = displayName + ' - BeachTime';
 
-                    // Get weather data
-                    getWeatherData(result.latitude, result.longitude);
+                    // Get weather data (always Swanbourne Beach regardless of search)
+                    getWeatherData();
                 })
                 .catch(function(error) {
                     console.error('Error:', error);
@@ -294,11 +294,11 @@
                 });
         }
 
-        function getWeatherData(latitude, longitude) {
-            // Fetch weather data - using fixed Swanbourne Beach coordinates
+        function getWeatherData() {
+            // Fetch weather data - fixed for Swanbourne Beach, Western Australia
             var weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
             
-            // Fetch marine data - using fixed Swanbourne Beach coordinates
+            // Fetch marine data - fixed for Swanbourne Beach, Western Australia
             var marineUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
 
             Promise.all([
