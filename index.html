@@ -216,9 +216,9 @@
         var weatherData = [];
         var uniqueDates = [];
         
-        // Default location: Miami Beach, Florida
-        var DEFAULT_LATITUDE = 25.7907;
-        var DEFAULT_LONGITUDE = -80.1300;
+        // Default location: Swanbourne Beach, Western Australia
+        var DEFAULT_LATITUDE = -31.9688;
+        var DEFAULT_LONGITUDE = 115.7673;
 
         // Initialize
         document.getElementById('searchBtn').addEventListener('click', searchLocation);
@@ -226,7 +226,7 @@
             if (e.key === 'Enter') searchLocation();
         });
 
-        // Auto-load with default location (Miami Beach, Florida)
+        // Auto-load with default location (Swanbourne Beach, Western Australia)
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', loadDefaultLocation);
         } else {
@@ -238,14 +238,14 @@
             hideDataWarning();
             
             currentLocation = {
-                name: 'Miami Beach',
-                admin1: 'Florida',
-                country: 'United States',
+                name: 'Swanbourne Beach',
+                admin1: 'Western Australia',
+                country: 'Australia',
                 latitude: DEFAULT_LATITUDE,
                 longitude: DEFAULT_LONGITUDE
             };
             
-            document.title = 'Miami Beach, Florida, United States - BeachTime';
+            document.title = 'Swanbourne Beach, Western Australia, Australia - BeachTime';
             getWeatherData(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
         }
 
@@ -295,11 +295,11 @@
         }
 
         function getWeatherData(latitude, longitude) {
-            // Fetch weather data
-            var weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&hourly=temperature_2m,wind_speed_10m&timezone=auto&forecast_days=16';
+            // Fetch weather data - using fixed Swanbourne Beach coordinates
+            var weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
             
-            // Fetch marine data
-            var marineUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=' + latitude + '&longitude=' + longitude + '&hourly=sea_surface_temperature&timezone=auto&forecast_days=16';
+            // Fetch marine data - using fixed Swanbourne Beach coordinates
+            var marineUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
 
             Promise.all([
                 fetch(weatherUrl).then(function(r) { return r.json(); }),
