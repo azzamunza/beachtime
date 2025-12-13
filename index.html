@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+<! DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeachTime - Forecast</title>
+    <title>Radial Smooth Spline - Swanbourne Beach</title>
     <style>
         * {
             margin: 0;
@@ -12,324 +12,282 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family:  'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:  linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
         }
         
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            padding: 40px;
-            max-width: 900px;
+            max-width: 1200px;
             width: 100%;
         }
         
         h1 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-        }
-        
-        .subtitle {
-            color: #666;
-            margin-bottom: 30px;
-            font-size: 1.1em;
-        }
-        
-        .location-input-group {
-            display: none;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-        
-        #locationInput {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border-color 0.3s;
-        }
-        
-        #locationInput:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        #searchBtn {
-            padding: 12px 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            text-align: center;
             color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        
-        #searchBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        #searchBtn:active {
-            transform: translateY(0);
-        }
-        
-        .data-warning {
-            background: #fff3cd;
-            border: 1px solid #ffc107;
-            color: #856404;
-            padding: 15px;
-            border-radius: 8px;
             margin-bottom: 20px;
-            display: none;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
         .day-selector {
             display: flex;
             gap: 10px;
             margin-bottom: 30px;
+            justify-content: center;
             flex-wrap: wrap;
-            justify-content: flex-start;
         }
         
         .day-btn {
-            padding: 10px 20px;
-            background: #f0f0f0;
-            color: #333;
-            border: 2px solid transparent;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            font-size: 0.95em;
-        }
-        
-        .day-btn:hover {
-            background: #e0e0e0;
-        }
-        
-        .day-btn.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
             color: white;
-            border-color: #667eea;
+            cursor: pointer;
+            font-size: 1. 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
         }
         
-        .weather-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+        . day-btn: hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
         }
         
-        .weather-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
+        .day-btn. active {
+            background: white;
+            color: #667eea;
+            transform: scale(1.05);
         }
         
-        .weather-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        .viz-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         
-        .weather-card h3 {
+        .viz-title {
+            font-size: 1.8em;
+            margin-bottom: 10px;
             color: #333;
-            margin-bottom: 15px;
-            font-size: 1.2em;
+            text-align: center;
         }
         
-        .weather-metric {
-            margin: 10px 0;
-            color: #555;
-            font-size: 0.95em;
-        }
-        
-        .weather-metric strong {
-            color: #333;
-        }
-        
-        .loading {
+        .viz-subtitle {
             text-align: center;
             color: #666;
-            font-size: 1.1em;
+            margin-bottom: 30px;
+            font-size:  1em;
         }
         
-        .error {
-            color: #d32f2f;
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top:  30px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1em;
+        }
+        
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius:  6px;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top:  25px;
             text-align: center;
+        }
+        
+        .info-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
             font-size: 1.1em;
         }
         
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 2em;
-            }
-            
-            .location-input-group {
-                flex-direction: column;
-            }
-            
-            .weather-grid {
-                grid-template-columns: 1fr;
-            }
+        .info-text {
+            color: #555;
+            font-size: 0.95em;
+            line-height:  1.6;
+        }
+        
+        .location-label {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .location-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .location-date {
+            font-size: 1em;
+            color: #666;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border:  2px solid #ef5350;
+            border-radius:  12px;
+            padding:  30px;
+            margin-top: 25px;
+            text-align: center;
+        }
+        
+        .warning-title {
+            font-weight: bold;
+            color: #c62828;
+            margin-bottom: 10px;
+            font-size:  1.3em;
+        }
+        
+        .warning-text {
+            color: #d32f2f;
+            font-size: 1em;
+            line-height: 1.6;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏖️ BeachTime</h1>
-        <p class="subtitle">Your beach weather forecast</p>
+        <h1>🏖️ Swanbourne Beach Conditions</h1>
         
-        <div class="location-input-group">
-            <input type="text" id="locationInput" placeholder="Enter a location (e.g., 'Swanbourne Beach, Western Australia')" />
-            <button id="searchBtn">Search</button>
+        <div class="day-selector" id="globalDaySelector">
         </div>
         
-        <div class="data-warning" id="dataWarning"></div>
-        
-        <div id="daySelector" class="day-selector" id="globalDaySelector"></div>
-        
-        <div id="weatherDisplay">
-            <p class="loading">Loading weather data...</p>
+        <div class="viz-card">
+            <h2 class="viz-title">Swanbourne Beach</h2>
+            <p class="viz-subtitle" id="chartDate">Loading...</p>
+            
+            <div class="canvas-container">
+                <canvas id="mainCanvas"></canvas>
+            </div>
+            
+            <div class="location-label">
+                <div class="location-name">Swanbourne Beach</div>
+                <div class="location-date" id="currentDate">Loading...</div>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span><strong>Temperature</strong> (ideal:  32°C)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
+                    <span><strong>Wind Speed</strong> (ideal: 0-15 km/h)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #95e1d3;"></div>
+                    <span><strong>Water Temp</strong> (warmer is better)</span>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">How to Read This Chart</div>
+                <div class="info-text">
+                    The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
+                    Each colored layer represents a different metric.  Thicker bands indicate better scores 
+                    (closer to ideal conditions). The three layers stack to show overall conditions at each time.  
+                    Time labels and detailed readings appear around the outside of the chart.
+                </div>
+            </div>
         </div>
     </div>
-
+    
     <script>
-        // Global variables
-        var currentLocation = null;
-        var currentDay = 0;
         var weatherData = [];
-        var uniqueDates = [];
+        var currentDay = 0;
+        var isLoading = true;
         
-        // Default location: Swanbourne Beach, Western Australia
-        var DEFAULT_LATITUDE = -31.9688;
-        var DEFAULT_LONGITUDE = 115.7673;
-
-        // Initialize
-        document.getElementById('searchBtn').addEventListener('click', searchLocation);
-        document.getElementById('locationInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') searchLocation();
-        });
-
-        // Auto-load with default location (Swanbourne Beach, Western Australia)
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', loadDefaultLocation);
-        } else {
-            loadDefaultLocation();
-        }
-
-        function loadDefaultLocation() {
-            showLoading();
-            hideDataWarning();
+        // Fetch weather data from Open-Meteo API
+        function fetchWeatherData() {
+            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
+            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
             
-            currentLocation = {
-                name: 'Swanbourne Beach',
-                admin1: 'Western Australia',
-                country: 'Australia',
-                latitude: DEFAULT_LATITUDE,
-                longitude: DEFAULT_LONGITUDE
-            };
-            
-            document.title = 'Swanbourne Beach, Western Australia, Australia - BeachTime';
-            getWeatherData();
-        }
-
-        function showDataWarning(message) {
-            var warningElement = document.getElementById('dataWarning');
-            warningElement.textContent = message;
-            warningElement.style.display = 'block';
-        }
-
-        function hideDataWarning() {
-            document.getElementById('dataWarning').style.display = 'none';
-        }
-
-        function searchLocation() {
-            var location = document.getElementById('locationInput').value.trim();
-            if (!location) {
-                showDataWarning('Please enter a location');
-                return;
-            }
-
-            showLoading();
-            hideDataWarning();
-
-            // Geocode the location
-            fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(location) + '&count=1&language=en&format=json')
-                .then(function(response) { return response.json(); })
-                .then(function(data) {
-                    if (!data.results || data.results.length === 0) {
-                        showDataWarning('Location not found. Please try another search.');
-                        showError('Location not found');
+            // Fetch both weather and marine data (marine is optional)
+            Promise.allSettled([
+                fetch(weatherApiUrl).then(function(response) {
+                    if (!response.ok) throw new Error('Failed to fetch weather data');
+                    return response.json();
+                }),
+                fetch(marineApiUrl).then(function(response) {
+                    if (!response.ok) throw new Error('Failed to fetch marine data');
+                    return response.json();
+                })
+            ])
+                .then(function(results) {
+                    var weatherResult = results[0];
+                    var marineResult = results[1];
+                    
+                    if (weatherResult.status === 'rejected') {
+                        console.error('Error fetching weather data:', weatherResult. reason);
+                        showDataWarning('Failed to load weather data from API');
+                        isLoading = false;
                         return;
                     }
-
-                    var result = data.results[0];
-                    currentLocation = result;
-                    var displayName = result.name + (result.admin1 ? ', ' + result.admin1 : '') + (result.country ? ', ' + result.country : '');
-                    document.title = displayName + ' - BeachTime';
-
-                    // Get weather data (always Swanbourne Beach regardless of search)
-                    getWeatherData();
+                    
+                    var weatherApiData = weatherResult.value;
+                    var marineData = marineResult.status === 'fulfilled' ? marineResult.value : null;
+                    
+                    if (marineResult.status === 'rejected') {
+                        console.warn('Marine data unavailable, using estimated values:', marineResult.reason);
+                    }
+                    
+                    processWeatherData(weatherApiData, marineData);
+                    isLoading = false;
+                    updateChart();
+                    updateDateDisplay();
+                    updateDayButtons();
                 })
                 .catch(function(error) {
-                    console.error('Error:', error);
-                    showDataWarning('Error searching for location. Please try again.');
-                    showError('Search error');
+                    console.error('Unexpected error:', error);
+                    showDataWarning('Failed to load data from API');
+                    isLoading = false;
                 });
         }
-
-        function getWeatherData() {
-            // Fetch weather data - fixed for Swanbourne Beach, Western Australia
-            var weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
-            
-            // Fetch marine data - fixed for Swanbourne Beach, Western Australia
-            var marineUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
-
-            Promise.all([
-                fetch(weatherUrl).then(function(r) { return r.json(); }),
-                fetch(marineUrl).then(function(r) { return r.json(); })
-            ])
-            .then(function(results) {
-                var weatherData = results[0];
-                var marineData = results[1];
-                processWeatherData(weatherData, marineData);
-                updateDayButtons();
-                displayWeather();
-            })
-            .catch(function(error) {
-                console.error('Error fetching data:', error);
-                showDataWarning('Error fetching weather data. Please try again.');
-                showError('Data fetch error');
-            });
-        }
-
-        function showLoading() {
-            document.getElementById('weatherDisplay').innerHTML = '<p class="loading">Loading...</p>';
-        }
-
-        function showError(message) {
-            document.getElementById('weatherDisplay').innerHTML = '<p class="error">' + message + '</p>';
-        }
-
+        
         function processWeatherData(data, marineData) {
             // Validate API response structure
-            if (!data || !data.hourly || !data.hourly.time || !data.hourly.temperature_2m || !data.hourly.wind_speed_10m) {
+            if (!data || !data.hourly || !data.hourly. time || !data.hourly.temperature_2m || !data.hourly.wind_speed_10m) {
                 console.error('Invalid API response structure');
                 showDataWarning('Invalid data format received from API');
                 return;
@@ -340,20 +298,12 @@
             var temperatures = hourly.temperature_2m;
             var windSpeeds = hourly.wind_speed_10m;
             
-            // Extract unique dates from the data
-            var uniqueDateSet = new Set();
-            for (var i = 0; i < times.length; i++) {
-                var dateKey = times[i].split('T')[0];
-                uniqueDateSet.add(dateKey);
-            }
-            var allDates = Array.from(uniqueDateSet).sort();
-            
             // Process marine data if available, but don't fail if it's invalid
             var marineTimes = null;
             var seaTemperatures = null;
             
             if (marineData && marineData.hourly && marineData.hourly.time && marineData.hourly.sea_surface_temperature) {
-                marineTimes = marineData.hourly.time;
+                marineTimes = marineData. hourly.time;
                 seaTemperatures = marineData.hourly.sea_surface_temperature;
             } else {
                 console.warn('Marine data not available, will use estimated water temperatures');
@@ -384,7 +334,7 @@
                 var hasInvalidSeaTemp = seaTemperatures.some(function(t) { return t == null || typeof t !== 'number' || isNaN(t); });
                 
                 if (hasInvalidSeaTemp) {
-                    console.warn('Sea temperature data contains invalid values, will use estimated water temperatures');
+                    console. warn('Sea temperature data contains invalid values, will use estimated water temperatures');
                 } else {
                     for (var i = 0; i < marineTimes.length; i++) {
                         var marineTime = new Date(marineTimes[i]).getTime();
@@ -396,7 +346,12 @@
                 }
             }
             
-            // Group data by day - dates come directly from the data, not from offsets
+            // Get today's date (normalized to midnight in local timezone)
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            var todayKey = today.toISOString().split('T')[0];
+            
+            // Group data by day
             var dayMap = {};
             
             for (var i = 0; i < times.length; i++) {
@@ -407,8 +362,13 @@
                 // Only include hours from 7am to 7pm
                 if (hour >= 7 && hour <= 19) {
                     if (!dayMap[dateKey]) {
+                        // Calculate day offset from today
+                        var dataDate = new Date(dateKey + 'T00:00:00');
+                        var dayOffset = Math.round((dataDate - today) / (1000 * 60 * 60 * 24));
+                        
                         dayMap[dateKey] = {
                             date: dateKey,
+                            dayOffset: dayOffset,
                             hours: [],
                             temp: [],
                             wind: [],
@@ -436,7 +396,7 @@
                             var minDiff = Infinity;
                             
                             for (var marineKey in marineDataMap) {
-                                var timeDiff = Math.abs(marineDataMap[marineKey].timestamp - currentTime);
+                                var timeDiff = Math.abs(marineDataMap[marineKey]. timestamp - currentTime);
                                 if (timeDiff < minDiff) {
                                     minDiff = timeDiff;
                                     closestTime = marineKey;
@@ -469,18 +429,56 @@
             });
             
             if (weatherData.length === 0) {
-                console.error('No valid weather data found in the expected time range');
+                console. error('No valid weather data found in the expected time range');
                 showDataWarning('No weather data available for the selected time period');
                 return;
             }
         }
-
+        
+        function showDataWarning(message) {
+            var vizCard = document.querySelector('.viz-card');
+            var warningBox = document.createElement('div');
+            warningBox.className = 'warning-box';
+            warningBox.innerHTML = '<div class="warning-title">⚠️ Data Error</div><div class="warning-text">' + message + '</div>';
+            
+            // Clear existing content
+            var canvasContainer = document.querySelector('.canvas-container');
+            var legend = document.querySelector('.legend');
+            var infoBox = document.querySelector('.info-box');
+            var locationLabel = document.querySelector('.location-label');
+            
+            if (canvasContainer) canvasContainer.style.display = 'none';
+            if (legend) legend.style.display = 'none';
+            if (infoBox) infoBox.style.display = 'none';
+            if (locationLabel) locationLabel.style.display = 'none';
+            
+            // Insert warning after subtitle
+            var subtitle = document.querySelector('.viz-subtitle');
+            if (subtitle) {
+                subtitle.parentNode.insertBefore(warningBox, subtitle.nextSibling);
+            }
+        }
+        
+        function updateDateDisplay() {
+            if (weatherData.length > 0 && weatherData[currentDay]) {
+                var dateStr = weatherData[currentDay].date;
+                var dateObj = new Date(dateStr + 'T00:00:00');
+                var options = { month: 'short', day: 'numeric', year: 'numeric' };
+                var formattedDate = dateObj.toLocaleDateString('en-US', options);
+                document.getElementById('currentDate').textContent = formattedDate;
+                // Also update the chart subtitle with the date
+                var chartDateElement = document.getElementById('chartDate');
+                if (chartDateElement) {
+                    chartDateElement.textContent = formattedDate;
+                }
+            }
+        }
+        
         function updateDayButtons() {
-            var daySelector = document.getElementById('daySelector');
+            var daySelector = document. getElementById('globalDaySelector');
             daySelector.innerHTML = '';
             
-            // Create buttons for ALL days in weatherData
-            for (var i = 0; i < weatherData.length; i++) {
+            for (var i = 0; i < weatherData. length && i < 3; i++) {
                 var btn = document.createElement('button');
                 btn.className = 'day-btn' + (i === currentDay ? ' active' : '');
                 btn.setAttribute('data-day', i);
@@ -488,62 +486,322 @@
                 var dateObj = new Date(weatherData[i].date + 'T00:00:00');
                 var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 
+                // Display the actual date for each sequential day
                 btn.textContent = monthDay;
+                
                 daySelector.appendChild(btn);
             }
+        }
+        
+        // Calculate a normalized score from 0 to 1 based on how close value is to ideal
+        // Uses exponential decay:  closer to ideal = higher score
+        function calculateRating(value, ideal, min, max) {
+            var distance;
             
-            // Add event listeners to day buttons
-            var dayButtons = daySelector.getElementsByClassName('day-btn');
-            for (var i = 0; i < dayButtons.length; i++) {
-                dayButtons[i].addEventListener('click', function() {
-                    currentDay = parseInt(this.getAttribute('data-day'));
-                    updateDayButtons();
-                    displayWeather();
+            if (Array.isArray(ideal)) {
+                // Ideal is a range [min_ideal, max_ideal]
+                if (value >= ideal[0] && value <= ideal[1]) {
+                    distance = 0; // Perfect score
+                } else if (value < ideal[0]) {
+                    distance = ideal[0] - value;
+                } else {
+                    distance = value - ideal[1];
+                }
+            } else {
+                // Ideal is a single value
+                distance = Math.abs(value - ideal);
+            }
+            
+            // Calculate maximum possible distance from ideal
+            var maxDistance = Math.max(
+                Array.isArray(ideal) ? Math.abs(ideal[0] - min) : Math.abs(ideal - min),
+                Array.isArray(ideal) ? Math.abs(max - ideal[1]) : Math.abs(max - ideal)
+            );
+            
+            // If already at ideal, return perfect score
+            if (distance === 0) {
+                return 1.0;
+            }
+            
+            // If maxDistance is 0, all values are ideal, return perfect score
+            if (maxDistance === 0) {
+                return 1.0;
+            }
+            
+            // Exponential decay function: exp(-k * distance^2)
+            // k = 3/maxDistance² so that at maxDistance, score = exp(-3) ≈ 0.05
+            var k = 3 / (maxDistance * maxDistance);
+            var score = Math.exp(-k * distance * distance);
+            
+            // Score is now 0-1, where 1 = ideal, 0 = worst possible
+            return score;
+        }
+        
+        function calculateDayScores(dayData) {
+            var scores = [];
+            for (var i = 0; i < dayData.hours.length; i++) {
+                var tempScore = calculateRating(dayData.temp[i], 32, 22, 40);
+                var windScore = calculateRating(dayData.wind[i], [0, 15], 0, 30);
+                var waterScore = calculateRating(dayData.water[i], 29, 19, 29);
+                var combined = (tempScore + windScore + waterScore) / 3;
+                
+                scores.push({
+                    hour: dayData.hours[i],
+                    temp: dayData.temp[i],
+                    wind: dayData.wind[i],
+                    water: dayData.water[i],
+                    tempScore: tempScore,
+                    windScore: windScore,
+                    waterScore: waterScore,
+                    combined: combined
                 });
             }
+            // Sort scores by hour to ensure chronological order (7am to 7pm)
+            scores. sort(function(a, b) { return a.hour - b.hour; });
+            return scores;
         }
-
-        function displayWeather() {
-            if (!weatherData || weatherData.length === 0) {
-                showError('No weather data available');
-                return;
+        
+        function formatTime(hour) {
+            if (hour === 12) return '12pm';
+            if (hour < 12) return hour + 'am';
+            return (hour - 12) + 'pm';
+        }
+        
+        // Catmull-Rom spline interpolation
+        function getCatmullRomPoint(t, p0, p1, p2, p3) {
+            var t2 = t * t;
+            var t3 = t2 * t;
+            
+            var v0 = (p2 - p0) * 0.5;
+            var v1 = (p3 - p1) * 0.5;
+            
+            return (2 * p1 - 2 * p2 + v0 + v1) * t3 +
+                   (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 +
+                   v0 * t + p1;
+        }
+        
+        function createSmoothPath(points, segments) {
+            var smoothPoints = [];
+            
+            for (var i = 0; i < points.length - 1; i++) {
+                var p0 = points[Math.max(0, i - 1)];
+                var p1 = points[i];
+                var p2 = points[i + 1];
+                var p3 = points[Math.min(points.length - 1, i + 2)];
+                
+                for (var s = 0; s < segments; s++) {
+                    var t = s / segments;
+                    var angle = getCatmullRomPoint(t, p0.angle, p1.angle, p2.angle, p3.angle);
+                    var radius = getCatmullRomPoint(t, p0.radius, p1.radius, p2.radius, p3.radius);
+                    smoothPoints.push({ angle: angle, radius: radius });
+                }
             }
-
-            var currentData = weatherData[currentDay];
-            var display = document.getElementById('weatherDisplay');
-
-            var avgTemp = Math.round(currentData.temp.reduce(function(a, b) { return a + b; }) / currentData.temp.length);
-            var maxTemp = Math.max.apply(null, currentData.temp);
-            var minTemp = Math.min.apply(null, currentData.temp);
-
-            var avgWind = Math.round(currentData.wind.reduce(function(a, b) { return a + b; }) / currentData.wind.length);
-            var maxWind = Math.max.apply(null, currentData.wind);
-
-            var avgWater = (currentData.water.reduce(function(a, b) { return a + b; }) / currentData.water.length).toFixed(1);
-            var maxWater = Math.max.apply(null, currentData.water);
-            var minWater = Math.min.apply(null, currentData.water);
-
-            display.innerHTML = 
-                '<div class="weather-grid">' +
-                    '<div class="weather-card">' +
-                        '<h3>🌡️ Temperature</h3>' +
-                        '<div class="weather-metric"><strong>Average:</strong> ' + avgTemp + '°C</div>' +
-                        '<div class="weather-metric"><strong>High:</strong> ' + maxTemp + '°C</div>' +
-                        '<div class="weather-metric"><strong>Low:</strong> ' + minTemp + '°C</div>' +
-                    '</div>' +
-                    '<div class="weather-card">' +
-                        '<h3>💨 Wind Speed</h3>' +
-                        '<div class="weather-metric"><strong>Average:</strong> ' + avgWind + ' km/h</div>' +
-                        '<div class="weather-metric"><strong>Max:</strong> ' + maxWind + ' km/h</div>' +
-                    '</div>' +
-                    '<div class="weather-card">' +
-                        '<h3>🌊 Water Temperature</h3>' +
-                        '<div class="weather-metric"><strong>Average:</strong> ' + avgWater + '°C</div>' +
-                        '<div class="weather-metric"><strong>High:</strong> ' + maxWater + '°C</div>' +
-                        '<div class="weather-metric"><strong>Low:</strong> ' + minWater + '°C</div>' +
-                    '</div>' +
-                '</div>';
+            
+            smoothPoints.push(points[points.length - 1]);
+            return smoothPoints;
         }
+        
+        function drawRadialSpline(scores) {
+            var canvas = document.getElementById('mainCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            
+            // Make canvas responsive to container width
+            var container = canvas.parentElement;
+            if (! container) return;
+            var containerWidth = container.clientWidth;
+            var width = containerWidth || 1000; // Fallback to default width
+            var height = width * 0.6; // Aspect ratio adjusted for larger display (60% height)
+            
+            // Set canvas dimensions
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Calculate spacing for labels around the chart
+            // Labels are positioned at radius + 50, data values at radius + 90
+            // Reserve space on all sides for these labels
+            var sidePadding = 120; // Space needed on left/right for labels + data values
+            var topPadding = 100; // Space needed at top for labels + data values
+            var bottomPadding = 20; // Small space at bottom
+            
+            // Calculate center position and maximum radius
+            var cx = width / 2;
+            var cy = height - bottomPadding; // Position near bottom with small margin
+            
+            // Maximum radius is constrained by available space: 
+            // 1. Vertical:  cy - topPadding (for top labels)
+            // 2. Horizontal: cx - sidePadding (for left/right labels, center is at width/2)
+            var maxRadiusVertical = cy - topPadding;
+            var maxRadiusHorizontal = cx - sidePadding;
+            var maxAllowedRadius = Math.min(maxRadiusVertical, maxRadiusHorizontal);
+            
+            // Calculate inner radius and layer heights
+            var innerRadius = maxAllowedRadius * 0.25; // Inner radius is 25% of max radius
+            var maxHeight = (maxAllowedRadius - innerRadius) / 3; // Divide remaining space among 3 layers
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Calculate angles (9 o'clock to 3 o'clock, going UP and over = PI to 2*PI, clockwise)
+            var startAngle = Math.PI; // 9 o'clock (left side) - 7am
+            var endAngle = 2 * Math.PI; // 3 o'clock (right side) - 7pm
+            var angleRange = Math.PI; // semicircle going through the top
+            
+            // Create point arrays for each metric
+            var tempPoints = [];
+            var windPoints = [];
+            var waterPoints = [];
+            
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
+                
+                // Scores are now 0-1, calculate layer thicknesses
+                var tempLayerHeight = s.tempScore * maxHeight;
+                var windLayerHeight = s.windScore * maxHeight;
+                var waterLayerHeight = s.waterScore * maxHeight;
+                
+                // Layers are stacked:  temp (innermost), wind (middle), water (outermost)
+                tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
+                windPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight });
+                waterPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight + waterLayerHeight });
+            }
+            
+            // Create smooth curves
+            var smoothTemp = createSmoothPath(tempPoints, 10);
+            var smoothWind = createSmoothPath(windPoints, 10);
+            var smoothWater = createSmoothPath(waterPoints, 10);
+            
+            // Draw water layer (outermost) - 50% transparent
+            ctx.fillStyle = 'rgba(149, 225, 211, 0.5)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothWind.length; i++) {
+                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math. sin(smoothWind[i]. angle) * smoothWind[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothWater.length - 1; i >= 0; i--) {
+                var x = cx + Math. cos(smoothWater[i]. angle) * smoothWater[i].radius;
+                var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw wind layer (middle) - 50% transparent
+            ctx.fillStyle = 'rgba(78, 205, 196, 0.5)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothTemp.length; i++) {
+                var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
+                var y = cy + Math.sin(smoothTemp[i]. angle) * smoothTemp[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothWind.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
+                ctx. lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw temperature layer (innermost) - 50% transparent
+            ctx.fillStyle = 'rgba(255, 107, 107, 0.5)';
+            ctx.beginPath();
+            ctx.arc(cx, cy, innerRadius, startAngle, endAngle, false); // clockwise arc
+            for (var i = 0; i < smoothTemp.length; i++) {
+                var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
+                var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw time labels and markers
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange;
+                
+                // Find the outermost radius for this angle
+                var maxRadius = waterPoints[i].radius;
+                
+                // Draw radial line from inner to outer
+                ctx.strokeStyle = 'rgba(200,200,200,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * innerRadius, cy + Math.sin(angle) * innerRadius);
+                ctx.lineTo(cx + Math.cos(angle) * (maxRadius + 20), cy + Math.sin(angle) * (maxRadius + 20));
+                ctx.stroke();
+                
+                // Time labels - positioned outside the chart
+                var labelDist = maxRadius + 50;
+                var x = cx + Math.cos(angle) * labelDist;
+                var y = cy + Math.sin(angle) * labelDist;
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(formatTime(s.hour), x, y);
+                
+                // Draw data values in a ring around the chart
+                var dataDist = maxRadius + 90;
+                var dx = cx + Math.cos(angle) * dataDist;
+                var dy = cy + Math.sin(angle) * dataDist;
+                
+                ctx.font = '11px sans-serif';
+                ctx.fillStyle = '#ff6b6b';
+                ctx.fillText(s.temp + '°C', dx, dy - 20);
+                ctx.fillStyle = '#4ecdc4';
+                ctx.fillText(s.wind + ' km/h', dx, dy);
+                ctx.fillStyle = '#95e1d3';
+                ctx. fillText(s.water + '°C', dx, dy + 20);
+            }
+            
+            // Center circle is now empty (no label)
+        }
+        
+        function updateChart() {
+            if (weatherData.length > 0 && weatherData[currentDay]) {
+                var scores = calculateDayScores(weatherData[currentDay]);
+                drawRadialSpline(scores);
+                updateDateDisplay();
+            }
+        }
+        
+        document.getElementById('globalDaySelector').addEventListener('click', function(e) {
+            // Use closest() to handle clicks on button or any child elements
+            var button = e.target.closest('.day-btn');
+            if (button) {
+                var buttons = document.querySelectorAll('.day-btn');
+                for (var i = 0; i < buttons.length; i++) {
+                    buttons[i].classList.remove('active');
+                }
+                button.classList.add('active');
+                currentDay = parseInt(button.getAttribute('data-day'));
+                updateChart();
+            }
+        });
+        
+        // Initialize by fetching weather data
+        fetchWeatherData();
+        
+        var resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(updateChart, 250);
+        });
     </script>
 </body>
 </html>
