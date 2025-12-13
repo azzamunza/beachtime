@@ -43,7 +43,7 @@
         }
         
         .location-input-group {
-            display: flex;
+            display: none;
             gap: 10px;
             margin-bottom: 30px;
         }
@@ -205,7 +205,7 @@
         <div id="daySelector" class="day-selector" id="globalDaySelector"></div>
         
         <div id="weatherDisplay">
-            <p class="loading">Enter a location to get started</p>
+            <p class="loading">Loading weather data...</p>
         </div>
     </div>
 
@@ -221,6 +221,31 @@
         document.getElementById('locationInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') searchLocation();
         });
+
+        // Auto-load with default location (Miami Beach, Florida)
+        window.addEventListener('DOMContentLoaded', function() {
+            loadDefaultLocation();
+        });
+
+        function loadDefaultLocation() {
+            showLoading();
+            hideDataWarning();
+            
+            // Default location: Miami Beach, Florida (coordinates)
+            var defaultLatitude = 25.7907;
+            var defaultLongitude = -80.1300;
+            
+            currentLocation = {
+                name: 'Miami Beach',
+                admin1: 'Florida',
+                country: 'United States',
+                latitude: defaultLatitude,
+                longitude: defaultLongitude
+            };
+            
+            document.title = 'Miami Beach, Florida, United States - BeachTime';
+            getWeatherData(defaultLatitude, defaultLongitude);
+        }
 
         function showDataWarning(message) {
             var warningElement = document.getElementById('dataWarning');
