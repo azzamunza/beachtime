@@ -346,11 +346,6 @@
                 }
             }
             
-            // Get today's date (normalized to midnight in local timezone)
-            var today = new Date();
-            today.setHours(0, 0, 0, 0);
-            var todayKey = today.toISOString().split('T')[0];
-            
             // Group data by day
             var dayMap = {};
             
@@ -362,13 +357,8 @@
                 // Only include hours from 7am to 7pm
                 if (hour >= 7 && hour <= 19) {
                     if (!dayMap[dateKey]) {
-                        // Calculate day offset from today
-                        var dataDate = new Date(dateKey + 'T00:00:00');
-                        var dayOffset = Math.round((dataDate - today) / (1000 * 60 * 60 * 24));
-                        
                         dayMap[dateKey] = {
                             date: dateKey,
-                            dayOffset: dayOffset,
                             hours: [],
                             temp: [],
                             wind: [],
@@ -478,7 +468,8 @@
             var daySelector = document. getElementById('globalDaySelector');
             daySelector.innerHTML = '';
             
-            for (var i = 0; i < weatherData. length && i < 3; i++) {
+            // Create a button for each day found in the data
+            for (var i = 0; i < weatherData.length; i++) {
                 var btn = document.createElement('button');
                 btn.className = 'day-btn' + (i === currentDay ? ' active' : '');
                 btn.setAttribute('data-day', i);
@@ -486,7 +477,7 @@
                 var dateObj = new Date(weatherData[i].date + 'T00:00:00');
                 var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 
-                // Display the actual date for each sequential day
+                // Display the actual date for each day in the data
                 btn.textContent = monthDay;
                 
                 daySelector.appendChild(btn);
