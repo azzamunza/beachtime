@@ -215,6 +215,10 @@
         var currentDay = 0;
         var weatherData = [];
         var uniqueDates = [];
+        
+        // Default location: Miami Beach, Florida
+        var DEFAULT_LATITUDE = 25.7907;
+        var DEFAULT_LONGITUDE = -80.1300;
 
         // Initialize
         document.getElementById('searchBtn').addEventListener('click', searchLocation);
@@ -223,28 +227,26 @@
         });
 
         // Auto-load with default location (Miami Beach, Florida)
-        window.addEventListener('DOMContentLoaded', function() {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', loadDefaultLocation);
+        } else {
             loadDefaultLocation();
-        });
+        }
 
         function loadDefaultLocation() {
             showLoading();
             hideDataWarning();
             
-            // Default location: Miami Beach, Florida (coordinates)
-            var defaultLatitude = 25.7907;
-            var defaultLongitude = -80.1300;
-            
             currentLocation = {
                 name: 'Miami Beach',
                 admin1: 'Florida',
                 country: 'United States',
-                latitude: defaultLatitude,
-                longitude: defaultLongitude
+                latitude: DEFAULT_LATITUDE,
+                longitude: DEFAULT_LONGITUDE
             };
             
             document.title = 'Miami Beach, Florida, United States - BeachTime';
-            getWeatherData(defaultLatitude, defaultLongitude);
+            getWeatherData(DEFAULT_LATITUDE, DEFAULT_LONGITUDE);
         }
 
         function showDataWarning(message) {
