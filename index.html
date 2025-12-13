@@ -270,9 +270,9 @@
             hideDataWarning();
 
             // Geocode the location
-            fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(location)}&count=1&language=en&format=json`)
-                .then(response => response.json())
-                .then(data => {
+            fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(location) + '&count=1&language=en&format=json')
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
                     if (!data.results || data.results.length === 0) {
                         showDataWarning('Location not found. Please try another search.');
                         showError('Location not found');
@@ -287,7 +287,7 @@
                     // Get weather data
                     getWeatherData(result.latitude, result.longitude);
                 })
-                .catch(error => {
+                .catch(function(error) {
                     console.error('Error:', error);
                     showDataWarning('Error searching for location. Please try again.');
                     showError('Search error');
@@ -296,21 +296,23 @@
 
         function getWeatherData(latitude, longitude) {
             // Fetch weather data
-            var weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&hourly=temperature_2m,wind_speed_10m&timezone=auto&forecast_days=16`;
+            var weatherUrl = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&hourly=temperature_2m,wind_speed_10m&timezone=auto&forecast_days=16';
             
             // Fetch marine data
-            var marineUrl = `https://marine-api.open-meteo.com/v1/marine?latitude=${latitude}&longitude=${longitude}&hourly=sea_surface_temperature&timezone=auto&forecast_days=16`;
+            var marineUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=' + latitude + '&longitude=' + longitude + '&hourly=sea_surface_temperature&timezone=auto&forecast_days=16';
 
             Promise.all([
-                fetch(weatherUrl).then(r => r.json()),
-                fetch(marineUrl).then(r => r.json())
+                fetch(weatherUrl).then(function(r) { return r.json(); }),
+                fetch(marineUrl).then(function(r) { return r.json(); })
             ])
-            .then(([weatherData, marineData]) => {
+            .then(function(results) {
+                var weatherData = results[0];
+                var marineData = results[1];
                 processWeatherData(weatherData, marineData);
                 updateDayButtons();
                 displayWeather();
             })
-            .catch(error => {
+            .catch(function(error) {
                 console.error('Error fetching data:', error);
                 showDataWarning('Error fetching weather data. Please try again.');
                 showError('Data fetch error');
@@ -510,38 +512,37 @@
             var currentData = weatherData[currentDay];
             var display = document.getElementById('weatherDisplay');
 
-            var avgTemp = Math.round(currentData.temp.reduce((a, b) => a + b) / currentData.temp.length);
-            var maxTemp = Math.max(...currentData.temp);
-            var minTemp = Math.min(...currentData.temp);
+            var avgTemp = Math.round(currentData.temp.reduce(function(a, b) { return a + b; }) / currentData.temp.length);
+            var maxTemp = Math.max.apply(null, currentData.temp);
+            var minTemp = Math.min.apply(null, currentData.temp);
 
-            var avgWind = Math.round(currentData.wind.reduce((a, b) => a + b) / currentData.wind.length);
-            var maxWind = Math.max(...currentData.wind);
+            var avgWind = Math.round(currentData.wind.reduce(function(a, b) { return a + b; }) / currentData.wind.length);
+            var maxWind = Math.max.apply(null, currentData.wind);
 
-            var avgWater = (currentData.water.reduce((a, b) => a + b) / currentData.water.length).toFixed(1);
-            var maxWater = Math.max(...currentData.water);
-            var minWater = Math.min(...currentData.water);
+            var avgWater = (currentData.water.reduce(function(a, b) { return a + b; }) / currentData.water.length).toFixed(1);
+            var maxWater = Math.max.apply(null, currentData.water);
+            var minWater = Math.min.apply(null, currentData.water);
 
-            display.innerHTML = `
-                <div class="weather-grid">
-                    <div class="weather-card">
-                        <h3>🌡️ Temperature</h3>
-                        <div class="weather-metric"><strong>Average:</strong> ${avgTemp}°C</div>
-                        <div class="weather-metric"><strong>High:</strong> ${maxTemp}°C</div>
-                        <div class="weather-metric"><strong>Low:</strong> ${minTemp}°C</div>
-                    </div>
-                    <div class="weather-card">
-                        <h3>💨 Wind Speed</h3>
-                        <div class="weather-metric"><strong>Average:</strong> ${avgWind} km/h</div>
-                        <div class="weather-metric"><strong>Max:</strong> ${maxWind} km/h</div>
-                    </div>
-                    <div class="weather-card">
-                        <h3>🌊 Water Temperature</h3>
-                        <div class="weather-metric"><strong>Average:</strong> ${avgWater}°C</div>
-                        <div class="weather-metric"><strong>High:</strong> ${maxWater}°C</div>
-                        <div class="weather-metric"><strong>Low:</strong> ${minWater}°C</div>
-                    </div>
-                </div>
-            `;
+            display.innerHTML = 
+                '<div class="weather-grid">' +
+                    '<div class="weather-card">' +
+                        '<h3>🌡️ Temperature</h3>' +
+                        '<div class="weather-metric"><strong>Average:</strong> ' + avgTemp + '°C</div>' +
+                        '<div class="weather-metric"><strong>High:</strong> ' + maxTemp + '°C</div>' +
+                        '<div class="weather-metric"><strong>Low:</strong> ' + minTemp + '°C</div>' +
+                    '</div>' +
+                    '<div class="weather-card">' +
+                        '<h3>💨 Wind Speed</h3>' +
+                        '<div class="weather-metric"><strong>Average:</strong> ' + avgWind + ' km/h</div>' +
+                        '<div class="weather-metric"><strong>Max:</strong> ' + maxWind + ' km/h</div>' +
+                    '</div>' +
+                    '<div class="weather-card">' +
+                        '<h3>🌊 Water Temperature</h3>' +
+                        '<div class="weather-metric"><strong>Average:</strong> ' + avgWater + '°C</div>' +
+                        '<div class="weather-metric"><strong>High:</strong> ' + maxWater + '°C</div>' +
+                        '<div class="weather-metric"><strong>Low:</strong> ' + minWater + '°C</div>' +
+                    '</div>' +
+                '</div>';
         }
     </script>
 </body>
