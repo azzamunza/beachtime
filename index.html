@@ -304,7 +304,7 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m,precipitation_probability,cloud_cover&timezone=Asia%2FSingapore';
+            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=temperature_2m,precipitation_probability,wind_speed_10m,cloud_cover';
             var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
             
             // Fetch both weather and marine data (marine is optional)
