@@ -17,6 +17,7 @@
             padding: 20px;
             min-height: 100vh;
             display: flex;
+            align-items: center;
             justify-content: center;
         }
         
@@ -211,24 +212,12 @@
                     <span><strong>Temperature</strong> (ideal:  32°C)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #4caf50;"></div>
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
                     <span><strong>Wind Speed</strong> (ideal: 0-15 km/h)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #95e1d3;"></div>
                     <span><strong>Water Temp</strong> (warmer is better)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #888888;"></div>
-                    <span><strong>Rain</strong> (ideal: 0%)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ffffff; border: 1px solid #ccc;"></div>
-                    <span><strong>Cloud Cover</strong> (inverted)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ff9800;"></div>
-                    <span><strong>Combined Score</strong> (normalized)</span>
                 </div>
             </div>
             
@@ -236,9 +225,8 @@
                 <div class="info-title">How to Read This Chart</div>
                 <div class="info-text">
                     The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
-                    Each colored ring represents a different metric in its own range (0-1 for Temperature, 1-2 for Wind Speed, 2-3 for Water Temp, 3-4 for Rain as bars, 4-5 for Cloud Cover inverted). 
+                    Each colored ring represents a different metric in its own range (0-1 for Temperature, 1-2 for Wind Speed, 2-3 for Water Temp). 
                     Higher values within each ring indicate better scores (closer to ideal conditions). 
-                    The orange spline shows the combined normalized score. The center displays the day score (0-100%).
                     Time labels and detailed readings appear around the outside of the chart.
                 </div>
             </div>
@@ -263,34 +251,21 @@
                     <span><strong>Temperature</strong> (ideal:  32°C)</span>
                 </div>
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #4caf50;"></div>
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
                     <span><strong>Wind Speed</strong> (ideal: 0-15 km/h)</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color" style="background: #95e1d3;"></div>
                     <span><strong>Water Temp</strong> (warmer is better)</span>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #888888;"></div>
-                    <span><strong>Rain</strong> (ideal: 0%)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ffffff; border: 1px solid #ccc;"></div>
-                    <span><strong>Cloud Cover</strong> (inverted)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ff9800;"></div>
-                    <span><strong>Combined Score</strong> (normalized)</span>
-                </div>
             </div>
             
             <div class="info-box">
                 <div class="info-title">How to Read This Chart</div>
                 <div class="info-text">
-                    This chart shows all metrics overlaid in the same 0-1 range, making it easy to compare them directly. 
+                    This chart shows all three metrics overlaid in the same 0-1 range, making it easy to compare them directly. 
                     The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
                     Higher values indicate better scores (closer to ideal conditions). 
-                    The orange spline shows the combined normalized score. The center displays the day score (0-100%).
                     Time labels and detailed readings appear around the outside of the chart.
                 </div>
             </div>
@@ -304,7 +279,7 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=temperature_2m,precipitation_probability,wind_speed_10m,cloud_cover';
+            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
             var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
             
             // Fetch both weather and marine data (marine is optional)
@@ -361,8 +336,6 @@
             var times = hourly.time;
             var temperatures = hourly.temperature_2m;
             var windSpeeds = hourly.wind_speed_10m;
-            var precipitationProb = hourly.precipitation_probability || [];
-            var cloudCover = hourly.cloud_cover || [];
             
             // Process marine data if available, but don't fail if it's invalid
             var marineTimes = null;
@@ -428,27 +401,13 @@
                             hours: [],
                             temp: [],
                             wind: [],
-                            water: [],
-                            rain: [],
-                            cloud: []
+                            water: []
                         };
                     }
                     
                     dayMap[dateKey].hours.push(hour);
                     dayMap[dateKey].temp.push(Math.round(temperatures[i]));
                     dayMap[dateKey].wind.push(Math.round(windSpeeds[i]));
-                    
-                    // Add precipitation probability (0-100% from API, store as 0-1)
-                    var rainValue = (precipitationProb[i] != null && typeof precipitationProb[i] === 'number' && !isNaN(precipitationProb[i])) 
-                        ? precipitationProb[i] / 100 
-                        : 0;
-                    dayMap[dateKey].rain.push(rainValue);
-                    
-                    // Add cloud cover (0-100% from API, store as 0-1)
-                    var cloudValue = (cloudCover[i] != null && typeof cloudCover[i] === 'number' && !isNaN(cloudCover[i])) 
-                        ? cloudCover[i] / 100 
-                        : 0;
-                    dayMap[dateKey].cloud.push(cloudValue);
                     
                     // Get water temperature from marine API with fuzzy matching or estimate if not available
                     var waterTemp = null;
@@ -651,26 +610,16 @@
                 var tempScore = calculateRating(dayData.temp[i], 32, 22, 40);
                 var windScore = calculateRating(dayData.wind[i], [0, 15], 0, 30);
                 var waterScore = calculateRating(dayData.water[i], 29, 19, 29);
-                // Rain: ideal is 0, range 0-1 (0% to 100%)
-                var rainScore = calculateRating(dayData.rain[i], 0, 0, 1);
-                
-                // Combined score: average of temp, wind, water, and rain (not cloud)
-                var combined = (tempScore + windScore + waterScore + rainScore) / 4;
-                
-                // Day score: 13 elements * 4 datasets = max 52, convert to percentage
-                // Each element contributes (tempScore + windScore + waterScore + rainScore) to the total
+                var combined = (tempScore + windScore + waterScore) / 3;
                 
                 scores.push({
                     hour: dayData.hours[i],
                     temp: dayData.temp[i],
                     wind: dayData.wind[i],
                     water: dayData.water[i],
-                    rain: dayData.rain[i],
-                    cloud: dayData.cloud[i],
                     tempScore: tempScore,
                     windScore: windScore,
                     waterScore: waterScore,
-                    rainScore: rainScore,
                     combined: combined
                 });
             }
@@ -755,7 +704,7 @@
             
             // Calculate inner radius and layer heights
             var innerRadius = maxAllowedRadius * 0.25; // Inner radius is 25% of max radius
-            var maxHeight = (maxAllowedRadius - innerRadius) / 5; // Divide remaining space among 5 layers
+            var maxHeight = (maxAllowedRadius - innerRadius) / 3; // Divide remaining space among 3 layers
             
             ctx.clearRect(0, 0, width, height);
             
@@ -768,23 +717,11 @@
             var tempPoints = [];
             var windPoints = [];
             var waterPoints = [];
-            var rainPoints = [];
-            var cloudPoints = [];
-            var combinedPoints = [];
             
             // Inner and outer boundaries for each ring section
             var tempInnerPoints = [];
             var windInnerPoints = [];
             var waterInnerPoints = [];
-            var rainInnerPoints = [];
-            var cloudInnerPoints = [];
-            
-            // Calculate day score (13 elements * 4 datasets = max 52)
-            var totalScore = 0;
-            for (var i = 0; i < scores.length; i++) {
-                totalScore += scores[i].tempScore + scores[i].windScore + scores[i].waterScore + scores[i].rainScore;
-            }
-            var dayScorePercent = Math.round((totalScore / (scores.length * 4)) * 100);
             
             for (var i = 0; i < scores.length; i++) {
                 var s = scores[i];
@@ -795,14 +732,10 @@
                 // Ring 1 (Temperature): 0-1 range, innerRadius to innerRadius + maxHeight
                 // Ring 2 (Wind Speed): 1-2 range, innerRadius + maxHeight to innerRadius + 2*maxHeight
                 // Ring 3 (Water Temp): 2-3 range, innerRadius + 2*maxHeight to innerRadius + 3*maxHeight
-                // Ring 4 (Rain): 3-4 range, innerRadius + 3*maxHeight to innerRadius + 4*maxHeight
-                // Ring 5 (Cloud): 4-5 range, innerRadius + 4*maxHeight to innerRadius + 5*maxHeight (inverted)
                 
                 var tempLayerHeight = s.tempScore * maxHeight;
                 var windLayerHeight = s.windScore * maxHeight;
                 var waterLayerHeight = s.waterScore * maxHeight;
-                var rainLayerHeight = s.rain * maxHeight; // Rain is shown as bars (0-1 range, raw value)
-                var cloudLayerHeight = (1 - s.cloud) * maxHeight; // Cloud is inverted (1-0 range)
                 
                 // Temperature ring: offset 0, range 0-1
                 tempInnerPoints.push({ angle: angle, radius: innerRadius });
@@ -815,34 +748,17 @@
                 // Water ring: offset 2*maxHeight, range 2-3
                 waterInnerPoints.push({ angle: angle, radius: innerRadius + 2 * maxHeight });
                 waterPoints.push({ angle: angle, radius: innerRadius + 2 * maxHeight + waterLayerHeight });
-                
-                // Rain ring: offset 3*maxHeight, range 3-4
-                rainInnerPoints.push({ angle: angle, radius: innerRadius + 3 * maxHeight });
-                rainPoints.push({ angle: angle, radius: innerRadius + 3 * maxHeight + rainLayerHeight });
-                
-                // Cloud ring: offset 4*maxHeight, range 4-5 (inverted)
-                cloudInnerPoints.push({ angle: angle, radius: innerRadius + 4 * maxHeight });
-                cloudPoints.push({ angle: angle, radius: innerRadius + 4 * maxHeight + cloudLayerHeight });
-                
-                // Combined score line (normalized, shown in same space as cloud layer)
-                var combinedLayerHeight = s.combined * maxHeight;
-                combinedPoints.push({ angle: angle, radius: innerRadius + 4 * maxHeight + combinedLayerHeight });
             }
             
             // Create smooth curves for outer boundaries
             var smoothTemp = createSmoothPath(tempPoints, 10);
             var smoothWind = createSmoothPath(windPoints, 10);
             var smoothWater = createSmoothPath(waterPoints, 10);
-            var smoothRain = createSmoothPath(rainPoints, 10);
-            var smoothCloud = createSmoothPath(cloudPoints, 10);
-            var smoothCombined = createSmoothPath(combinedPoints, 10);
             
             // Create smooth curves for inner boundaries
             var smoothTempInner = createSmoothPath(tempInnerPoints, 10);
             var smoothWindInner = createSmoothPath(windInnerPoints, 10);
             var smoothWaterInner = createSmoothPath(waterInnerPoints, 10);
-            var smoothRainInner = createSmoothPath(rainInnerPoints, 10);
-            var smoothCloudInner = createSmoothPath(cloudInnerPoints, 10);
             
             // Draw temperature ring (innermost, 0-1 range) - 50% transparent
             ctx.fillStyle = 'rgba(255, 107, 107, 0.5)';
@@ -866,8 +782,8 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw wind ring (1-2 range) - green color, 50% transparent
-            ctx.fillStyle = 'rgba(76, 175, 80, 0.5)'; // Green color
+            // Draw wind ring (middle, 1-2 range) - 50% transparent
+            ctx.fillStyle = 'rgba(78, 205, 196, 0.5)';
             ctx.beginPath();
             // Draw outer boundary
             for (var i = 0; i < smoothWind.length; i++) {
@@ -910,69 +826,6 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw rain as bars (3-4 range) - grey color
-            // Draw individual bars for each data point
-            for (var i = 0; i < scores.length; i++) {
-                var s = scores[i];
-                var t = i / (scores.length - 1);
-                var angle = startAngle + t * angleRange;
-                var rainHeight = s.rain * maxHeight;
-                
-                // Calculate bar width (angle span)
-                var barWidthAngle = angleRange / (scores.length * 2); // Half the spacing for bar width
-                
-                ctx.fillStyle = 'rgba(136, 136, 136, 0.7)'; // Grey color
-                ctx.beginPath();
-                // Start from inner boundary
-                var innerR = innerRadius + 3 * maxHeight;
-                var outerR = innerRadius + 3 * maxHeight + rainHeight;
-                
-                // Draw bar as a wedge
-                ctx.moveTo(cx + Math.cos(angle - barWidthAngle) * innerR, cy + Math.sin(angle - barWidthAngle) * innerR);
-                ctx.lineTo(cx + Math.cos(angle - barWidthAngle) * outerR, cy + Math.sin(angle - barWidthAngle) * outerR);
-                ctx.lineTo(cx + Math.cos(angle + barWidthAngle) * outerR, cy + Math.sin(angle + barWidthAngle) * outerR);
-                ctx.lineTo(cx + Math.cos(angle + barWidthAngle) * innerR, cy + Math.sin(angle + barWidthAngle) * innerR);
-                ctx.closePath();
-                ctx.fill();
-                ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-            }
-            
-            // Draw cloud ring (4-5 range, inverted) - white color, 50% transparent
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.beginPath();
-            // Draw outer boundary
-            for (var i = 0; i < smoothCloud.length; i++) {
-                var x = cx + Math.cos(smoothCloud[i].angle) * smoothCloud[i].radius;
-                var y = cy + Math.sin(smoothCloud[i].angle) * smoothCloud[i].radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            // Draw inner boundary (reversed)
-            for (var i = smoothCloudInner.length - 1; i >= 0; i--) {
-                var x = cx + Math.cos(smoothCloudInner[i].angle) * smoothCloudInner[i].radius;
-                var y = cy + Math.sin(smoothCloudInner[i].angle) * smoothCloudInner[i].radius;
-                ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(200,200,200,0.5)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Draw combined score as orange spline (in cloud layer space)
-            ctx.strokeStyle = 'rgba(255, 152, 0, 1.0)'; // Orange color
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            for (var i = 0; i < smoothCombined.length; i++) {
-                var x = cx + Math.cos(smoothCombined[i].angle) * smoothCombined[i].radius;
-                var y = cy + Math.sin(smoothCombined[i].angle) * smoothCombined[i].radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-            
             // Draw stroke lines and labels for each section boundary
             // Temperature section boundary (at innerRadius)
             ctx.strokeStyle = 'rgba(255, 107, 107, 1.0)'; // Saturated red, 100% opacity
@@ -987,7 +840,7 @@
             ctx.stroke();
             
             // Wind section boundary (at innerRadius + maxHeight)
-            ctx.strokeStyle = 'rgba(76, 175, 80, 1.0)'; // Green, 100% opacity
+            ctx.strokeStyle = 'rgba(78, 205, 196, 1.0)'; // Saturated teal, 100% opacity
             ctx.lineWidth = 3;
             ctx.beginPath();
             for (var i = 0; i < smoothWindInner.length; i++) {
@@ -1005,30 +858,6 @@
             for (var i = 0; i < smoothWaterInner.length; i++) {
                 var x = cx + Math.cos(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
                 var y = cy + Math.sin(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-            
-            // Rain section boundary (at innerRadius + 3*maxHeight)
-            ctx.strokeStyle = 'rgba(136, 136, 136, 1.0)'; // Grey, 100% opacity
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            for (var i = 0; i < smoothRainInner.length; i++) {
-                var x = cx + Math.cos(smoothRainInner[i].angle) * smoothRainInner[i].radius;
-                var y = cy + Math.sin(smoothRainInner[i].angle) * smoothRainInner[i].radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-            
-            // Cloud section boundary (at innerRadius + 4*maxHeight)
-            ctx.strokeStyle = 'rgba(200, 200, 200, 1.0)'; // Light grey, 100% opacity
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            for (var i = 0; i < smoothCloudInner.length; i++) {
-                var x = cx + Math.cos(smoothCloudInner[i].angle) * smoothCloudInner[i].radius;
-                var y = cy + Math.sin(smoothCloudInner[i].angle) * smoothCloudInner[i].radius;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
@@ -1057,7 +886,7 @@
             var windLabelY = cy + Math.sin(windLabelAngle) * windLabelRadius;
             ctx.translate(windLabelX, windLabelY);
             ctx.rotate(windLabelAngle + Math.PI / 2);
-            ctx.fillStyle = 'rgba(76, 175, 80, 1.0)';
+            ctx.fillStyle = 'rgba(78, 205, 196, 1.0)';
             ctx.font = 'bold 14px sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('Wind Speed', 0, 0);
@@ -1077,34 +906,6 @@
             ctx.fillText('Water Temp', 0, 0);
             ctx.restore();
             
-            // Rain label (at innerRadius + 3*maxHeight)
-            ctx.save();
-            var rainLabelAngle = startAngle + 0.1;
-            var rainLabelRadius = innerRadius + 3 * maxHeight;
-            var rainLabelX = cx + Math.cos(rainLabelAngle) * rainLabelRadius;
-            var rainLabelY = cy + Math.sin(rainLabelAngle) * rainLabelRadius;
-            ctx.translate(rainLabelX, rainLabelY);
-            ctx.rotate(rainLabelAngle + Math.PI / 2);
-            ctx.fillStyle = 'rgba(136, 136, 136, 1.0)';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Rain', 0, 0);
-            ctx.restore();
-            
-            // Cloud label (at innerRadius + 4*maxHeight)
-            ctx.save();
-            var cloudLabelAngle = startAngle + 0.1;
-            var cloudLabelRadius = innerRadius + 4 * maxHeight;
-            var cloudLabelX = cx + Math.cos(cloudLabelAngle) * cloudLabelRadius;
-            var cloudLabelY = cy + Math.sin(cloudLabelAngle) * cloudLabelRadius;
-            ctx.translate(cloudLabelX, cloudLabelY);
-            ctx.rotate(cloudLabelAngle + Math.PI / 2);
-            ctx.fillStyle = 'rgba(100, 100, 100, 1.0)';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('Cloud', 0, 0);
-            ctx.restore();
-            
             // Draw time labels and markers
             for (var i = 0; i < scores.length; i++) {
                 var s = scores[i];
@@ -1112,7 +913,7 @@
                 var angle = startAngle + t * angleRange;
                 
                 // Find the outermost radius for this angle
-                var maxRadius = cloudPoints[i].radius;
+                var maxRadius = waterPoints[i].radius;
                 
                 // Draw radial line from inner to outer
                 ctx.strokeStyle = 'rgba(200,200,200,0.3)';
@@ -1140,23 +941,14 @@
                 
                 ctx.font = '11px sans-serif';
                 ctx.fillStyle = '#ff6b6b';
-                ctx.fillText(s.temp + '°C', dx, dy - 30);
-                ctx.fillStyle = '#4caf50';
-                ctx.fillText(s.wind + ' km/h', dx, dy - 10);
+                ctx.fillText(s.temp + '°C', dx, dy - 20);
+                ctx.fillStyle = '#4ecdc4';
+                ctx.fillText(s.wind + ' km/h', dx, dy);
                 ctx.fillStyle = '#95e1d3';
-                ctx.fillText(s.water + '°C', dx, dy + 10);
-                ctx.fillStyle = '#888';
-                ctx.fillText(Math.round(s.rain * 100) + '%', dx, dy + 30);
+                ctx. fillText(s.water + '°C', dx, dy + 20);
             }
             
-            // Draw day score in center
-            ctx.fillStyle = '#333';
-            ctx.font = 'bold 36px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(dayScorePercent + '%', cx, cy - 20);
-            ctx.font = '14px sans-serif';
-            ctx.fillText('Day Score', cx, cy + 10);
+            // Center circle is now empty (no label)
         }
         
         function drawOverlaidChart(scores) {
@@ -1204,19 +996,9 @@
             var tempPoints = [];
             var windPoints = [];
             var waterPoints = [];
-            var rainPoints = [];
-            var cloudPoints = [];
-            var combinedPoints = [];
             
             // Inner boundary (same for all)
             var innerPoints = [];
-            
-            // Calculate day score (13 elements * 4 datasets = max 52)
-            var totalScore = 0;
-            for (var i = 0; i < scores.length; i++) {
-                totalScore += scores[i].tempScore + scores[i].windScore + scores[i].waterScore + scores[i].rainScore;
-            }
-            var dayScorePercent = Math.round((totalScore / (scores.length * 4)) * 100);
             
             for (var i = 0; i < scores.length; i++) {
                 var s = scores[i];
@@ -1227,8 +1009,6 @@
                 var tempLayerHeight = s.tempScore * maxHeight;
                 var windLayerHeight = s.windScore * maxHeight;
                 var waterLayerHeight = s.waterScore * maxHeight;
-                var rainLayerHeight = (1 - s.rain) * maxHeight; // Rain inverted for overlay (higher is better = less rain)
-                var cloudLayerHeight = (1 - s.cloud) * maxHeight; // Cloud inverted (higher is better = less cloud)
                 
                 // All metrics share the same inner boundary
                 innerPoints.push({ angle: angle, radius: innerRadius });
@@ -1237,21 +1017,12 @@
                 tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
                 windPoints.push({ angle: angle, radius: innerRadius + windLayerHeight });
                 waterPoints.push({ angle: angle, radius: innerRadius + waterLayerHeight });
-                rainPoints.push({ angle: angle, radius: innerRadius + rainLayerHeight });
-                cloudPoints.push({ angle: angle, radius: innerRadius + cloudLayerHeight });
-                
-                // Combined score (normalized average)
-                var combinedLayerHeight = s.combined * maxHeight;
-                combinedPoints.push({ angle: angle, radius: innerRadius + combinedLayerHeight });
             }
             
             // Create smooth curves for all boundaries
             var smoothTemp = createSmoothPath(tempPoints, 10);
             var smoothWind = createSmoothPath(windPoints, 10);
             var smoothWater = createSmoothPath(waterPoints, 10);
-            var smoothRain = createSmoothPath(rainPoints, 10);
-            var smoothCloud = createSmoothPath(cloudPoints, 10);
-            var smoothCombined = createSmoothPath(combinedPoints, 10);
             var smoothInner = createSmoothPath(innerPoints, 10);
             
             // Draw water ring first (bottom layer) - 30% transparent
@@ -1274,48 +1045,8 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw cloud ring (bottom layer) - white, 30% transparent, inverted
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.beginPath();
-            for (var i = 0; i < smoothCloud.length; i++) {
-                var x = cx + Math.cos(smoothCloud[i].angle) * smoothCloud[i].radius;
-                var y = cy + Math.sin(smoothCloud[i].angle) * smoothCloud[i].radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            for (var i = smoothInner.length - 1; i >= 0; i--) {
-                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
-                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
-                ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(200, 200, 200, 0.6)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Draw rain ring - grey, 30% transparent, inverted
-            ctx.fillStyle = 'rgba(136, 136, 136, 0.3)';
-            ctx.beginPath();
-            for (var i = 0; i < smoothRain.length; i++) {
-                var x = cx + Math.cos(smoothRain[i].angle) * smoothRain[i].radius;
-                var y = cy + Math.sin(smoothRain[i].angle) * smoothRain[i].radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            for (var i = smoothInner.length - 1; i >= 0; i--) {
-                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
-                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
-                ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(136, 136, 136, 0.6)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Draw wind ring - green, 30% transparent
-            ctx.fillStyle = 'rgba(76, 175, 80, 0.3)';
+            // Draw wind ring (middle layer) - 30% transparent
+            ctx.fillStyle = 'rgba(78, 205, 196, 0.3)';
             ctx.beginPath();
             for (var i = 0; i < smoothWind.length; i++) {
                 var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
@@ -1330,7 +1061,7 @@
             }
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = 'rgba(76, 175, 80, 0.8)';
+            ctx.strokeStyle = 'rgba(78, 205, 196, 0.8)';
             ctx.lineWidth = 2;
             ctx.stroke();
             
@@ -1354,18 +1085,6 @@
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw combined score as orange spline
-            ctx.strokeStyle = 'rgba(255, 152, 0, 1.0)'; // Orange color
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            for (var i = 0; i < smoothCombined.length; i++) {
-                var x = cx + Math.cos(smoothCombined[i].angle) * smoothCombined[i].radius;
-                var y = cy + Math.sin(smoothCombined[i].angle) * smoothCombined[i].radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-            
             // Draw the inner boundary circle
             ctx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
             ctx.lineWidth = 2;
@@ -1384,9 +1103,8 @@
                 var t = i / (scores.length - 1);
                 var angle = startAngle + t * angleRange;
                 
-                // Find the outermost radius for this angle (maximum of all metrics)
-                var maxRadius = Math.max(tempPoints[i].radius, windPoints[i].radius, waterPoints[i].radius, 
-                                        rainPoints[i].radius, cloudPoints[i].radius);
+                // Find the outermost radius for this angle (maximum of all three metrics)
+                var maxRadius = Math.max(tempPoints[i].radius, windPoints[i].radius, waterPoints[i].radius);
                 
                 // Draw radial line from inner to outer
                 ctx.strokeStyle = 'rgba(200,200,200,0.3)';
@@ -1414,23 +1132,12 @@
                 
                 ctx.font = '11px sans-serif';
                 ctx.fillStyle = '#ff6b6b';
-                ctx.fillText(s.temp + '°C', dx, dy - 30);
-                ctx.fillStyle = '#4caf50';
-                ctx.fillText(s.wind + ' km/h', dx, dy - 10);
+                ctx.fillText(s.temp + '°C', dx, dy - 20);
+                ctx.fillStyle = '#4ecdc4';
+                ctx.fillText(s.wind + ' km/h', dx, dy);
                 ctx.fillStyle = '#95e1d3';
-                ctx.fillText(s.water + '°C', dx, dy + 10);
-                ctx.fillStyle = '#888';
-                ctx.fillText(Math.round(s.rain * 100) + '%', dx, dy + 30);
+                ctx.fillText(s.water + '°C', dx, dy + 20);
             }
-            
-            // Draw day score in center
-            ctx.fillStyle = '#333';
-            ctx.font = 'bold 36px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(dayScorePercent + '%', cx, cy - 20);
-            ctx.font = '14px sans-serif';
-            ctx.fillText('Day Score', cx, cy + 10);
         }
         
         function updateChart() {
