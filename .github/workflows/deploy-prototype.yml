@@ -1,0 +1,32 @@
+name: Deploy Prototype
+
+on:
+  push:
+    branches:
+      - prototype
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout prototype branch
+        uses: actions/checkout@v4
+        with:
+          ref: prototype
+      
+      - name: Setup deployment
+        run: |
+          mkdir -p deploy/prototype
+          cp index.html deploy/prototype/
+          
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./deploy
+          keep_files: true
+          destination_dir: .

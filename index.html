@@ -225,8 +225,8 @@
                 <div class="info-title">How to Read This Chart</div>
                 <div class="info-text">
                     The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
-                    Each colored layer represents a different metric.  Thicker bands indicate better scores 
-                    (closer to ideal conditions). The three layers stack to show overall conditions at each time.  
+                    Each colored ring represents a different metric in its own range (0-1 for Temperature, 1-2 for Wind Speed, 2-3 for Water Temp). 
+                    Higher values within each ring indicate better scores (closer to ideal conditions). 
                     Time labels and detailed readings appear around the outside of the chart.
                 </div>
             </div>
@@ -259,7 +259,7 @@
                     var marineResult = results[1];
                     
                     if (weatherResult.status === 'rejected') {
-                        console.error('Error fetching weather data:', weatherResult. reason);
+                        console.error('Error fetching weather data:', weatherResult.reason);
                         showDataWarning('Failed to load weather data from API');
                         isLoading = false;
                         return;
@@ -468,19 +468,47 @@
             var daySelector = document. getElementById('globalDaySelector');
             daySelector.innerHTML = '';
             
-            // Create a button for each day found in the data
+            // Get today's date at midnight for comparison
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Track if we need to update currentDay to the first available future date
+            var firstFutureDay = -1;
+            var currentDayDateObj = weatherData[currentDay] ? new Date(weatherData[currentDay].date + 'T00:00:00') : null;
+            var isCurrentDayPast = currentDayDateObj && currentDayDateObj < today;
+            
+            // Create a button for each day found in the data, but only for today and future dates
             for (var i = 0; i < weatherData.length; i++) {
-                var btn = document.createElement('button');
-                btn.className = 'day-btn' + (i === currentDay ? ' active' : '');
-                btn.setAttribute('data-day', i);
-                
                 var dateObj = new Date(weatherData[i].date + 'T00:00:00');
-                var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                 
-                // Display the actual date for each day in the data
-                btn.textContent = monthDay;
-                
-                daySelector.appendChild(btn);
+                // Only create button if date is today or in the future
+                if (dateObj >= today) {
+                    // Track the first future day index
+                    if (firstFutureDay === -1) {
+                        firstFutureDay = i;
+                    }
+                    
+                    // If current day is in the past, use the first future day for the active state
+                    var dayToCheck = isCurrentDayPast ? firstFutureDay : currentDay;
+                    
+                    var btn = document.createElement('button');
+                    btn.className = 'day-btn' + (i === dayToCheck ? ' active' : '');
+                    btn.setAttribute('data-day', i);
+                    
+                    var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    
+                    // Display the actual date for each day in the data
+                    btn.textContent = monthDay;
+                    
+                    daySelector.appendChild(btn);
+                }
+            }
+            
+            // If current day is in the past, automatically select the first future day
+            if (isCurrentDayPast && firstFutureDay !== -1) {
+                currentDay = firstFutureDay;
+                updateChart();
+                updateDateDisplay();
             }
         }
         
@@ -642,74 +670,62 @@
             var windPoints = [];
             var waterPoints = [];
             
+            // Inner and outer boundaries for each ring section
+            var tempInnerPoints = [];
+            var windInnerPoints = [];
+            var waterInnerPoints = [];
+            
             for (var i = 0; i < scores.length; i++) {
                 var s = scores[i];
                 var t = i / (scores.length - 1);
                 var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
                 
-                // Scores are now 0-1, calculate layer thicknesses
+                // Scores are now 0-1, calculate layer thicknesses for each separate ring
+                // Ring 1 (Temperature): 0-1 range, innerRadius to innerRadius + maxHeight
+                // Ring 2 (Wind Speed): 1-2 range, innerRadius + maxHeight to innerRadius + 2*maxHeight
+                // Ring 3 (Water Temp): 2-3 range, innerRadius + 2*maxHeight to innerRadius + 3*maxHeight
+                
                 var tempLayerHeight = s.tempScore * maxHeight;
                 var windLayerHeight = s.windScore * maxHeight;
                 var waterLayerHeight = s.waterScore * maxHeight;
                 
-                // Layers are stacked:  temp (innermost), wind (middle), water (outermost)
+                // Temperature ring: offset 0, range 0-1
+                tempInnerPoints.push({ angle: angle, radius: innerRadius });
                 tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
-                windPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight });
-                waterPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight + windLayerHeight + waterLayerHeight });
+                
+                // Wind ring: offset 1*maxHeight, range 1-2
+                windInnerPoints.push({ angle: angle, radius: innerRadius + maxHeight });
+                windPoints.push({ angle: angle, radius: innerRadius + maxHeight + windLayerHeight });
+                
+                // Water ring: offset 2*maxHeight, range 2-3
+                waterInnerPoints.push({ angle: angle, radius: innerRadius + 2 * maxHeight });
+                waterPoints.push({ angle: angle, radius: innerRadius + 2 * maxHeight + waterLayerHeight });
             }
             
-            // Create smooth curves
+            // Create smooth curves for outer boundaries
             var smoothTemp = createSmoothPath(tempPoints, 10);
             var smoothWind = createSmoothPath(windPoints, 10);
             var smoothWater = createSmoothPath(waterPoints, 10);
             
-            // Draw water layer (outermost) - 50% transparent
-            ctx.fillStyle = 'rgba(149, 225, 211, 0.5)';
-            ctx.beginPath();
-            for (var i = 0; i < smoothWind.length; i++) {
-                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
-                var y = cy + Math. sin(smoothWind[i]. angle) * smoothWind[i].radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            for (var i = smoothWater.length - 1; i >= 0; i--) {
-                var x = cx + Math. cos(smoothWater[i]. angle) * smoothWater[i].radius;
-                var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
-                ctx.lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            // Create smooth curves for inner boundaries
+            var smoothTempInner = createSmoothPath(tempInnerPoints, 10);
+            var smoothWindInner = createSmoothPath(windInnerPoints, 10);
+            var smoothWaterInner = createSmoothPath(waterInnerPoints, 10);
             
-            // Draw wind layer (middle) - 50% transparent
-            ctx.fillStyle = 'rgba(78, 205, 196, 0.5)';
-            ctx.beginPath();
-            for (var i = 0; i < smoothTemp.length; i++) {
-                var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
-                var y = cy + Math.sin(smoothTemp[i]. angle) * smoothTemp[i].radius;
-                if (i === 0) ctx.moveTo(x, y);
-                else ctx.lineTo(x, y);
-            }
-            for (var i = smoothWind.length - 1; i >= 0; i--) {
-                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
-                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
-                ctx. lineTo(x, y);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Draw temperature layer (innermost) - 50% transparent
+            // Draw temperature ring (innermost, 0-1 range) - 50% transparent
             ctx.fillStyle = 'rgba(255, 107, 107, 0.5)';
             ctx.beginPath();
-            ctx.arc(cx, cy, innerRadius, startAngle, endAngle, false); // clockwise arc
+            // Draw outer boundary
             for (var i = 0; i < smoothTemp.length; i++) {
                 var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
                 var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            // Draw inner boundary (reversed)
+            for (var i = smoothTempInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothTempInner[i].angle) * smoothTempInner[i].radius;
+                var y = cy + Math.sin(smoothTempInner[i].angle) * smoothTempInner[i].radius;
                 ctx.lineTo(x, y);
             }
             ctx.closePath();
@@ -717,6 +733,130 @@
             ctx.strokeStyle = 'rgba(255,255,255,0.5)';
             ctx.lineWidth = 2;
             ctx.stroke();
+            
+            // Draw wind ring (middle, 1-2 range) - 50% transparent
+            ctx.fillStyle = 'rgba(78, 205, 196, 0.5)';
+            ctx.beginPath();
+            // Draw outer boundary
+            for (var i = 0; i < smoothWind.length; i++) {
+                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            // Draw inner boundary (reversed)
+            for (var i = smoothWindInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothWindInner[i].angle) * smoothWindInner[i].radius;
+                var y = cy + Math.sin(smoothWindInner[i].angle) * smoothWindInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw water ring (outermost, 2-3 range) - 50% transparent
+            ctx.fillStyle = 'rgba(149, 225, 211, 0.5)';
+            ctx.beginPath();
+            // Draw outer boundary
+            for (var i = 0; i < smoothWater.length; i++) {
+                var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
+                var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            // Draw inner boundary (reversed)
+            for (var i = smoothWaterInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
+                var y = cy + Math.sin(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw stroke lines and labels for each section boundary
+            // Temperature section boundary (at innerRadius)
+            ctx.strokeStyle = 'rgba(255, 107, 107, 1.0)'; // Saturated red, 100% opacity
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothTempInner.length; i++) {
+                var x = cx + Math.cos(smoothTempInner[i].angle) * smoothTempInner[i].radius;
+                var y = cy + Math.sin(smoothTempInner[i].angle) * smoothTempInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Wind section boundary (at innerRadius + maxHeight)
+            ctx.strokeStyle = 'rgba(78, 205, 196, 1.0)'; // Saturated teal, 100% opacity
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothWindInner.length; i++) {
+                var x = cx + Math.cos(smoothWindInner[i].angle) * smoothWindInner[i].radius;
+                var y = cy + Math.sin(smoothWindInner[i].angle) * smoothWindInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Water section boundary (at innerRadius + 2*maxHeight)
+            ctx.strokeStyle = 'rgba(149, 225, 211, 1.0)'; // Saturated light teal, 100% opacity
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothWaterInner.length; i++) {
+                var x = cx + Math.cos(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
+                var y = cy + Math.sin(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Draw text labels along the splines
+            // Temperature label (at innerRadius, start of arc)
+            ctx.save();
+            var tempLabelAngle = startAngle + 0.1; // Slightly offset from start
+            var tempLabelRadius = innerRadius;
+            var tempLabelX = cx + Math.cos(tempLabelAngle) * tempLabelRadius;
+            var tempLabelY = cy + Math.sin(tempLabelAngle) * tempLabelRadius;
+            ctx.translate(tempLabelX, tempLabelY);
+            ctx.rotate(tempLabelAngle + Math.PI / 2); // Rotate to follow the curve
+            ctx.fillStyle = 'rgba(255, 107, 107, 1.0)';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Temperature', 0, 0);
+            ctx.restore();
+            
+            // Wind label (at innerRadius + maxHeight)
+            ctx.save();
+            var windLabelAngle = startAngle + 0.1;
+            var windLabelRadius = innerRadius + maxHeight;
+            var windLabelX = cx + Math.cos(windLabelAngle) * windLabelRadius;
+            var windLabelY = cy + Math.sin(windLabelAngle) * windLabelRadius;
+            ctx.translate(windLabelX, windLabelY);
+            ctx.rotate(windLabelAngle + Math.PI / 2);
+            ctx.fillStyle = 'rgba(78, 205, 196, 1.0)';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Wind Speed', 0, 0);
+            ctx.restore();
+            
+            // Water label (at innerRadius + 2*maxHeight)
+            ctx.save();
+            var waterLabelAngle = startAngle + 0.1;
+            var waterLabelRadius = innerRadius + 2 * maxHeight;
+            var waterLabelX = cx + Math.cos(waterLabelAngle) * waterLabelRadius;
+            var waterLabelY = cy + Math.sin(waterLabelAngle) * waterLabelRadius;
+            ctx.translate(waterLabelX, waterLabelY);
+            ctx.rotate(waterLabelAngle + Math.PI / 2);
+            ctx.fillStyle = 'rgba(149, 225, 211, 1.0)';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Water Temp', 0, 0);
+            ctx.restore();
             
             // Draw time labels and markers
             for (var i = 0; i < scores.length; i++) {
