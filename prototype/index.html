@@ -1,0 +1,1469 @@
+<! DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radial Smooth Spline - Swanbourne Beach</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family:  'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background:  linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .day-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .day-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 1. 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        . day-btn: hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .day-btn. active {
+            background: white;
+            color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .viz-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .viz-title {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .viz-subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size:  1em;
+        }
+        
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+        
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top:  30px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1em;
+        }
+        
+        .legend-color {
+            width: 30px;
+            height: 30px;
+            border-radius:  6px;
+        }
+        
+        .info-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top:  25px;
+            text-align: center;
+        }
+        
+        .info-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+        
+        .info-text {
+            color: #555;
+            font-size: 0.95em;
+            line-height:  1.6;
+        }
+        
+        .location-label {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .location-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .location-date {
+            font-size: 1em;
+            color: #666;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border:  2px solid #ef5350;
+            border-radius:  12px;
+            padding:  30px;
+            margin-top: 25px;
+            text-align: center;
+        }
+        
+        .warning-title {
+            font-weight: bold;
+            color: #c62828;
+            margin-bottom: 10px;
+            font-size:  1.3em;
+        }
+        
+        .warning-text {
+            color: #d32f2f;
+            font-size: 1em;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏖️ Swanbourne Beach Conditions</h1>
+        
+        <div class="day-selector" id="globalDaySelector">
+        </div>
+        
+        <div class="viz-card">
+            <h2 class="viz-title">Swanbourne Beach</h2>
+            <p class="viz-subtitle" id="chartDate">Loading...</p>
+            
+            <div class="canvas-container">
+                <canvas id="mainCanvas"></canvas>
+            </div>
+            
+            <div class="location-label">
+                <div class="location-name">Swanbourne Beach</div>
+                <div class="location-date" id="currentDate">Loading...</div>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span><strong>Temperature</strong> (ideal:  32°C)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4caf50;"></div>
+                    <span><strong>Wind Speed</strong> (ideal: 0-15 km/h)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #95e1d3;"></div>
+                    <span><strong>Water Temp</strong> (warmer is better)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #888888;"></div>
+                    <span><strong>Rain</strong> (ideal: 0%)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffffff; border: 1px solid #ccc;"></div>
+                    <span><strong>Cloud Cover</strong> (inverted)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff9800;"></div>
+                    <span><strong>Combined Score</strong> (normalized)</span>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">How to Read This Chart</div>
+                <div class="info-text">
+                    The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
+                    Each colored ring represents a different metric in its own range (0-1 for Temperature, 1-2 for Wind Speed, 2-3 for Water Temp, 3-4 for Rain as bars, 4-5 for Cloud Cover inverted). 
+                    Higher values within each ring indicate better scores (closer to ideal conditions). 
+                    The orange spline shows the combined normalized score. The center displays the day score (0-100%).
+                    Time labels and detailed readings appear around the outside of the chart.
+                </div>
+            </div>
+        </div>
+        
+        <div class="viz-card" style="margin-top: 30px;">
+            <h2 class="viz-title">Overlaid Comparison</h2>
+            <p class="viz-subtitle" id="chartDate2">Loading...</p>
+            
+            <div class="canvas-container">
+                <canvas id="overlayCanvas"></canvas>
+            </div>
+            
+            <div class="location-label">
+                <div class="location-name">Swanbourne Beach</div>
+                <div class="location-date" id="currentDate2">Loading...</div>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span><strong>Temperature</strong> (ideal:  32°C)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4caf50;"></div>
+                    <span><strong>Wind Speed</strong> (ideal: 0-15 km/h)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #95e1d3;"></div>
+                    <span><strong>Water Temp</strong> (warmer is better)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #888888;"></div>
+                    <span><strong>Rain</strong> (ideal: 0%)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffffff; border: 1px solid #ccc;"></div>
+                    <span><strong>Cloud Cover</strong> (inverted)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff9800;"></div>
+                    <span><strong>Combined Score</strong> (normalized)</span>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">How to Read This Chart</div>
+                <div class="info-text">
+                    This chart shows all metrics overlaid in the same 0-1 range, making it easy to compare them directly. 
+                    The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
+                    Higher values indicate better scores (closer to ideal conditions). 
+                    The orange spline shows the combined normalized score. The center displays the day score (0-100%).
+                    Time labels and detailed readings appear around the outside of the chart.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var weatherData = [];
+        var currentDay = 0;
+        var isLoading = true;
+        
+        // Fetch weather data from Open-Meteo API
+        function fetchWeatherData() {
+            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=temperature_2m,precipitation_probability,wind_speed_10m,cloud_cover';
+            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
+            
+            // Fetch both weather and marine data (marine is optional)
+            Promise.allSettled([
+                fetch(weatherApiUrl).then(function(response) {
+                    if (!response.ok) throw new Error('Failed to fetch weather data');
+                    return response.json();
+                }),
+                fetch(marineApiUrl).then(function(response) {
+                    if (!response.ok) throw new Error('Failed to fetch marine data');
+                    return response.json();
+                })
+            ])
+                .then(function(results) {
+                    var weatherResult = results[0];
+                    var marineResult = results[1];
+                    
+                    if (weatherResult.status === 'rejected') {
+                        console.error('Error fetching weather data:', weatherResult.reason);
+                        showDataWarning('Failed to load weather data from API');
+                        isLoading = false;
+                        return;
+                    }
+                    
+                    var weatherApiData = weatherResult.value;
+                    var marineData = marineResult.status === 'fulfilled' ? marineResult.value : null;
+                    
+                    if (marineResult.status === 'rejected') {
+                        console.warn('Marine data unavailable, using estimated values:', marineResult.reason);
+                    }
+                    
+                    processWeatherData(weatherApiData, marineData);
+                    isLoading = false;
+                    updateChart();
+                    updateDateDisplay();
+                    updateDayButtons();
+                })
+                .catch(function(error) {
+                    console.error('Unexpected error:', error);
+                    showDataWarning('Failed to load data from API');
+                    isLoading = false;
+                });
+        }
+        
+        function processWeatherData(data, marineData) {
+            // Validate API response structure
+            if (!data || !data.hourly || !data.hourly. time || !data.hourly.temperature_2m || !data.hourly.wind_speed_10m) {
+                console.error('Invalid API response structure');
+                showDataWarning('Invalid data format received from API');
+                return;
+            }
+            
+            var hourly = data.hourly;
+            var times = hourly.time;
+            var temperatures = hourly.temperature_2m;
+            var windSpeeds = hourly.wind_speed_10m;
+            var precipitationProb = hourly.precipitation_probability || [];
+            var cloudCover = hourly.cloud_cover || [];
+            
+            // Process marine data if available, but don't fail if it's invalid
+            var marineTimes = null;
+            var seaTemperatures = null;
+            
+            if (marineData && marineData.hourly && marineData.hourly.time && marineData.hourly.sea_surface_temperature) {
+                marineTimes = marineData. hourly.time;
+                seaTemperatures = marineData.hourly.sea_surface_temperature;
+            } else {
+                console.warn('Marine data not available, will use estimated water temperatures');
+            }
+            
+            // Validate that temperature and wind data are arrays with values
+            if (!Array.isArray(temperatures) || !Array.isArray(windSpeeds) || 
+                temperatures.length === 0 || windSpeeds.length === 0) {
+                console.error('Temperature or wind data is missing or invalid');
+                showDataWarning('Temperature or wind data is missing from API response');
+                return;
+            }
+            
+            // Check for invalid data (null, undefined, or non-numeric values)
+            var hasInvalidTemp = temperatures.some(function(t) { return t == null || typeof t !== 'number' || isNaN(t); });
+            var hasInvalidWind = windSpeeds.some(function(w) { return w == null || typeof w !== 'number' || isNaN(w); });
+            
+            if (hasInvalidTemp || hasInvalidWind) {
+                console.error('Temperature or wind data contains invalid values');
+                showDataWarning('Temperature or wind data contains invalid values');
+                return;
+            }
+            
+            // Create a map of marine data for easy lookup with fuzzy matching
+            var marineDataMap = {};
+            if (marineTimes && seaTemperatures) {
+                // Validate seaTemperatures contains only valid numbers
+                var hasInvalidSeaTemp = seaTemperatures.some(function(t) { return t == null || typeof t !== 'number' || isNaN(t); });
+                
+                if (hasInvalidSeaTemp) {
+                    console. warn('Sea temperature data contains invalid values, will use estimated water temperatures');
+                } else {
+                    for (var i = 0; i < marineTimes.length; i++) {
+                        var marineTime = new Date(marineTimes[i]).getTime();
+                        marineDataMap[marineTimes[i]] = {
+                            timestamp: marineTime,
+                            temperature: seaTemperatures[i]
+                        };
+                    }
+                }
+            }
+            
+            // Group data by day
+            var dayMap = {};
+            
+            for (var i = 0; i < times.length; i++) {
+                var dateTime = new Date(times[i]);
+                var dateKey = dateTime.toISOString().split('T')[0];
+                var hour = dateTime.getHours();
+                
+                // Only include hours from 7am to 7pm
+                if (hour >= 7 && hour <= 19) {
+                    if (!dayMap[dateKey]) {
+                        dayMap[dateKey] = {
+                            date: dateKey,
+                            hours: [],
+                            temp: [],
+                            wind: [],
+                            water: [],
+                            rain: [],
+                            cloud: []
+                        };
+                    }
+                    
+                    dayMap[dateKey].hours.push(hour);
+                    dayMap[dateKey].temp.push(Math.round(temperatures[i]));
+                    dayMap[dateKey].wind.push(Math.round(windSpeeds[i]));
+                    
+                    // Add precipitation probability (0-100% from API, store as 0-1)
+                    var rainValue = (precipitationProb[i] != null && typeof precipitationProb[i] === 'number' && !isNaN(precipitationProb[i])) 
+                        ? precipitationProb[i] / 100 
+                        : 0;
+                    dayMap[dateKey].rain.push(rainValue);
+                    
+                    // Add cloud cover (0-100% from API, store as 0-1)
+                    var cloudValue = (cloudCover[i] != null && typeof cloudCover[i] === 'number' && !isNaN(cloudCover[i])) 
+                        ? cloudCover[i] / 100 
+                        : 0;
+                    dayMap[dateKey].cloud.push(cloudValue);
+                    
+                    // Get water temperature from marine API with fuzzy matching or estimate if not available
+                    var waterTemp = null;
+                    var ONE_HOUR_MS = 60 * 60 * 1000; // 1 hour in milliseconds
+                    
+                    if (Object.keys(marineDataMap).length > 0) {
+                        var currentTime = new Date(times[i]).getTime();
+                        var exactMatch = marineDataMap[times[i]];
+                        
+                        if (exactMatch) {
+                            waterTemp = exactMatch.temperature;
+                        } else {
+                            // Find nearest time within 1 hour tolerance
+                            var closestTime = null;
+                            var minDiff = Infinity;
+                            
+                            for (var marineKey in marineDataMap) {
+                                var timeDiff = Math.abs(marineDataMap[marineKey]. timestamp - currentTime);
+                                if (timeDiff < minDiff) {
+                                    minDiff = timeDiff;
+                                    closestTime = marineKey;
+                                }
+                            }
+                            
+                            // Only use the closest match if it's within 1 hour tolerance
+                            if (closestTime && minDiff <= ONE_HOUR_MS) {
+                                waterTemp = marineDataMap[closestTime].temperature;
+                            }
+                        }
+                    }
+                    
+                    // Using != null to check for both null and undefined
+                    if (waterTemp != null && typeof waterTemp === 'number' && !isNaN(waterTemp)) {
+                        dayMap[dateKey].water.push(Math.round(waterTemp * 10) / 10);
+                    } else {
+                        // Fallback to estimate
+                        dayMap[dateKey].water.push(Math.round((temperatures[i] - 2.5) * 10) / 10);
+                    }
+                }
+            }
+            
+            // Convert to array and validate we have data
+            weatherData = Object.values(dayMap);
+            
+            // Sort weatherData by date to ensure chronological order
+            weatherData.sort(function(a, b) {
+                return new Date(a.date) - new Date(b.date);
+            });
+            
+            if (weatherData.length === 0) {
+                console. error('No valid weather data found in the expected time range');
+                showDataWarning('No weather data available for the selected time period');
+                return;
+            }
+        }
+        
+        function showDataWarning(message) {
+            var vizCard = document.querySelector('.viz-card');
+            var warningBox = document.createElement('div');
+            warningBox.className = 'warning-box';
+            warningBox.innerHTML = '<div class="warning-title">⚠️ Data Error</div><div class="warning-text">' + message + '</div>';
+            
+            // Clear existing content
+            var canvasContainer = document.querySelector('.canvas-container');
+            var legend = document.querySelector('.legend');
+            var infoBox = document.querySelector('.info-box');
+            var locationLabel = document.querySelector('.location-label');
+            
+            if (canvasContainer) canvasContainer.style.display = 'none';
+            if (legend) legend.style.display = 'none';
+            if (infoBox) infoBox.style.display = 'none';
+            if (locationLabel) locationLabel.style.display = 'none';
+            
+            // Insert warning after subtitle
+            var subtitle = document.querySelector('.viz-subtitle');
+            if (subtitle) {
+                subtitle.parentNode.insertBefore(warningBox, subtitle.nextSibling);
+            }
+        }
+        
+        function updateDateDisplay() {
+            if (weatherData.length > 0 && weatherData[currentDay]) {
+                var dateStr = weatherData[currentDay].date;
+                var dateObj = new Date(dateStr + 'T00:00:00');
+                var options = { month: 'short', day: 'numeric', year: 'numeric' };
+                var formattedDate = dateObj.toLocaleDateString('en-US', options);
+                document.getElementById('currentDate').textContent = formattedDate;
+                // Also update the chart subtitle with the date
+                var chartDateElement = document.getElementById('chartDate');
+                if (chartDateElement) {
+                    chartDateElement.textContent = formattedDate;
+                }
+                // Update second chart date displays
+                var currentDate2Element = document.getElementById('currentDate2');
+                if (currentDate2Element) {
+                    currentDate2Element.textContent = formattedDate;
+                }
+                var chartDate2Element = document.getElementById('chartDate2');
+                if (chartDate2Element) {
+                    chartDate2Element.textContent = formattedDate;
+                }
+            }
+        }
+        
+        function updateDayButtons() {
+            var daySelector = document. getElementById('globalDaySelector');
+            daySelector.innerHTML = '';
+            
+            // Get today's date at midnight for comparison
+            var today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Track if we need to update currentDay to the first available future date
+            var firstFutureDay = -1;
+            var currentDayDateObj = weatherData[currentDay] ? new Date(weatherData[currentDay].date + 'T00:00:00') : null;
+            var isCurrentDayPast = currentDayDateObj && currentDayDateObj < today;
+            
+            // Create a button for each day found in the data, but only for today and future dates
+            for (var i = 0; i < weatherData.length; i++) {
+                var dateObj = new Date(weatherData[i].date + 'T00:00:00');
+                
+                // Only create button if date is today or in the future
+                if (dateObj >= today) {
+                    // Track the first future day index
+                    if (firstFutureDay === -1) {
+                        firstFutureDay = i;
+                    }
+                    
+                    // If current day is in the past, use the first future day for the active state
+                    var dayToCheck = isCurrentDayPast ? firstFutureDay : currentDay;
+                    
+                    var btn = document.createElement('button');
+                    btn.className = 'day-btn' + (i === dayToCheck ? ' active' : '');
+                    btn.setAttribute('data-day', i);
+                    
+                    var monthDay = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    
+                    // Display the actual date for each day in the data
+                    btn.textContent = monthDay;
+                    
+                    daySelector.appendChild(btn);
+                }
+            }
+            
+            // If current day is in the past, automatically select the first future day
+            if (isCurrentDayPast && firstFutureDay !== -1) {
+                currentDay = firstFutureDay;
+                updateChart();
+                updateDateDisplay();
+            }
+        }
+        
+        // Calculate a normalized score from 0 to 1 based on how close value is to ideal
+        // Uses exponential decay:  closer to ideal = higher score
+        function calculateRating(value, ideal, min, max) {
+            var distance;
+            
+            if (Array.isArray(ideal)) {
+                // Ideal is a range [min_ideal, max_ideal]
+                if (value >= ideal[0] && value <= ideal[1]) {
+                    distance = 0; // Perfect score
+                } else if (value < ideal[0]) {
+                    distance = ideal[0] - value;
+                } else {
+                    distance = value - ideal[1];
+                }
+            } else {
+                // Ideal is a single value
+                distance = Math.abs(value - ideal);
+            }
+            
+            // Calculate maximum possible distance from ideal
+            var maxDistance = Math.max(
+                Array.isArray(ideal) ? Math.abs(ideal[0] - min) : Math.abs(ideal - min),
+                Array.isArray(ideal) ? Math.abs(max - ideal[1]) : Math.abs(max - ideal)
+            );
+            
+            // If already at ideal, return perfect score
+            if (distance === 0) {
+                return 1.0;
+            }
+            
+            // If maxDistance is 0, all values are ideal, return perfect score
+            if (maxDistance === 0) {
+                return 1.0;
+            }
+            
+            // Exponential decay function: exp(-k * distance^2)
+            // k = 3/maxDistance² so that at maxDistance, score = exp(-3) ≈ 0.05
+            var k = 3 / (maxDistance * maxDistance);
+            var score = Math.exp(-k * distance * distance);
+            
+            // Score is now 0-1, where 1 = ideal, 0 = worst possible
+            return score;
+        }
+        
+        function calculateDayScores(dayData) {
+            var scores = [];
+            for (var i = 0; i < dayData.hours.length; i++) {
+                var tempScore = calculateRating(dayData.temp[i], 32, 22, 40);
+                var windScore = calculateRating(dayData.wind[i], [0, 15], 0, 30);
+                var waterScore = calculateRating(dayData.water[i], 29, 19, 29);
+                // Rain: ideal is 0, range 0-1 (0% to 100%)
+                var rainScore = calculateRating(dayData.rain[i], 0, 0, 1);
+                
+                // Combined score: average of temp, wind, water, and rain (not cloud)
+                var combined = (tempScore + windScore + waterScore + rainScore) / 4;
+                
+                // Day score: 13 elements * 4 datasets = max 52, convert to percentage
+                // Each element contributes (tempScore + windScore + waterScore + rainScore) to the total
+                
+                scores.push({
+                    hour: dayData.hours[i],
+                    temp: dayData.temp[i],
+                    wind: dayData.wind[i],
+                    water: dayData.water[i],
+                    rain: dayData.rain[i],
+                    cloud: dayData.cloud[i],
+                    tempScore: tempScore,
+                    windScore: windScore,
+                    waterScore: waterScore,
+                    rainScore: rainScore,
+                    combined: combined
+                });
+            }
+            // Sort scores by hour to ensure chronological order (7am to 7pm)
+            scores. sort(function(a, b) { return a.hour - b.hour; });
+            return scores;
+        }
+        
+        function formatTime(hour) {
+            if (hour === 12) return '12pm';
+            if (hour < 12) return hour + 'am';
+            return (hour - 12) + 'pm';
+        }
+        
+        // Catmull-Rom spline interpolation
+        function getCatmullRomPoint(t, p0, p1, p2, p3) {
+            var t2 = t * t;
+            var t3 = t2 * t;
+            
+            var v0 = (p2 - p0) * 0.5;
+            var v1 = (p3 - p1) * 0.5;
+            
+            return (2 * p1 - 2 * p2 + v0 + v1) * t3 +
+                   (-3 * p1 + 3 * p2 - 2 * v0 - v1) * t2 +
+                   v0 * t + p1;
+        }
+        
+        function createSmoothPath(points, segments) {
+            var smoothPoints = [];
+            
+            for (var i = 0; i < points.length - 1; i++) {
+                var p0 = points[Math.max(0, i - 1)];
+                var p1 = points[i];
+                var p2 = points[i + 1];
+                var p3 = points[Math.min(points.length - 1, i + 2)];
+                
+                for (var s = 0; s < segments; s++) {
+                    var t = s / segments;
+                    var angle = getCatmullRomPoint(t, p0.angle, p1.angle, p2.angle, p3.angle);
+                    var radius = getCatmullRomPoint(t, p0.radius, p1.radius, p2.radius, p3.radius);
+                    smoothPoints.push({ angle: angle, radius: radius });
+                }
+            }
+            
+            smoothPoints.push(points[points.length - 1]);
+            return smoothPoints;
+        }
+        
+        function drawRadialSpline(scores) {
+            var canvas = document.getElementById('mainCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            
+            // Make canvas responsive to container width
+            var container = canvas.parentElement;
+            if (! container) return;
+            var containerWidth = container.clientWidth;
+            var width = containerWidth || 1000; // Fallback to default width
+            var height = width * 0.6; // Aspect ratio adjusted for larger display (60% height)
+            
+            // Set canvas dimensions
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Calculate spacing for labels around the chart
+            // Labels are positioned at radius + 50, data values at radius + 90
+            // Reserve space on all sides for these labels
+            var sidePadding = 120; // Space needed on left/right for labels + data values
+            var topPadding = 100; // Space needed at top for labels + data values
+            var bottomPadding = 20; // Small space at bottom
+            
+            // Calculate center position and maximum radius
+            var cx = width / 2;
+            var cy = height - bottomPadding; // Position near bottom with small margin
+            
+            // Maximum radius is constrained by available space: 
+            // 1. Vertical:  cy - topPadding (for top labels)
+            // 2. Horizontal: cx - sidePadding (for left/right labels, center is at width/2)
+            var maxRadiusVertical = cy - topPadding;
+            var maxRadiusHorizontal = cx - sidePadding;
+            var maxAllowedRadius = Math.min(maxRadiusVertical, maxRadiusHorizontal);
+            
+            // Calculate inner radius and layer heights
+            var innerRadius = maxAllowedRadius * 0.25; // Inner radius is 25% of max radius
+            var maxHeight = (maxAllowedRadius - innerRadius) / 5; // Divide remaining space among 5 layers
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Calculate angles (9 o'clock to 3 o'clock, going UP and over = PI to 2*PI, clockwise)
+            var startAngle = Math.PI; // 9 o'clock (left side) - 7am
+            var endAngle = 2 * Math.PI; // 3 o'clock (right side) - 7pm
+            var angleRange = Math.PI; // semicircle going through the top
+            
+            // Create point arrays for each metric
+            var tempPoints = [];
+            var windPoints = [];
+            var waterPoints = [];
+            var rainPoints = [];
+            var cloudPoints = [];
+            var combinedPoints = [];
+            
+            // Inner and outer boundaries for each ring section
+            var tempInnerPoints = [];
+            var windInnerPoints = [];
+            var waterInnerPoints = [];
+            var rainInnerPoints = [];
+            var cloudInnerPoints = [];
+            
+            // Calculate day score (13 elements * 4 datasets = max 52)
+            var totalScore = 0;
+            for (var i = 0; i < scores.length; i++) {
+                totalScore += scores[i].tempScore + scores[i].windScore + scores[i].waterScore + scores[i].rainScore;
+            }
+            var dayScorePercent = Math.round((totalScore / (scores.length * 4)) * 100);
+            
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
+                
+                // Scores are now 0-1, calculate layer thicknesses for each separate ring
+                // Ring 1 (Temperature): 0-1 range, innerRadius to innerRadius + maxHeight
+                // Ring 2 (Wind Speed): 1-2 range, innerRadius + maxHeight to innerRadius + 2*maxHeight
+                // Ring 3 (Water Temp): 2-3 range, innerRadius + 2*maxHeight to innerRadius + 3*maxHeight
+                // Ring 4 (Rain): 3-4 range, innerRadius + 3*maxHeight to innerRadius + 4*maxHeight
+                // Ring 5 (Cloud): 4-5 range, innerRadius + 4*maxHeight to innerRadius + 5*maxHeight (inverted)
+                
+                var tempLayerHeight = s.tempScore * maxHeight;
+                var windLayerHeight = s.windScore * maxHeight;
+                var waterLayerHeight = s.waterScore * maxHeight;
+                var rainLayerHeight = s.rain * maxHeight; // Rain is shown as bars (0-1 range, raw value)
+                var cloudLayerHeight = (1 - s.cloud) * maxHeight; // Cloud is inverted (1-0 range)
+                
+                // Temperature ring: offset 0, range 0-1
+                tempInnerPoints.push({ angle: angle, radius: innerRadius });
+                tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
+                
+                // Wind ring: offset 1*maxHeight, range 1-2
+                windInnerPoints.push({ angle: angle, radius: innerRadius + maxHeight });
+                windPoints.push({ angle: angle, radius: innerRadius + maxHeight + windLayerHeight });
+                
+                // Water ring: offset 2*maxHeight, range 2-3
+                waterInnerPoints.push({ angle: angle, radius: innerRadius + 2 * maxHeight });
+                waterPoints.push({ angle: angle, radius: innerRadius + 2 * maxHeight + waterLayerHeight });
+                
+                // Rain ring: offset 3*maxHeight, range 3-4
+                rainInnerPoints.push({ angle: angle, radius: innerRadius + 3 * maxHeight });
+                rainPoints.push({ angle: angle, radius: innerRadius + 3 * maxHeight + rainLayerHeight });
+                
+                // Cloud ring: offset 4*maxHeight, range 4-5 (inverted)
+                cloudInnerPoints.push({ angle: angle, radius: innerRadius + 4 * maxHeight });
+                cloudPoints.push({ angle: angle, radius: innerRadius + 4 * maxHeight + cloudLayerHeight });
+                
+                // Combined score line (normalized, shown in same space as cloud layer)
+                var combinedLayerHeight = s.combined * maxHeight;
+                combinedPoints.push({ angle: angle, radius: innerRadius + 4 * maxHeight + combinedLayerHeight });
+            }
+            
+            // Create smooth curves for outer boundaries
+            var smoothTemp = createSmoothPath(tempPoints, 10);
+            var smoothWind = createSmoothPath(windPoints, 10);
+            var smoothWater = createSmoothPath(waterPoints, 10);
+            var smoothRain = createSmoothPath(rainPoints, 10);
+            var smoothCloud = createSmoothPath(cloudPoints, 10);
+            var smoothCombined = createSmoothPath(combinedPoints, 10);
+            
+            // Create smooth curves for inner boundaries
+            var smoothTempInner = createSmoothPath(tempInnerPoints, 10);
+            var smoothWindInner = createSmoothPath(windInnerPoints, 10);
+            var smoothWaterInner = createSmoothPath(waterInnerPoints, 10);
+            var smoothRainInner = createSmoothPath(rainInnerPoints, 10);
+            var smoothCloudInner = createSmoothPath(cloudInnerPoints, 10);
+            
+            // Draw temperature ring (innermost, 0-1 range) - 50% transparent
+            ctx.fillStyle = 'rgba(255, 107, 107, 0.5)';
+            ctx.beginPath();
+            // Draw outer boundary
+            for (var i = 0; i < smoothTemp.length; i++) {
+                var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
+                var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            // Draw inner boundary (reversed)
+            for (var i = smoothTempInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothTempInner[i].angle) * smoothTempInner[i].radius;
+                var y = cy + Math.sin(smoothTempInner[i].angle) * smoothTempInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw wind ring (1-2 range) - green color, 50% transparent
+            ctx.fillStyle = 'rgba(76, 175, 80, 0.5)'; // Green color
+            ctx.beginPath();
+            // Draw outer boundary
+            for (var i = 0; i < smoothWind.length; i++) {
+                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            // Draw inner boundary (reversed)
+            for (var i = smoothWindInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothWindInner[i].angle) * smoothWindInner[i].radius;
+                var y = cy + Math.sin(smoothWindInner[i].angle) * smoothWindInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw water ring (outermost, 2-3 range) - 50% transparent
+            ctx.fillStyle = 'rgba(149, 225, 211, 0.5)';
+            ctx.beginPath();
+            // Draw outer boundary
+            for (var i = 0; i < smoothWater.length; i++) {
+                var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
+                var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            // Draw inner boundary (reversed)
+            for (var i = smoothWaterInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
+                var y = cy + Math.sin(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw rain as bars (3-4 range) - grey color
+            // Draw individual bars for each data point
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange;
+                var rainHeight = s.rain * maxHeight;
+                
+                // Calculate bar width (angle span)
+                var barWidthAngle = angleRange / (scores.length * 2); // Half the spacing for bar width
+                
+                ctx.fillStyle = 'rgba(136, 136, 136, 0.7)'; // Grey color
+                ctx.beginPath();
+                // Start from inner boundary
+                var innerR = innerRadius + 3 * maxHeight;
+                var outerR = innerRadius + 3 * maxHeight + rainHeight;
+                
+                // Draw bar as a wedge
+                ctx.moveTo(cx + Math.cos(angle - barWidthAngle) * innerR, cy + Math.sin(angle - barWidthAngle) * innerR);
+                ctx.lineTo(cx + Math.cos(angle - barWidthAngle) * outerR, cy + Math.sin(angle - barWidthAngle) * outerR);
+                ctx.lineTo(cx + Math.cos(angle + barWidthAngle) * outerR, cy + Math.sin(angle + barWidthAngle) * outerR);
+                ctx.lineTo(cx + Math.cos(angle + barWidthAngle) * innerR, cy + Math.sin(angle + barWidthAngle) * innerR);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+            
+            // Draw cloud ring (4-5 range, inverted) - white color, 50% transparent
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.beginPath();
+            // Draw outer boundary
+            for (var i = 0; i < smoothCloud.length; i++) {
+                var x = cx + Math.cos(smoothCloud[i].angle) * smoothCloud[i].radius;
+                var y = cy + Math.sin(smoothCloud[i].angle) * smoothCloud[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            // Draw inner boundary (reversed)
+            for (var i = smoothCloudInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothCloudInner[i].angle) * smoothCloudInner[i].radius;
+                var y = cy + Math.sin(smoothCloudInner[i].angle) * smoothCloudInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(200,200,200,0.5)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw combined score as orange spline (in cloud layer space)
+            ctx.strokeStyle = 'rgba(255, 152, 0, 1.0)'; // Orange color
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothCombined.length; i++) {
+                var x = cx + Math.cos(smoothCombined[i].angle) * smoothCombined[i].radius;
+                var y = cy + Math.sin(smoothCombined[i].angle) * smoothCombined[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Draw stroke lines and labels for each section boundary
+            // Temperature section boundary (at innerRadius)
+            ctx.strokeStyle = 'rgba(255, 107, 107, 1.0)'; // Saturated red, 100% opacity
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothTempInner.length; i++) {
+                var x = cx + Math.cos(smoothTempInner[i].angle) * smoothTempInner[i].radius;
+                var y = cy + Math.sin(smoothTempInner[i].angle) * smoothTempInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Wind section boundary (at innerRadius + maxHeight)
+            ctx.strokeStyle = 'rgba(76, 175, 80, 1.0)'; // Green, 100% opacity
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothWindInner.length; i++) {
+                var x = cx + Math.cos(smoothWindInner[i].angle) * smoothWindInner[i].radius;
+                var y = cy + Math.sin(smoothWindInner[i].angle) * smoothWindInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Water section boundary (at innerRadius + 2*maxHeight)
+            ctx.strokeStyle = 'rgba(149, 225, 211, 1.0)'; // Saturated light teal, 100% opacity
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothWaterInner.length; i++) {
+                var x = cx + Math.cos(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
+                var y = cy + Math.sin(smoothWaterInner[i].angle) * smoothWaterInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Rain section boundary (at innerRadius + 3*maxHeight)
+            ctx.strokeStyle = 'rgba(136, 136, 136, 1.0)'; // Grey, 100% opacity
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothRainInner.length; i++) {
+                var x = cx + Math.cos(smoothRainInner[i].angle) * smoothRainInner[i].radius;
+                var y = cy + Math.sin(smoothRainInner[i].angle) * smoothRainInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Cloud section boundary (at innerRadius + 4*maxHeight)
+            ctx.strokeStyle = 'rgba(200, 200, 200, 1.0)'; // Light grey, 100% opacity
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothCloudInner.length; i++) {
+                var x = cx + Math.cos(smoothCloudInner[i].angle) * smoothCloudInner[i].radius;
+                var y = cy + Math.sin(smoothCloudInner[i].angle) * smoothCloudInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Draw text labels along the splines
+            // Temperature label (at innerRadius, start of arc)
+            ctx.save();
+            var tempLabelAngle = startAngle + 0.1; // Slightly offset from start
+            var tempLabelRadius = innerRadius;
+            var tempLabelX = cx + Math.cos(tempLabelAngle) * tempLabelRadius;
+            var tempLabelY = cy + Math.sin(tempLabelAngle) * tempLabelRadius;
+            ctx.translate(tempLabelX, tempLabelY);
+            ctx.rotate(tempLabelAngle + Math.PI / 2); // Rotate to follow the curve
+            ctx.fillStyle = 'rgba(255, 107, 107, 1.0)';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Temperature', 0, 0);
+            ctx.restore();
+            
+            // Wind label (at innerRadius + maxHeight)
+            ctx.save();
+            var windLabelAngle = startAngle + 0.1;
+            var windLabelRadius = innerRadius + maxHeight;
+            var windLabelX = cx + Math.cos(windLabelAngle) * windLabelRadius;
+            var windLabelY = cy + Math.sin(windLabelAngle) * windLabelRadius;
+            ctx.translate(windLabelX, windLabelY);
+            ctx.rotate(windLabelAngle + Math.PI / 2);
+            ctx.fillStyle = 'rgba(76, 175, 80, 1.0)';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Wind Speed', 0, 0);
+            ctx.restore();
+            
+            // Water label (at innerRadius + 2*maxHeight)
+            ctx.save();
+            var waterLabelAngle = startAngle + 0.1;
+            var waterLabelRadius = innerRadius + 2 * maxHeight;
+            var waterLabelX = cx + Math.cos(waterLabelAngle) * waterLabelRadius;
+            var waterLabelY = cy + Math.sin(waterLabelAngle) * waterLabelRadius;
+            ctx.translate(waterLabelX, waterLabelY);
+            ctx.rotate(waterLabelAngle + Math.PI / 2);
+            ctx.fillStyle = 'rgba(149, 225, 211, 1.0)';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Water Temp', 0, 0);
+            ctx.restore();
+            
+            // Rain label (at innerRadius + 3*maxHeight)
+            ctx.save();
+            var rainLabelAngle = startAngle + 0.1;
+            var rainLabelRadius = innerRadius + 3 * maxHeight;
+            var rainLabelX = cx + Math.cos(rainLabelAngle) * rainLabelRadius;
+            var rainLabelY = cy + Math.sin(rainLabelAngle) * rainLabelRadius;
+            ctx.translate(rainLabelX, rainLabelY);
+            ctx.rotate(rainLabelAngle + Math.PI / 2);
+            ctx.fillStyle = 'rgba(136, 136, 136, 1.0)';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Rain', 0, 0);
+            ctx.restore();
+            
+            // Cloud label (at innerRadius + 4*maxHeight)
+            ctx.save();
+            var cloudLabelAngle = startAngle + 0.1;
+            var cloudLabelRadius = innerRadius + 4 * maxHeight;
+            var cloudLabelX = cx + Math.cos(cloudLabelAngle) * cloudLabelRadius;
+            var cloudLabelY = cy + Math.sin(cloudLabelAngle) * cloudLabelRadius;
+            ctx.translate(cloudLabelX, cloudLabelY);
+            ctx.rotate(cloudLabelAngle + Math.PI / 2);
+            ctx.fillStyle = 'rgba(100, 100, 100, 1.0)';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Cloud', 0, 0);
+            ctx.restore();
+            
+            // Draw time labels and markers
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange;
+                
+                // Find the outermost radius for this angle
+                var maxRadius = cloudPoints[i].radius;
+                
+                // Draw radial line from inner to outer
+                ctx.strokeStyle = 'rgba(200,200,200,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * innerRadius, cy + Math.sin(angle) * innerRadius);
+                ctx.lineTo(cx + Math.cos(angle) * (maxRadius + 20), cy + Math.sin(angle) * (maxRadius + 20));
+                ctx.stroke();
+                
+                // Time labels - positioned outside the chart
+                var labelDist = maxRadius + 50;
+                var x = cx + Math.cos(angle) * labelDist;
+                var y = cy + Math.sin(angle) * labelDist;
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(formatTime(s.hour), x, y);
+                
+                // Draw data values in a ring around the chart
+                var dataDist = maxRadius + 90;
+                var dx = cx + Math.cos(angle) * dataDist;
+                var dy = cy + Math.sin(angle) * dataDist;
+                
+                ctx.font = '11px sans-serif';
+                ctx.fillStyle = '#ff6b6b';
+                ctx.fillText(s.temp + '°C', dx, dy - 30);
+                ctx.fillStyle = '#4caf50';
+                ctx.fillText(s.wind + ' km/h', dx, dy - 10);
+                ctx.fillStyle = '#95e1d3';
+                ctx.fillText(s.water + '°C', dx, dy + 10);
+                ctx.fillStyle = '#888';
+                ctx.fillText(Math.round(s.rain * 100) + '%', dx, dy + 30);
+            }
+            
+            // Draw day score in center
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 36px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(dayScorePercent + '%', cx, cy - 20);
+            ctx.font = '14px sans-serif';
+            ctx.fillText('Day Score', cx, cy + 10);
+        }
+        
+        function drawOverlaidChart(scores) {
+            var canvas = document.getElementById('overlayCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            
+            // Make canvas responsive to container width
+            var container = canvas.parentElement;
+            if (!container) return;
+            var containerWidth = container.clientWidth;
+            var width = containerWidth || 1000; // Fallback to default width
+            var height = width * 0.6; // Aspect ratio adjusted for larger display (60% height)
+            
+            // Set canvas dimensions
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Calculate spacing for labels around the chart
+            var sidePadding = 120; // Space needed on left/right for labels + data values
+            var topPadding = 100; // Space needed at top for labels + data values
+            var bottomPadding = 20; // Small space at bottom
+            
+            // Calculate center position and maximum radius
+            var cx = width / 2;
+            var cy = height - bottomPadding; // Position near bottom with small margin
+            
+            // Maximum radius is constrained by available space
+            var maxRadiusVertical = cy - topPadding;
+            var maxRadiusHorizontal = cx - sidePadding;
+            var maxAllowedRadius = Math.min(maxRadiusVertical, maxRadiusHorizontal);
+            
+            // Calculate inner radius and layer height
+            var innerRadius = maxAllowedRadius * 0.25; // Inner radius is 25% of max radius
+            var maxHeight = maxAllowedRadius - innerRadius; // All data uses the same 0-1 range
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Calculate angles (9 o'clock to 3 o'clock, going UP and over = PI to 2*PI, clockwise)
+            var startAngle = Math.PI; // 9 o'clock (left side) - 7am
+            var endAngle = 2 * Math.PI; // 3 o'clock (right side) - 7pm
+            var angleRange = Math.PI; // semicircle going through the top
+            
+            // Create point arrays for each metric (all in 0-1 range now)
+            var tempPoints = [];
+            var windPoints = [];
+            var waterPoints = [];
+            var rainPoints = [];
+            var cloudPoints = [];
+            var combinedPoints = [];
+            
+            // Inner boundary (same for all)
+            var innerPoints = [];
+            
+            // Calculate day score (13 elements * 4 datasets = max 52)
+            var totalScore = 0;
+            for (var i = 0; i < scores.length; i++) {
+                totalScore += scores[i].tempScore + scores[i].windScore + scores[i].waterScore + scores[i].rainScore;
+            }
+            var dayScorePercent = Math.round((totalScore / (scores.length * 4)) * 100);
+            
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
+                
+                // All scores are 0-1, all overlaid in the same range
+                var tempLayerHeight = s.tempScore * maxHeight;
+                var windLayerHeight = s.windScore * maxHeight;
+                var waterLayerHeight = s.waterScore * maxHeight;
+                var rainLayerHeight = (1 - s.rain) * maxHeight; // Rain inverted for overlay (higher is better = less rain)
+                var cloudLayerHeight = (1 - s.cloud) * maxHeight; // Cloud inverted (higher is better = less cloud)
+                
+                // All metrics share the same inner boundary
+                innerPoints.push({ angle: angle, radius: innerRadius });
+                
+                // Each metric has its own outer boundary based on its score
+                tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
+                windPoints.push({ angle: angle, radius: innerRadius + windLayerHeight });
+                waterPoints.push({ angle: angle, radius: innerRadius + waterLayerHeight });
+                rainPoints.push({ angle: angle, radius: innerRadius + rainLayerHeight });
+                cloudPoints.push({ angle: angle, radius: innerRadius + cloudLayerHeight });
+                
+                // Combined score (normalized average)
+                var combinedLayerHeight = s.combined * maxHeight;
+                combinedPoints.push({ angle: angle, radius: innerRadius + combinedLayerHeight });
+            }
+            
+            // Create smooth curves for all boundaries
+            var smoothTemp = createSmoothPath(tempPoints, 10);
+            var smoothWind = createSmoothPath(windPoints, 10);
+            var smoothWater = createSmoothPath(waterPoints, 10);
+            var smoothRain = createSmoothPath(rainPoints, 10);
+            var smoothCloud = createSmoothPath(cloudPoints, 10);
+            var smoothCombined = createSmoothPath(combinedPoints, 10);
+            var smoothInner = createSmoothPath(innerPoints, 10);
+            
+            // Draw water ring first (bottom layer) - 30% transparent
+            ctx.fillStyle = 'rgba(149, 225, 211, 0.3)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothWater.length; i++) {
+                var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
+                var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(149, 225, 211, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw cloud ring (bottom layer) - white, 30% transparent, inverted
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothCloud.length; i++) {
+                var x = cx + Math.cos(smoothCloud[i].angle) * smoothCloud[i].radius;
+                var y = cy + Math.sin(smoothCloud[i].angle) * smoothCloud[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(200, 200, 200, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw rain ring - grey, 30% transparent, inverted
+            ctx.fillStyle = 'rgba(136, 136, 136, 0.3)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothRain.length; i++) {
+                var x = cx + Math.cos(smoothRain[i].angle) * smoothRain[i].radius;
+                var y = cy + Math.sin(smoothRain[i].angle) * smoothRain[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(136, 136, 136, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw wind ring - green, 30% transparent
+            ctx.fillStyle = 'rgba(76, 175, 80, 0.3)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothWind.length; i++) {
+                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(76, 175, 80, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw temperature ring (top layer) - 30% transparent
+            ctx.fillStyle = 'rgba(255, 107, 107, 0.3)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothTemp.length; i++) {
+                var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
+                var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 107, 107, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw combined score as orange spline
+            ctx.strokeStyle = 'rgba(255, 152, 0, 1.0)'; // Orange color
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (var i = 0; i < smoothCombined.length; i++) {
+                var x = cx + Math.cos(smoothCombined[i].angle) * smoothCombined[i].radius;
+                var y = cy + Math.sin(smoothCombined[i].angle) * smoothCombined[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Draw the inner boundary circle
+            ctx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (var i = 0; i < smoothInner.length; i++) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Draw time labels and markers
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange;
+                
+                // Find the outermost radius for this angle (maximum of all metrics)
+                var maxRadius = Math.max(tempPoints[i].radius, windPoints[i].radius, waterPoints[i].radius, 
+                                        rainPoints[i].radius, cloudPoints[i].radius);
+                
+                // Draw radial line from inner to outer
+                ctx.strokeStyle = 'rgba(200,200,200,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * innerRadius, cy + Math.sin(angle) * innerRadius);
+                ctx.lineTo(cx + Math.cos(angle) * (maxRadius + 20), cy + Math.sin(angle) * (maxRadius + 20));
+                ctx.stroke();
+                
+                // Time labels - positioned outside the chart
+                var labelDist = maxAllowedRadius + 50;
+                var x = cx + Math.cos(angle) * labelDist;
+                var y = cy + Math.sin(angle) * labelDist;
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(formatTime(s.hour), x, y);
+                
+                // Draw data values in a ring around the chart
+                var dataDist = maxAllowedRadius + 90;
+                var dx = cx + Math.cos(angle) * dataDist;
+                var dy = cy + Math.sin(angle) * dataDist;
+                
+                ctx.font = '11px sans-serif';
+                ctx.fillStyle = '#ff6b6b';
+                ctx.fillText(s.temp + '°C', dx, dy - 30);
+                ctx.fillStyle = '#4caf50';
+                ctx.fillText(s.wind + ' km/h', dx, dy - 10);
+                ctx.fillStyle = '#95e1d3';
+                ctx.fillText(s.water + '°C', dx, dy + 10);
+                ctx.fillStyle = '#888';
+                ctx.fillText(Math.round(s.rain * 100) + '%', dx, dy + 30);
+            }
+            
+            // Draw day score in center
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 36px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(dayScorePercent + '%', cx, cy - 20);
+            ctx.font = '14px sans-serif';
+            ctx.fillText('Day Score', cx, cy + 10);
+        }
+        
+        function updateChart() {
+            if (weatherData.length > 0 && weatherData[currentDay]) {
+                var scores = calculateDayScores(weatherData[currentDay]);
+                drawRadialSpline(scores);
+                drawOverlaidChart(scores);
+                updateDateDisplay();
+            }
+        }
+        
+        document.getElementById('globalDaySelector').addEventListener('click', function(e) {
+            // Use closest() to handle clicks on button or any child elements
+            var button = e.target.closest('.day-btn');
+            if (button) {
+                var buttons = document.querySelectorAll('.day-btn');
+                for (var i = 0; i < buttons.length; i++) {
+                    buttons[i].classList.remove('active');
+                }
+                button.classList.add('active');
+                currentDay = parseInt(button.getAttribute('data-day'));
+                updateChart();
+            }
+        });
+        
+        // Initialize by fetching weather data
+        fetchWeatherData();
+        
+        var resizeTimer;
+        window.addEventListener('resize', function() {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(updateChart, 250);
+        });
+    </script>
+</body>
+</html>
