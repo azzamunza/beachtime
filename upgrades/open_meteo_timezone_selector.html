@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timezone Selector (Open‑Meteo)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 2rem;
+      max-width: 480px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    select {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+    }
+
+    .result {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <label for="timezone">Timezone</label>
+  <select id="timezone">
+    <option value="auto" selected>Auto (detect from location)</option>
+    <option value="UTC">UTC</option>
+    <option value="Australia/Perth">Australia/Perth</option>
+    <option value="Australia/Adelaide">Australia/Adelaide</option>
+    <option value="Australia/Sydney">Australia/Sydney</option>
+    <option value="Australia/Brisbane">Australia/Brisbane</option>
+    <option value="Australia/Darwin">Australia/Darwin</option>
+    <option value="Australia/Hobart">Australia/Hobart</option>
+    <option value="Asia/Singapore">Asia/Singapore</option>
+    <option value="Asia/Tokyo">Asia/Tokyo</option>
+    <option value="Europe/London">Europe/London</option>
+    <option value="Europe/Berlin">Europe/Berlin</option>
+    <option value="America/New_York">America/New_York</option>
+    <option value="America/Los_Angeles">America/Los_Angeles</option>
+  </select>
+
+  <div id="output" class="result"></div>
+
+  <script>
+    const select = document.getElementById('timezone');
+    const output = document.getElementById('output');
+
+    function update() {
+      const value = select.value;
+      output.innerHTML = `Selected timezone: <strong>${value}</strong>`;
+
+      // Variable to pass into Open‑Meteo API
+      window.selectedTimezone = value;
+    }
+
+    select.addEventListener('change', update);
+    update();
+  </script>
+
+</body>
+</html>
