@@ -184,6 +184,46 @@
             font-size: 1em;
             line-height: 1.6;
         }
+        
+        .tab-menu {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+        
+        .tab-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: white;
+            color: #667eea;
+            transform: scale(1.05);
+        }
+        
+        .chart-container {
+            display: none;
+        }
+        
+        .chart-container.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -193,6 +233,13 @@
         <div class="day-selector" id="globalDaySelector">
         </div>
         
+        <div class="tab-menu">
+            <button class="tab-btn active" data-chart="separated">Separated Rings</button>
+            <button class="tab-btn" data-chart="overlaid">Overlaid</button>
+            <button class="tab-btn" data-chart="stacked">Stacked</button>
+        </div>
+        
+        <div class="chart-container active" id="separatedChart">
         <div class="viz-card">
             <h2 class="viz-title">Swanbourne Beach</h2>
             <p class="viz-subtitle" id="chartDate">Loading...</p>
@@ -231,8 +278,10 @@
                 </div>
             </div>
         </div>
+        </div>
         
-        <div class="viz-card" style="margin-top: 30px;">
+        <div class="chart-container" id="overlaidChart">
+        <div class="viz-card">
             <h2 class="viz-title">Overlaid Comparison</h2>
             <p class="viz-subtitle" id="chartDate2">Loading...</p>
             
@@ -269,6 +318,49 @@
                     Time labels and detailed readings appear around the outside of the chart.
                 </div>
             </div>
+        </div>
+        </div>
+        
+        <div class="chart-container" id="stackedChart">
+        <div class="viz-card">
+            <h2 class="viz-title">Stacked View</h2>
+            <p class="viz-subtitle" id="chartDate3">Loading...</p>
+            
+            <div class="canvas-container">
+                <canvas id="stackedCanvas"></canvas>
+            </div>
+            
+            <div class="location-label">
+                <div class="location-name">Swanbourne Beach</div>
+                <div class="location-date" id="currentDate3">Loading...</div>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span><strong>Temperature</strong> (ideal: 32°C)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
+                    <span><strong>Wind Speed</strong> (ideal: 0-15 km/h)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #95e1d3;"></div>
+                    <span><strong>Water Temp</strong> (warmer is better)</span>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">How to Read This Chart</div>
+                <div class="info-text">
+                    This chart shows all three metrics stacked on top of each other in the same 0-1 range. 
+                    The bottom layer (Water Temp in light teal) forms the base, 
+                    Wind Speed (teal) is stacked on top, and Temperature (red) is at the top. 
+                    The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
+                    The total height at any time shows the combined scores of all three metrics.
+                </div>
+            </div>
+        </div>
         </div>
     </div>
     
@@ -560,6 +652,15 @@
                 var chartDate2Element = document.getElementById('chartDate2');
                 if (chartDate2Element) {
                     chartDate2Element.textContent = formattedDate;
+                }
+                // Update third chart date displays
+                var currentDate3Element = document.getElementById('currentDate3');
+                if (currentDate3Element) {
+                    currentDate3Element.textContent = formattedDate;
+                }
+                var chartDate3Element = document.getElementById('chartDate3');
+                if (chartDate3Element) {
+                    chartDate3Element.textContent = formattedDate;
                 }
             }
         }
@@ -1213,11 +1314,205 @@
             }
         }
         
+        function drawStackedChart(scores) {
+            var canvas = document.getElementById('stackedCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            
+            // Make canvas responsive to container width
+            var container = canvas.parentElement;
+            if (!container) return;
+            var containerWidth = container.clientWidth;
+            var width = containerWidth || 1000; // Fallback to default width
+            var height = width * 0.6; // Aspect ratio adjusted for larger display (60% height)
+            
+            // Set canvas dimensions
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Calculate spacing for labels around the chart
+            var sidePadding = 120; // Space needed on left/right for labels + data values
+            var topPadding = 100; // Space needed at top for labels + data values
+            var bottomPadding = 20; // Small space at bottom
+            
+            // Calculate center position and maximum radius
+            var cx = width / 2;
+            var cy = height - bottomPadding; // Position near bottom with small margin
+            
+            // Maximum radius is constrained by available space
+            var maxRadiusVertical = cy - topPadding;
+            var maxRadiusHorizontal = cx - sidePadding;
+            var maxAllowedRadius = Math.min(maxRadiusVertical, maxRadiusHorizontal);
+            
+            // Calculate inner radius and layer height
+            var innerRadius = maxAllowedRadius * 0.25; // Inner radius is 25% of max radius
+            var maxHeight = maxAllowedRadius - innerRadius; // All data uses the full available range
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            // Calculate angles (9 o'clock to 3 o'clock, going UP and over = PI to 2*PI, clockwise)
+            var startAngle = Math.PI; // 9 o'clock (left side) - 7am
+            var endAngle = 2 * Math.PI; // 3 o'clock (right side) - 7pm
+            var angleRange = Math.PI; // semicircle going through the top
+            
+            // Create point arrays for stacked layers
+            var basePoints = [];      // Base: water temp
+            var midPoints = [];       // Mid: water + wind
+            var topPoints = [];       // Top: water + wind + temp
+            
+            // Inner boundary (same for all)
+            var innerPoints = [];
+            
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
+                
+                // Stack the scores on top of each other
+                var waterHeight = s.waterScore * maxHeight;
+                var windHeight = s.windScore * maxHeight;
+                var tempHeight = s.tempScore * maxHeight;
+                
+                // Inner boundary
+                innerPoints.push({ angle: angle, radius: innerRadius });
+                
+                // Base layer: water only
+                basePoints.push({ angle: angle, radius: innerRadius + waterHeight });
+                
+                // Mid layer: water + wind
+                midPoints.push({ angle: angle, radius: innerRadius + waterHeight + windHeight });
+                
+                // Top layer: water + wind + temp
+                topPoints.push({ angle: angle, radius: innerRadius + waterHeight + windHeight + tempHeight });
+            }
+            
+            // Create smooth curves for all boundaries
+            var smoothBase = createSmoothPath(basePoints, 10);
+            var smoothMid = createSmoothPath(midPoints, 10);
+            var smoothTop = createSmoothPath(topPoints, 10);
+            var smoothInner = createSmoothPath(innerPoints, 10);
+            
+            // Draw base layer (water) - light teal
+            ctx.fillStyle = 'rgba(149, 225, 211, 0.6)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothBase.length; i++) {
+                var x = cx + Math.cos(smoothBase[i].angle) * smoothBase[i].radius;
+                var y = cy + Math.sin(smoothBase[i].angle) * smoothBase[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(149, 225, 211, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw middle layer (wind) - teal
+            ctx.fillStyle = 'rgba(78, 205, 196, 0.6)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothMid.length; i++) {
+                var x = cx + Math.cos(smoothMid[i].angle) * smoothMid[i].radius;
+                var y = cy + Math.sin(smoothMid[i].angle) * smoothMid[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothBase.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothBase[i].angle) * smoothBase[i].radius;
+                var y = cy + Math.sin(smoothBase[i].angle) * smoothBase[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(78, 205, 196, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw top layer (temperature) - red
+            ctx.fillStyle = 'rgba(255, 107, 107, 0.6)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothTop.length; i++) {
+                var x = cx + Math.cos(smoothTop[i].angle) * smoothTop[i].radius;
+                var y = cy + Math.sin(smoothTop[i].angle) * smoothTop[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothMid.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothMid[i].angle) * smoothMid[i].radius;
+                var y = cy + Math.sin(smoothMid[i].angle) * smoothMid[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 107, 107, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw the inner boundary circle
+            ctx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (var i = 0; i < smoothInner.length; i++) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Draw time labels and markers
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange;
+                
+                // Find the outermost radius for this angle (top of stack)
+                var maxRadius = topPoints[i].radius;
+                
+                // Draw radial line from inner to outer
+                ctx.strokeStyle = 'rgba(200,200,200,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * innerRadius, cy + Math.sin(angle) * innerRadius);
+                ctx.lineTo(cx + Math.cos(angle) * (maxRadius + 20), cy + Math.sin(angle) * (maxRadius + 20));
+                ctx.stroke();
+                
+                // Time labels - positioned outside the chart
+                var labelDist = maxAllowedRadius + 50;
+                var x = cx + Math.cos(angle) * labelDist;
+                var y = cy + Math.sin(angle) * labelDist;
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(formatTime(s.hour), x, y);
+                
+                // Draw data values in a ring around the chart
+                var dataDist = maxAllowedRadius + 90;
+                var dx = cx + Math.cos(angle) * dataDist;
+                var dy = cy + Math.sin(angle) * dataDist;
+                
+                ctx.font = '11px sans-serif';
+                ctx.fillStyle = '#ff6b6b';
+                ctx.fillText(s.temp + '°C', dx, dy - 20);
+                ctx.fillStyle = '#4ecdc4';
+                ctx.fillText(s.wind + ' km/h', dx, dy);
+                ctx.fillStyle = '#95e1d3';
+                ctx.fillText(s.water + '°C', dx, dy + 20);
+            }
+        }
+        
         function updateChart() {
             if (weatherData.length > 0 && weatherData[currentDay]) {
                 var scores = calculateDayScores(weatherData[currentDay]);
                 drawRadialSpline(scores);
                 drawOverlaidChart(scores);
+                drawStackedChart(scores);
                 updateDateDisplay();
             }
         }
@@ -1233,6 +1528,35 @@
                 button.classList.add('active');
                 currentDay = parseInt(button.getAttribute('data-day'));
                 updateChart();
+            }
+        });
+        
+        // Tab menu event listener
+        document.querySelector('.tab-menu').addEventListener('click', function(e) {
+            var button = e.target.closest('.tab-btn');
+            if (button) {
+                // Update tab buttons
+                var tabButtons = document.querySelectorAll('.tab-btn');
+                for (var i = 0; i < tabButtons.length; i++) {
+                    tabButtons[i].classList.remove('active');
+                }
+                button.classList.add('active');
+                
+                // Update chart visibility
+                var chartType = button.getAttribute('data-chart');
+                var chartContainers = document.querySelectorAll('.chart-container');
+                for (var i = 0; i < chartContainers.length; i++) {
+                    chartContainers[i].classList.remove('active');
+                }
+                
+                // Show the selected chart
+                if (chartType === 'separated') {
+                    document.getElementById('separatedChart').classList.add('active');
+                } else if (chartType === 'overlaid') {
+                    document.getElementById('overlaidChart').classList.add('active');
+                } else if (chartType === 'stacked') {
+                    document.getElementById('stackedChart').classList.add('active');
+                }
             }
         });
         
