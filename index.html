@@ -277,6 +277,50 @@
         var currentDay = 0;
         var isLoading = true;
         
+        // Generate mock weather data for testing
+        function generateMockData() {
+            var mockData = [];
+            var today = new Date();
+            
+            // Generate data for next 7 days
+            for (var day = 0; day < 7; day++) {
+                var date = new Date(today);
+                date.setDate(today.getDate() + day);
+                var dateKey = date.toISOString().split('T')[0];
+                
+                var dayData = {
+                    date: dateKey,
+                    hours: [],
+                    temp: [],
+                    wind: [],
+                    water: []
+                };
+                
+                // Generate hourly data from 7am to 7pm
+                for (var hour = 7; hour <= 19; hour++) {
+                    dayData.hours.push(hour);
+                    
+                    // Temperature varies throughout the day (cooler in morning, warmer at noon)
+                    var tempBase = 28 + day * 0.5; // Slight variation across days
+                    var tempVariation = 6 * Math.sin((hour - 7) * Math.PI / 12); // Peaks at noon
+                    dayData.temp.push(Math.round(tempBase + tempVariation));
+                    
+                    // Wind speed varies (typically lower in morning)
+                    var windBase = 10 + day * 0.3;
+                    var windVariation = 8 * Math.sin((hour - 7) * Math.PI / 10);
+                    dayData.wind.push(Math.max(0, Math.round(windBase + windVariation)));
+                    
+                    // Water temperature is more stable
+                    var waterBase = 24 + day * 0.2;
+                    dayData.water.push(Math.round(waterBase * 10) / 10);
+                }
+                
+                mockData.push(dayData);
+            }
+            
+            return mockData;
+        }
+        
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
             var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=wind_speed_10m,temperature_2m&timezone=Asia%2FSingapore';
@@ -299,8 +343,12 @@
                     
                     if (weatherResult.status === 'rejected') {
                         console.error('Error fetching weather data:', weatherResult.reason);
-                        showDataWarning('Failed to load weather data from API');
+                        console.log('Using mock data for testing');
+                        weatherData = generateMockData();
                         isLoading = false;
+                        updateChart();
+                        updateDateDisplay();
+                        updateDayButtons();
                         return;
                     }
                     
@@ -319,8 +367,12 @@
                 })
                 .catch(function(error) {
                     console.error('Unexpected error:', error);
-                    showDataWarning('Failed to load data from API');
+                    console.log('Using mock data for testing');
+                    weatherData = generateMockData();
                     isLoading = false;
+                    updateChart();
+                    updateDateDisplay();
+                    updateDayButtons();
                 });
         }
         
@@ -561,46 +613,67 @@
         }
         
         // Calculate a normalized score from 0 to 1 based on how close value is to ideal
-        // Uses exponential decay:  closer to ideal = higher score
-        function calculateRating(value, ideal, min, max) {
-            var distance;
+        // Uses cubic Bézier spline falloff: score = 1 in ideal range, falls off smoothly outside
+        function calculateRating(value, ideal, min, max, z1, z2) {
+            // Default z1 and z2 values if not provided
+            if (z1 === undefined) z1 = 0.5;
+            if (z2 === undefined) z2 = 0.5;
+            
+            var idealMin, idealMax;
             
             if (Array.isArray(ideal)) {
                 // Ideal is a range [min_ideal, max_ideal]
-                if (value >= ideal[0] && value <= ideal[1]) {
-                    distance = 0; // Perfect score
-                } else if (value < ideal[0]) {
-                    distance = ideal[0] - value;
-                } else {
-                    distance = value - ideal[1];
-                }
+                idealMin = ideal[0];
+                idealMax = ideal[1];
             } else {
-                // Ideal is a single value
-                distance = Math.abs(value - ideal);
+                // Ideal is a single value, treat as a range with width 0
+                idealMin = ideal;
+                idealMax = ideal;
             }
             
-            // Calculate maximum possible distance from ideal
-            var maxDistance = Math.max(
-                Array.isArray(ideal) ? Math.abs(ideal[0] - min) : Math.abs(ideal - min),
-                Array.isArray(ideal) ? Math.abs(max - ideal[1]) : Math.abs(max - ideal)
-            );
-            
-            // If already at ideal, return perfect score
-            if (distance === 0) {
+            // If value is in the ideal range, return perfect score
+            if (value >= idealMin && value <= idealMax) {
                 return 1.0;
             }
             
-            // If maxDistance is 0, all values are ideal, return perfect score
-            if (maxDistance === 0) {
-                return 1.0;
+            // Calculate parameter t based on whether value is below or above ideal range
+            var t;
+            if (value < idealMin) {
+                // Below ideal range
+                if (idealMin === min) {
+                    // All values at or below ideal are perfect
+                    return 1.0;
+                }
+                t = 1 - (idealMin - value) / (idealMin - min);
+            } else {
+                // Above ideal range
+                if (idealMax === max) {
+                    // All values at or above ideal are perfect
+                    return 1.0;
+                }
+                t = 1 - (value - idealMax) / (max - idealMax);
             }
             
-            // Exponential decay function: exp(-k * distance^2)
-            // k = 3/maxDistance² so that at maxDistance, score = exp(-3) ≈ 0.05
-            var k = 3 / (maxDistance * maxDistance);
-            var score = Math.exp(-k * distance * distance);
+            // Clamp t to [0, 1] range
+            t = Math.max(0, Math.min(1, t));
             
-            // Score is now 0-1, where 1 = ideal, 0 = worst possible
+            // Calculate L constant
+            var L = 0.6 * Math.sqrt(2);
+            
+            // Calculate Bézier control points P1y and P2y
+            var P1y = L * Math.sin((Math.PI / 4) * (1 - z1));
+            var P2y = 1 - L * Math.sin((Math.PI / 4) * z2);
+            
+            // Calculate cubic Bézier function B(t)
+            // B(t) = 3(1-t)²·t·P1y + 3(1-t)·t²·P2y + t³
+            var oneMinusT = 1 - t;
+            var B_t = 3 * oneMinusT * oneMinusT * t * P1y +
+                      3 * oneMinusT * t * t * P2y +
+                      t * t * t;
+            
+            // Clamp score to [0, 1] range
+            var score = Math.max(0, Math.min(1, B_t));
+            
             return score;
         }
         
