@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Location Search (Open‑Meteo)</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin: 2rem;
+      max-width: 640px;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      font-size: 1rem;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      position: absolute;
+      width: 100%;
+      background: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      max-height: 240px;
+      overflow-y: auto;
+      z-index: 10;
+    }
+
+    li {
+      padding: 0.5rem 0.6rem;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+
+    li:last-child {
+      border-bottom: none;
+    }
+
+    li:hover {
+      background: #f3f3f3;
+    }
+
+    .result {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: #fafafa;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Location search (Open‑Meteo)</h1>
+  <div style="position: relative;">
+    <input id="search" type="text" placeholder="Search for a location…" autocomplete="off" />
+    <ul id="results" hidden></ul>
+  </div>
+
+  
+
+  <div id="output" class="result" hidden></div>
+
+  <script>
+    const input = document.getElementById('search');
+    const resultsList = document.getElementById('results');
+    const output = document.getElementById('output');
+
+    let controller;
+
+    input.addEventListener('input', async () => {
+      const query = input.value.trim();
+
+      resultsList.innerHTML = '';
+            resultsList.hidden = true;
+      resultsList.hidden = true;
+      output.hidden = true;
+
+      if (query.length < 3) return;
+
+      // Cancel previous request if still running
+      if (controller) controller.abort();
+      controller = new AbortController();
+
+      const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=5`;
+
+      try {
+        const res = await fetch(url, { signal: controller.signal });
+        const data = await res.json();
+
+        if (!data.results) return;
+
+        resultsList.hidden = false;
+        data.results.forEach(place => {
+          const li = document.createElement('li');
+          li.textContent = `${place.name}, ${place.admin1 || ''} ${place.country}`;
+
+          li.addEventListener('click', () => {
+            resultsList.innerHTML = '';
+            input.value = li.textContent;
+
+            output.hidden = false;
+            output.innerHTML = `
+              <strong>Selected location</strong><br />
+              Latitude: ${place.latitude}<br />
+              Longitude: ${place.longitude}<br />
+              Timezone: ${place.timezone}
+            `;
+
+            // These are the variables you'd pass to the weather API
+            window.selectedLatitude = place.latitude;
+            window.selectedLongitude = place.longitude;
+          });
+
+          resultsList.appendChild(li);
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error(err);
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
