@@ -838,9 +838,11 @@
                 var precipScore = 1 - (dayData.precipitation[i] / 100);
                 
                 // Cloud cover: stored as raw percentage for visualization
+                // Also calculate score: lower is better (0% = 1.0 score, 100% = 0.0 score)
                 var cloudCoverValue = dayData.cloudCover[i];
+                var cloudScore = 1 - (cloudCoverValue / 100);
                 
-                var combined = (tempScore + windScore + waterScore + precipScore) / 4;
+                var combined = (tempScore + windScore + waterScore + precipScore + cloudScore) / 5;
                 
                 scores.push({
                     hour: dayData.hours[i],
@@ -1043,8 +1045,8 @@
                     var angle2 = startAngle + t2 * angleRange;
                     var midAngle = (angle1 + angle2) / 2;
                     
-                    // Number of droplets based on precipitation probability
-                    var numDroplets = Math.floor(precipIntensity * 15) + 3;
+                    // Number of droplets based on precipitation probability (consistent across all charts)
+                    var numDroplets = Math.floor(precipIntensity * 12) + 2;
                     
                     // Draw droplets in this segment, falling toward center
                     for (var d = 0; d < numDroplets; d++) {
@@ -1295,17 +1297,19 @@
                 var dx = cx + Math.cos(angle) * dataDist;
                 var dy = cy + Math.sin(angle) * dataDist;
                 
+                // Data label spacing constant
+                var labelSpacing = 15;
                 ctx.font = '10px sans-serif';
                 ctx.fillStyle = '#F28C28';
-                ctx.fillText(s.temp + '°C', dx, dy - 30);
+                ctx.fillText(s.temp + '°C', dx, dy - labelSpacing * 2);
                 ctx.fillStyle = '#1F5FA8';
-                ctx.fillText(s.water + '°C', dx, dy - 15);
+                ctx.fillText(s.water + '°C', dx, dy - labelSpacing);
                 ctx.fillStyle = '#32dbae';
                 ctx.fillText(s.wind + ' km/h', dx, dy);
                 ctx.fillStyle = '#c1cad9';
-                ctx.fillText(s.cloudCover + '% ☁', dx, dy + 15);
+                ctx.fillText(s.cloudCover + '% ☁', dx, dy + labelSpacing);
                 ctx.fillStyle = '#7993e8';
-                ctx.fillText(s.precipitation + '% 💧', dx, dy + 30);
+                ctx.fillText(s.precipitation + '% 💧', dx, dy + labelSpacing * 2);
             }
             
             // Center circle is now empty (no label)
@@ -1552,17 +1556,19 @@
                 var dx = cx + Math.cos(angle) * dataDist;
                 var dy = cy + Math.sin(angle) * dataDist;
                 
+                // Data label spacing constant
+                var labelSpacing = 15;
                 ctx.font = '10px sans-serif';
                 ctx.fillStyle = '#F28C28';
-                ctx.fillText(s.temp + '°C', dx, dy - 30);
+                ctx.fillText(s.temp + '°C', dx, dy - labelSpacing * 2);
                 ctx.fillStyle = '#1F5FA8';
-                ctx.fillText(s.water + '°C', dx, dy - 15);
+                ctx.fillText(s.water + '°C', dx, dy - labelSpacing);
                 ctx.fillStyle = '#32dbae';
                 ctx.fillText(s.wind + ' km/h', dx, dy);
                 ctx.fillStyle = '#c1cad9';
-                ctx.fillText(s.cloudCover + '% ☁', dx, dy + 15);
+                ctx.fillText(s.cloudCover + '% ☁', dx, dy + labelSpacing);
                 ctx.fillStyle = '#7993e8';
-                ctx.fillText(s.precipitation + '% 💧', dx, dy + 30);
+                ctx.fillText(s.precipitation + '% 💧', dx, dy + labelSpacing * 2);
             }
         }
         
@@ -1814,17 +1820,19 @@
                 var dx = cx + Math.cos(angle) * dataDist;
                 var dy = cy + Math.sin(angle) * dataDist;
                 
+                // Data label spacing constant
+                var labelSpacing = 15;
                 ctx.font = '10px sans-serif';
                 ctx.fillStyle = '#F28C28';
-                ctx.fillText(s.temp + '°C', dx, dy - 30);
+                ctx.fillText(s.temp + '°C', dx, dy - labelSpacing * 2);
                 ctx.fillStyle = '#1F5FA8';
-                ctx.fillText(s.water + '°C', dx, dy - 15);
+                ctx.fillText(s.water + '°C', dx, dy - labelSpacing);
                 ctx.fillStyle = '#32dbae';
                 ctx.fillText(s.wind + ' km/h', dx, dy);
                 ctx.fillStyle = '#c1cad9';
-                ctx.fillText(s.cloudCover + '% ☁', dx, dy + 15);
+                ctx.fillText(s.cloudCover + '% ☁', dx, dy + labelSpacing);
                 ctx.fillStyle = '#7993e8';
-                ctx.fillText(s.precipitation + '% 💧', dx, dy + 30);
+                ctx.fillText(s.precipitation + '% 💧', dx, dy + labelSpacing * 2);
             }
         }
         
