@@ -1,4 +1,4 @@
-<! DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -48,18 +48,18 @@
             background: rgba(255,255,255,0.2);
             color: white;
             cursor: pointer;
-            font-size: 1. 1em;
+            font-size: 1.1em;
             font-weight: bold;
             transition: all 0.3s;
             backdrop-filter: blur(10px);
         }
         
-        . day-btn: hover {
+        .day-btn:hover {
             background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
         }
         
-        .day-btn. active {
+        .day-btn.active {
             background: white;
             color: #667eea;
             transform: scale(1.05);
@@ -525,7 +525,7 @@
             var seaTemperatures = null;
             
             if (marineData && marineData.hourly && marineData.hourly.time && marineData.hourly.sea_surface_temperature) {
-                marineTimes = marineData. hourly.time;
+                marineTimes = marineData.hourly.time;
                 seaTemperatures = marineData.hourly.sea_surface_temperature;
             } else {
                 console.warn('Marine data not available, will use estimated water temperatures');
@@ -556,7 +556,7 @@
                 var hasInvalidSeaTemp = seaTemperatures.some(function(t) { return t == null || typeof t !== 'number' || isNaN(t); });
                 
                 if (hasInvalidSeaTemp) {
-                    console. warn('Sea temperature data contains invalid values, will use estimated water temperatures');
+                    console.warn('Sea temperature data contains invalid values, will use estimated water temperatures');
                 } else {
                     for (var i = 0; i < marineTimes.length; i++) {
                         var marineTime = new Date(marineTimes[i]).getTime();
@@ -618,7 +618,7 @@
                             var minDiff = Infinity;
                             
                             for (var marineKey in marineDataMap) {
-                                var timeDiff = Math.abs(marineDataMap[marineKey]. timestamp - currentTime);
+                                var timeDiff = Math.abs(marineDataMap[marineKey].timestamp - currentTime);
                                 if (timeDiff < minDiff) {
                                     minDiff = timeDiff;
                                     closestTime = marineKey;
@@ -651,7 +651,7 @@
             });
             
             if (weatherData.length === 0) {
-                console. error('No valid weather data found in the expected time range');
+                console.error('No valid weather data found in the expected time range');
                 showDataWarning('No weather data available for the selected time period');
                 return;
             }
@@ -715,7 +715,7 @@
         }
         
         function updateDayButtons() {
-            var daySelector = document. getElementById('globalDaySelector');
+            var daySelector = document.getElementById('globalDaySelector');
             daySelector.innerHTML = '';
             
             // Get today's date at midnight for comparison
@@ -929,7 +929,7 @@
             
             // Make canvas responsive to container width
             var container = canvas.parentElement;
-            if (! container) return;
+            if (!container) return;
             var containerWidth = container.clientWidth;
             var width = containerWidth || 1000; // Fallback to default width
             var height = width * 0.6; // Aspect ratio adjusted for larger display (60% height)
