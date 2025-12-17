@@ -223,11 +223,276 @@
         .chart-container.active {
             display: block;
         }
+        
+        .controls-section {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .control-group label {
+            font-size: 0.85em;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .control-group input {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            width: 150px;
+            transition: border-color 0.3s;
+        }
+        
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-btn, .timezone-dropdown {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+        
+        .search-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .timezone-dropdown {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding-right: 10px;
+        }
+        
+        .timezone-dropdown select {
+            border: none;
+            background: transparent;
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1em;
+            cursor: pointer;
+            outline: none;
+            padding: 0;
+        }
+        
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+        
+        .close-btn:hover {
+            color: #333;
+        }
+        
+        .search-input-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .search-results {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background: white;
+        }
+        
+        .search-results li {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        
+        .search-results li:last-child {
+            border-bottom: none;
+        }
+        
+        .search-results li:hover {
+            background: #f5f5f5;
+        }
+        
+        .recent-section {
+            margin-top: 20px;
+        }
+        
+        .recent-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .recent-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .recent-list li {
+            padding: 10px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+        
+        .recent-list li:hover {
+            background: #f5f5f5;
+            border-color: #667eea;
+        }
+        
+        .no-results {
+            text-align: center;
+            color: #999;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🏖️ Swanbourne Beach Conditions</h1>
+        
+        <div class="controls-section">
+            <div class="control-group">
+                <label for="latitude">Latitude</label>
+                <input type="text" id="latitude" value="-31.9688" />
+            </div>
+            <div class="control-group">
+                <label for="longitude">Longitude</label>
+                <input type="text" id="longitude" value="115.7673" />
+            </div>
+            <button class="search-btn" id="locationSearchBtn">
+                <span>🔍</span>
+                <span>Location Search</span>
+            </button>
+            <div class="timezone-dropdown">
+                <span>🌐</span>
+                <select id="timezoneSelect">
+                    <option value="auto">Select Timezone</option>
+                    <option value="UTC">UTC</option>
+                    <option value="Australia/Perth" selected>Australia/Perth</option>
+                    <option value="Australia/Adelaide">Australia/Adelaide</option>
+                    <option value="Australia/Sydney">Australia/Sydney</option>
+                    <option value="Australia/Brisbane">Australia/Brisbane</option>
+                    <option value="Australia/Darwin">Australia/Darwin</option>
+                    <option value="Australia/Hobart">Australia/Hobart</option>
+                    <option value="Asia/Singapore">Asia/Singapore</option>
+                    <option value="Asia/Tokyo">Asia/Tokyo</option>
+                    <option value="Europe/London">Europe/London</option>
+                    <option value="Europe/Berlin">Europe/Berlin</option>
+                    <option value="America/New_York">America/New_York</option>
+                    <option value="America/Los_Angeles">America/Los_Angeles</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="modal-overlay" id="locationModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">Search Location</h2>
+                    <button class="close-btn" id="closeModal">&times;</button>
+                </div>
+                <div class="search-input-container">
+                    <input type="text" id="locationSearchInput" class="search-input" placeholder="Search for a location..." autocomplete="off" />
+                </div>
+                <ul id="searchResults" class="search-results" style="display: none;"></ul>
+                <div class="recent-section">
+                    <h3 class="recent-title">Recent Locations</h3>
+                    <ul id="recentLocations" class="recent-list"></ul>
+                </div>
+            </div>
+        </div>
         
         <div class="day-selector" id="globalDaySelector">
         </div>
@@ -393,6 +658,142 @@
         var weatherData = [];
         var currentDay = 0;
         var isLoading = true;
+        var searchController;
+        
+        // Location and timezone management
+        function getRecentLocations() {
+            var stored = localStorage.getItem('recentLocations');
+            return stored ? JSON.parse(stored) : [];
+        }
+        
+        function saveRecentLocation(location) {
+            var recent = getRecentLocations();
+            // Remove duplicate if exists
+            recent = recent.filter(function(loc) {
+                return !(loc.latitude === location.latitude && loc.longitude === location.longitude);
+            });
+            // Add to front
+            recent.unshift(location);
+            // Keep only last 10
+            recent = recent.slice(0, 10);
+            localStorage.setItem('recentLocations', JSON.stringify(recent));
+            displayRecentLocations();
+        }
+        
+        function displayRecentLocations() {
+            var recentList = document.getElementById('recentLocations');
+            var recent = getRecentLocations();
+            
+            if (recent.length === 0) {
+                recentList.innerHTML = '<li class="no-results">No recent locations</li>';
+                return;
+            }
+            
+            recentList.innerHTML = '';
+            recent.forEach(function(location) {
+                var li = document.createElement('li');
+                li.textContent = location.name;
+                li.addEventListener('click', function() {
+                    selectLocation(location);
+                });
+                recentList.appendChild(li);
+            });
+        }
+        
+        function selectLocation(location) {
+            document.getElementById('latitude').value = location.latitude;
+            document.getElementById('longitude').value = location.longitude;
+            document.getElementById('locationModal').classList.remove('active');
+            saveRecentLocation(location);
+            // Refresh weather data
+            fetchWeatherData();
+        }
+        
+        // Modal controls
+        document.getElementById('locationSearchBtn').addEventListener('click', function() {
+            document.getElementById('locationModal').classList.add('active');
+            displayRecentLocations();
+        });
+        
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('locationModal').classList.remove('active');
+        });
+        
+        document.getElementById('locationModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+        
+        // Location search functionality
+        document.getElementById('locationSearchInput').addEventListener('input', function() {
+            var query = this.value.trim();
+            var searchResults = document.getElementById('searchResults');
+            
+            searchResults.innerHTML = '';
+            searchResults.style.display = 'none';
+            
+            if (query.length < 3) return;
+            
+            // Cancel previous request if still running
+            if (searchController) searchController.abort();
+            searchController = new AbortController();
+            
+            var url = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(query) + '&count=5';
+            
+            fetch(url, { signal: searchController.signal })
+                .then(function(response) {
+                    if (!response.ok) throw new Error('Failed to fetch location data');
+                    return response.json();
+                })
+                .then(function(data) {
+                    if (!data.results || data.results.length === 0) {
+                        searchResults.innerHTML = '<li class="no-results">No locations found</li>';
+                        searchResults.style.display = 'block';
+                        return;
+                    }
+                    
+                    searchResults.style.display = 'block';
+                    data.results.forEach(function(place) {
+                        var li = document.createElement('li');
+                        var locationName = place.name + ', ' + (place.admin1 || '') + ' ' + place.country;
+                        li.textContent = locationName;
+                        
+                        li.addEventListener('click', function() {
+                            selectLocation({
+                                name: locationName,
+                                latitude: place.latitude,
+                                longitude: place.longitude,
+                                timezone: place.timezone
+                            });
+                            document.getElementById('locationSearchInput').value = '';
+                            searchResults.innerHTML = '';
+                            searchResults.style.display = 'none';
+                        });
+                        
+                        searchResults.appendChild(li);
+                    });
+                })
+                .catch(function(err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('Location search error:', err);
+                    }
+                });
+        });
+        
+        // Timezone change handler
+        document.getElementById('timezoneSelect').addEventListener('change', function() {
+            fetchWeatherData();
+        });
+        
+        // Latitude/Longitude change handlers
+        document.getElementById('latitude').addEventListener('change', function() {
+            fetchWeatherData();
+        });
+        
+        document.getElementById('longitude').addEventListener('change', function() {
+            fetchWeatherData();
+        });
         
         // Generate mock weather data for testing
         function generateMockData() {
@@ -452,8 +853,15 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=-31.9688&longitude=115.7673&hourly=temperature_2m,wind_speed_10m,precipitation_probability,cloud_cover&timezone=Australia/Perth';
-            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=-31.9688&longitude=115.7673&hourly=sea_surface_temperature&timezone=Asia%2FSingapore';
+            var latitude = document.getElementById('latitude').value || '-31.9688';
+            var longitude = document.getElementById('longitude').value || '115.7673';
+            var timezone = document.getElementById('timezoneSelect').value;
+            if (timezone === 'auto') {
+                timezone = 'Australia/Perth'; // Default fallback
+            }
+            
+            var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&hourly=temperature_2m,wind_speed_10m,precipitation_probability,cloud_cover&timezone=' + encodeURIComponent(timezone);
+            var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=' + latitude + '&longitude=' + longitude + '&hourly=sea_surface_temperature&timezone=' + encodeURIComponent(timezone);
             
             // Fetch both weather and marine data (marine is optional)
             Promise.allSettled([
