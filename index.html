@@ -459,9 +459,8 @@
             <div class="timezone-dropdown">
                 <span>🌐</span>
                 <select id="timezoneSelect">
-                    <option value="auto">Select Timezone</option>
-                    <option value="UTC">UTC</option>
                     <option value="Australia/Perth" selected>Australia/Perth</option>
+                    <option value="UTC">UTC</option>
                     <option value="Australia/Adelaide">Australia/Adelaide</option>
                     <option value="Australia/Sydney">Australia/Sydney</option>
                     <option value="Australia/Brisbane">Australia/Brisbane</option>
@@ -668,9 +667,11 @@
         
         function saveRecentLocation(location) {
             var recent = getRecentLocations();
-            // Remove duplicate if exists
+            // Remove duplicate if exists (with tolerance for floating-point comparison)
             recent = recent.filter(function(loc) {
-                return !(loc.latitude === location.latitude && loc.longitude === location.longitude);
+                var latDiff = Math.abs(loc.latitude - location.latitude);
+                var lonDiff = Math.abs(loc.longitude - location.longitude);
+                return !(latDiff < 0.0001 && lonDiff < 0.0001);
             });
             // Add to front
             recent.unshift(location);
@@ -703,6 +704,24 @@
         function selectLocation(location) {
             document.getElementById('latitude').value = location.latitude;
             document.getElementById('longitude').value = location.longitude;
+            
+            // Update timezone if available
+            if (location.timezone) {
+                var timezoneSelect = document.getElementById('timezoneSelect');
+                // Check if timezone exists in the dropdown
+                var optionExists = false;
+                for (var i = 0; i < timezoneSelect.options.length; i++) {
+                    if (timezoneSelect.options[i].value === location.timezone) {
+                        timezoneSelect.value = location.timezone;
+                        optionExists = true;
+                        break;
+                    }
+                }
+                if (!optionExists) {
+                    console.log('Timezone ' + location.timezone + ' not in dropdown, keeping current selection');
+                }
+            }
+            
             document.getElementById('locationModal').classList.remove('active');
             saveRecentLocation(location);
             // Refresh weather data
@@ -853,12 +872,20 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var latitude = document.getElementById('latitude').value || '-31.9688';
-            var longitude = document.getElementById('longitude').value || '115.7673';
-            var timezone = document.getElementById('timezoneSelect').value;
-            if (timezone === 'auto') {
-                timezone = 'Australia/Perth'; // Default fallback
+            var latitude = parseFloat(document.getElementById('latitude').value) || -31.9688;
+            var longitude = parseFloat(document.getElementById('longitude').value) || 115.7673;
+            
+            // Validate latitude and longitude ranges
+            if (latitude < -90 || latitude > 90) {
+                console.error('Invalid latitude: must be between -90 and 90');
+                latitude = -31.9688; // fallback to default
             }
+            if (longitude < -180 || longitude > 180) {
+                console.error('Invalid longitude: must be between -180 and 180');
+                longitude = 115.7673; // fallback to default
+            }
+            
+            var timezone = document.getElementById('timezoneSelect').value || 'Australia/Perth';
             
             var weatherApiUrl = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&hourly=temperature_2m,wind_speed_10m,precipitation_probability,cloud_cover&timezone=' + encodeURIComponent(timezone);
             var marineApiUrl = 'https://marine-api.open-meteo.com/v1/marine?latitude=' + latitude + '&longitude=' + longitude + '&hourly=sea_surface_temperature&timezone=' + encodeURIComponent(timezone);
