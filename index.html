@@ -1354,8 +1354,9 @@
             
             // Create point arrays for each metric (all in 0-1 range now)
             var tempPoints = [];
-            var windPoints = [];
             var waterPoints = [];
+            var windPoints = [];
+            var cloudPoints = [];
             
             // Inner boundary (same for all)
             var innerPoints = [];
@@ -1367,26 +1368,87 @@
                 
                 // All scores are 0-1, all overlaid in the same range
                 var tempLayerHeight = s.tempScore * maxHeight;
-                var windLayerHeight = s.windScore * maxHeight;
                 var waterLayerHeight = s.waterScore * maxHeight;
+                var windLayerHeight = s.windScore * maxHeight;
+                var cloudLayerHeight = s.cloudCoverNormalized * maxHeight;
                 
                 // All metrics share the same inner boundary
                 innerPoints.push({ angle: angle, radius: innerRadius });
                 
                 // Each metric has its own outer boundary based on its score
                 tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
-                windPoints.push({ angle: angle, radius: innerRadius + windLayerHeight });
                 waterPoints.push({ angle: angle, radius: innerRadius + waterLayerHeight });
+                windPoints.push({ angle: angle, radius: innerRadius + windLayerHeight });
+                cloudPoints.push({ angle: angle, radius: innerRadius + cloudLayerHeight });
             }
             
             // Create smooth curves for all boundaries
             var smoothTemp = createSmoothPath(tempPoints, 10);
-            var smoothWind = createSmoothPath(windPoints, 10);
             var smoothWater = createSmoothPath(waterPoints, 10);
+            var smoothWind = createSmoothPath(windPoints, 10);
+            var smoothCloud = createSmoothPath(cloudPoints, 10);
             var smoothInner = createSmoothPath(innerPoints, 10);
             
-            // Draw water ring first (bottom layer) - 30% transparent
-            ctx.fillStyle = 'rgba(149, 225, 211, 0.3)';
+            // Draw precipitation droplets in background (for each hour segment)
+            for (var i = 0; i < scores.length - 1; i++) {
+                var s = scores[i];
+                var precipIntensity = s.precipitation / 100;
+                
+                if (precipIntensity > 0) {
+                    var t1 = i / (scores.length - 1);
+                    var t2 = (i + 1) / (scores.length - 1);
+                    var angle1 = startAngle + t1 * angleRange;
+                    var angle2 = startAngle + t2 * angleRange;
+                    var midAngle = (angle1 + angle2) / 2;
+                    
+                    var numDroplets = Math.floor(precipIntensity * 12) + 2;
+                    
+                    for (var d = 0; d < numDroplets; d++) {
+                        var angleOffset = (Math.random() - 0.5) * (angle2 - angle1) * 0.8;
+                        var dropAngle = midAngle + angleOffset;
+                        var radiusPos = innerRadius + Math.random() * (maxAllowedRadius - innerRadius);
+                        
+                        var dropX = cx + Math.cos(dropAngle) * radiusPos;
+                        var dropY = cy + Math.sin(dropAngle) * radiusPos;
+                        
+                        var dropSize = 2 + precipIntensity * 3;
+                        var angleToCenter = Math.atan2(cy - dropY, cx - dropX);
+                        
+                        ctx.save();
+                        ctx.translate(dropX, dropY);
+                        ctx.rotate(angleToCenter);
+                        
+                        var alpha = 0.3 + precipIntensity * 0.3;
+                        ctx.fillStyle = 'rgba(121, 147, 232, ' + alpha + ')';
+                        drawDroplet(ctx, 0, 0, dropSize);
+                        
+                        ctx.restore();
+                    }
+                }
+            }
+            
+            // Draw cloud cover ring (bottom layer) - #c1cad9
+            ctx.fillStyle = 'rgba(193, 202, 217, 0.3)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothCloud.length; i++) {
+                var x = cx + Math.cos(smoothCloud[i].angle) * smoothCloud[i].radius;
+                var y = cy + Math.sin(smoothCloud[i].angle) * smoothCloud[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(140, 150, 170, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw water temp ring - #1F5FA8
+            ctx.fillStyle = 'rgba(31, 95, 168, 0.3)';
             ctx.beginPath();
             for (var i = 0; i < smoothWater.length; i++) {
                 var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
@@ -1401,12 +1463,12 @@
             }
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = 'rgba(149, 225, 211, 0.8)';
+            ctx.strokeStyle = 'rgba(15, 50, 120, 0.8)';
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw wind ring (middle layer) - 30% transparent
-            ctx.fillStyle = 'rgba(78, 205, 196, 0.3)';
+            // Draw wind ring - #32dbae
+            ctx.fillStyle = 'rgba(50, 219, 174, 0.3)';
             ctx.beginPath();
             for (var i = 0; i < smoothWind.length; i++) {
                 var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
@@ -1421,12 +1483,12 @@
             }
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = 'rgba(78, 205, 196, 0.8)';
+            ctx.strokeStyle = 'rgba(20, 150, 120, 0.8)';
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw temperature ring (top layer) - 30% transparent
-            ctx.fillStyle = 'rgba(255, 107, 107, 0.3)';
+            // Draw temperature ring (top layer) - #F28C28
+            ctx.fillStyle = 'rgba(242, 140, 40, 0.3)';
             ctx.beginPath();
             for (var i = 0; i < smoothTemp.length; i++) {
                 var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
@@ -1441,7 +1503,7 @@
             }
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = 'rgba(255, 107, 107, 0.8)';
+            ctx.strokeStyle = 'rgba(200, 100, 20, 0.8)';
             ctx.lineWidth = 2;
             ctx.stroke();
             
@@ -1463,8 +1525,8 @@
                 var t = i / (scores.length - 1);
                 var angle = startAngle + t * angleRange;
                 
-                // Find the outermost radius for this angle (maximum of all three metrics)
-                var maxRadius = Math.max(tempPoints[i].radius, windPoints[i].radius, waterPoints[i].radius);
+                // Find the outermost radius for this angle (maximum of all metrics)
+                var maxRadius = Math.max(tempPoints[i].radius, windPoints[i].radius, waterPoints[i].radius, cloudPoints[i].radius);
                 
                 // Draw radial line from inner to outer
                 ctx.strokeStyle = 'rgba(200,200,200,0.3)';
@@ -1490,13 +1552,17 @@
                 var dx = cx + Math.cos(angle) * dataDist;
                 var dy = cy + Math.sin(angle) * dataDist;
                 
-                ctx.font = '11px sans-serif';
-                ctx.fillStyle = '#ff6b6b';
-                ctx.fillText(s.temp + '°C', dx, dy - 20);
-                ctx.fillStyle = '#4ecdc4';
+                ctx.font = '10px sans-serif';
+                ctx.fillStyle = '#F28C28';
+                ctx.fillText(s.temp + '°C', dx, dy - 30);
+                ctx.fillStyle = '#1F5FA8';
+                ctx.fillText(s.water + '°C', dx, dy - 15);
+                ctx.fillStyle = '#32dbae';
                 ctx.fillText(s.wind + ' km/h', dx, dy);
-                ctx.fillStyle = '#95e1d3';
-                ctx.fillText(s.water + '°C', dx, dy + 20);
+                ctx.fillStyle = '#c1cad9';
+                ctx.fillText(s.cloudCover + '% ☁', dx, dy + 15);
+                ctx.fillStyle = '#7993e8';
+                ctx.fillText(s.precipitation + '% 💧', dx, dy + 30);
             }
         }
         
@@ -1542,9 +1608,11 @@
             var angleRange = Math.PI; // semicircle going through the top
             
             // Create point arrays for stacked layers
-            var basePoints = [];      // Base: water temp
-            var midPoints = [];       // Mid: water + wind
-            var topPoints = [];       // Top: water + wind + temp
+            // Order: Temperature (base), Water, Wind, Cloud (top)
+            var tempPoints = [];      // Base: temperature
+            var waterPoints = [];     // Layer 2: temp + water
+            var windPoints = [];      // Layer 3: temp + water + wind
+            var cloudPoints = [];     // Layer 4: temp + water + wind + cloud
             
             // Inner boundary (same for all)
             var innerPoints = [];
@@ -1555,35 +1623,78 @@
                 var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
                 
                 // Stack the scores on top of each other
+                var tempHeight = s.tempScore * maxHeight;
                 var waterHeight = s.waterScore * maxHeight;
                 var windHeight = s.windScore * maxHeight;
-                var tempHeight = s.tempScore * maxHeight;
+                var cloudHeight = s.cloudCoverNormalized * maxHeight;
                 
                 // Inner boundary
                 innerPoints.push({ angle: angle, radius: innerRadius });
                 
-                // Base layer: water only
-                basePoints.push({ angle: angle, radius: innerRadius + waterHeight });
+                // Layer 1: temperature only
+                tempPoints.push({ angle: angle, radius: innerRadius + tempHeight });
                 
-                // Mid layer: water + wind
-                midPoints.push({ angle: angle, radius: innerRadius + waterHeight + windHeight });
+                // Layer 2: temp + water
+                waterPoints.push({ angle: angle, radius: innerRadius + tempHeight + waterHeight });
                 
-                // Top layer: water + wind + temp
-                topPoints.push({ angle: angle, radius: innerRadius + waterHeight + windHeight + tempHeight });
+                // Layer 3: temp + water + wind
+                windPoints.push({ angle: angle, radius: innerRadius + tempHeight + waterHeight + windHeight });
+                
+                // Layer 4: temp + water + wind + cloud
+                cloudPoints.push({ angle: angle, radius: innerRadius + tempHeight + waterHeight + windHeight + cloudHeight });
             }
             
             // Create smooth curves for all boundaries
-            var smoothBase = createSmoothPath(basePoints, 10);
-            var smoothMid = createSmoothPath(midPoints, 10);
-            var smoothTop = createSmoothPath(topPoints, 10);
+            var smoothTemp = createSmoothPath(tempPoints, 10);
+            var smoothWater = createSmoothPath(waterPoints, 10);
+            var smoothWind = createSmoothPath(windPoints, 10);
+            var smoothCloud = createSmoothPath(cloudPoints, 10);
             var smoothInner = createSmoothPath(innerPoints, 10);
             
-            // Draw base layer (water) - light teal
-            ctx.fillStyle = 'rgba(149, 225, 211, 0.6)';
+            // Draw precipitation droplets in background (for each hour segment)
+            for (var i = 0; i < scores.length - 1; i++) {
+                var s = scores[i];
+                var precipIntensity = s.precipitation / 100;
+                
+                if (precipIntensity > 0) {
+                    var t1 = i / (scores.length - 1);
+                    var t2 = (i + 1) / (scores.length - 1);
+                    var angle1 = startAngle + t1 * angleRange;
+                    var angle2 = startAngle + t2 * angleRange;
+                    var midAngle = (angle1 + angle2) / 2;
+                    
+                    var numDroplets = Math.floor(precipIntensity * 12) + 2;
+                    
+                    for (var d = 0; d < numDroplets; d++) {
+                        var angleOffset = (Math.random() - 0.5) * (angle2 - angle1) * 0.8;
+                        var dropAngle = midAngle + angleOffset;
+                        var radiusPos = innerRadius + Math.random() * (maxAllowedRadius - innerRadius);
+                        
+                        var dropX = cx + Math.cos(dropAngle) * radiusPos;
+                        var dropY = cy + Math.sin(dropAngle) * radiusPos;
+                        
+                        var dropSize = 2 + precipIntensity * 3;
+                        var angleToCenter = Math.atan2(cy - dropY, cx - dropX);
+                        
+                        ctx.save();
+                        ctx.translate(dropX, dropY);
+                        ctx.rotate(angleToCenter);
+                        
+                        var alpha = 0.3 + precipIntensity * 0.3;
+                        ctx.fillStyle = 'rgba(121, 147, 232, ' + alpha + ')';
+                        drawDroplet(ctx, 0, 0, dropSize);
+                        
+                        ctx.restore();
+                    }
+                }
+            }
+            
+            // Draw base layer (temperature) - #F28C28
+            ctx.fillStyle = 'rgba(242, 140, 40, 0.6)';
             ctx.beginPath();
-            for (var i = 0; i < smoothBase.length; i++) {
-                var x = cx + Math.cos(smoothBase[i].angle) * smoothBase[i].radius;
-                var y = cy + Math.sin(smoothBase[i].angle) * smoothBase[i].radius;
+            for (var i = 0; i < smoothTemp.length; i++) {
+                var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
+                var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
@@ -1594,47 +1705,67 @@
             }
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = 'rgba(149, 225, 211, 0.8)';
+            ctx.strokeStyle = 'rgba(200, 100, 20, 0.8)';
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw middle layer (wind) - teal
-            ctx.fillStyle = 'rgba(78, 205, 196, 0.6)';
+            // Draw layer 2 (water temp) - #1F5FA8
+            ctx.fillStyle = 'rgba(31, 95, 168, 0.6)';
             ctx.beginPath();
-            for (var i = 0; i < smoothMid.length; i++) {
-                var x = cx + Math.cos(smoothMid[i].angle) * smoothMid[i].radius;
-                var y = cy + Math.sin(smoothMid[i].angle) * smoothMid[i].radius;
+            for (var i = 0; i < smoothWater.length; i++) {
+                var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
+                var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
-            for (var i = smoothBase.length - 1; i >= 0; i--) {
-                var x = cx + Math.cos(smoothBase[i].angle) * smoothBase[i].radius;
-                var y = cy + Math.sin(smoothBase[i].angle) * smoothBase[i].radius;
+            for (var i = smoothTemp.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
+                var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
                 ctx.lineTo(x, y);
             }
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = 'rgba(78, 205, 196, 0.8)';
+            ctx.strokeStyle = 'rgba(15, 50, 120, 0.8)';
             ctx.lineWidth = 2;
             ctx.stroke();
             
-            // Draw top layer (temperature) - red
-            ctx.fillStyle = 'rgba(255, 107, 107, 0.6)';
+            // Draw layer 3 (wind) - #32dbae
+            ctx.fillStyle = 'rgba(50, 219, 174, 0.6)';
             ctx.beginPath();
-            for (var i = 0; i < smoothTop.length; i++) {
-                var x = cx + Math.cos(smoothTop[i].angle) * smoothTop[i].radius;
-                var y = cy + Math.sin(smoothTop[i].angle) * smoothTop[i].radius;
+            for (var i = 0; i < smoothWind.length; i++) {
+                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
                 if (i === 0) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
-            for (var i = smoothMid.length - 1; i >= 0; i--) {
-                var x = cx + Math.cos(smoothMid[i].angle) * smoothMid[i].radius;
-                var y = cy + Math.sin(smoothMid[i].angle) * smoothMid[i].radius;
+            for (var i = smoothWater.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
+                var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
                 ctx.lineTo(x, y);
             }
             ctx.closePath();
             ctx.fill();
-            ctx.strokeStyle = 'rgba(255, 107, 107, 0.8)';
+            ctx.strokeStyle = 'rgba(20, 150, 120, 0.8)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Draw top layer (cloud cover) - #c1cad9
+            ctx.fillStyle = 'rgba(193, 202, 217, 0.6)';
+            ctx.beginPath();
+            for (var i = 0; i < smoothCloud.length; i++) {
+                var x = cx + Math.cos(smoothCloud[i].angle) * smoothCloud[i].radius;
+                var y = cy + Math.sin(smoothCloud[i].angle) * smoothCloud[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothWind.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+                var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(140, 150, 170, 0.8)';
             ctx.lineWidth = 2;
             ctx.stroke();
             
@@ -1657,7 +1788,7 @@
                 var angle = startAngle + t * angleRange;
                 
                 // Find the outermost radius for this angle (top of stack)
-                var maxRadius = topPoints[i].radius;
+                var maxRadius = cloudPoints[i].radius;
                 
                 // Draw radial line from inner to outer
                 ctx.strokeStyle = 'rgba(200,200,200,0.3)';
@@ -1683,13 +1814,17 @@
                 var dx = cx + Math.cos(angle) * dataDist;
                 var dy = cy + Math.sin(angle) * dataDist;
                 
-                ctx.font = '11px sans-serif';
-                ctx.fillStyle = '#ff6b6b';
-                ctx.fillText(s.temp + '°C', dx, dy - 20);
-                ctx.fillStyle = '#4ecdc4';
+                ctx.font = '10px sans-serif';
+                ctx.fillStyle = '#F28C28';
+                ctx.fillText(s.temp + '°C', dx, dy - 30);
+                ctx.fillStyle = '#1F5FA8';
+                ctx.fillText(s.water + '°C', dx, dy - 15);
+                ctx.fillStyle = '#32dbae';
                 ctx.fillText(s.wind + ' km/h', dx, dy);
-                ctx.fillStyle = '#95e1d3';
-                ctx.fillText(s.water + '°C', dx, dy + 20);
+                ctx.fillStyle = '#c1cad9';
+                ctx.fillText(s.cloudCover + '% ☁', dx, dy + 15);
+                ctx.fillStyle = '#7993e8';
+                ctx.fillText(s.precipitation + '% 💧', dx, dy + 30);
             }
         }
         
