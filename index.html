@@ -805,14 +805,22 @@
             fetchWeatherData();
         });
         
-        // Latitude/Longitude change handlers
-        document.getElementById('latitude').addEventListener('change', function() {
-            fetchWeatherData();
-        });
+        // Latitude/Longitude change handlers with debouncing
+        var coordinateChangeTimeout;
+        function handleCoordinateChange() {
+            clearTimeout(coordinateChangeTimeout);
+            coordinateChangeTimeout = setTimeout(function() {
+                var lat = parseFloat(document.getElementById('latitude').value);
+                var lon = parseFloat(document.getElementById('longitude').value);
+                // Only fetch if both coordinates are valid numbers
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    fetchWeatherData();
+                }
+            }, 500); // Wait 500ms after user stops typing
+        }
         
-        document.getElementById('longitude').addEventListener('change', function() {
-            fetchWeatherData();
-        });
+        document.getElementById('latitude').addEventListener('input', handleCoordinateChange);
+        document.getElementById('longitude').addEventListener('input', handleCoordinateChange);
         
         // Generate mock weather data for testing
         function generateMockData() {
@@ -872,8 +880,10 @@
         
         // Fetch weather data from Open-Meteo API
         function fetchWeatherData() {
-            var latitude = parseFloat(document.getElementById('latitude').value) || -31.9688;
-            var longitude = parseFloat(document.getElementById('longitude').value) || 115.7673;
+            var latValue = document.getElementById('latitude').value;
+            var lonValue = document.getElementById('longitude').value;
+            var latitude = latValue !== '' && latValue != null ? parseFloat(latValue) : -31.9688;
+            var longitude = lonValue !== '' && lonValue != null ? parseFloat(lonValue) : 115.7673;
             
             // Validate latitude and longitude ranges
             if (latitude < -90 || latitude > 90) {
