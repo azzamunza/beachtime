@@ -1,0 +1,37 @@
+{
+  "weights": {
+    "temperature": 1.5,
+    "water": 0.4,
+    "wind": 0.6,
+    "cloud": 0.5,
+    "precipitation": 1.4
+  },
+  "ranges": {
+    "temperature": {
+      "min": 22,
+      "idealMin": 25,
+      "idealMax": 36,
+      "max": 40
+    },
+    "water": {
+      "min": 19,
+      "idealMin": 20,
+      "idealMax": 25,
+      "max": 35
+    },
+    "wind": {
+      "min": 0,
+      "idealMin": 0,
+      "idealMax": 19,
+      "max": 30
+    },
+    "cloud": {
+      "min": 0,
+      "max": 100
+    },
+    "precipitation": {
+      "min": 0,
+      "max": 100
+    }
+  }
+}

@@ -95,6 +95,147 @@
             justify-content: center;
         }
         
+        .chart-with-controls {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        
+        .chart-main-area {
+            flex: 1;
+            min-width: 300px;
+        }
+        
+        .right-side-controls {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            width: 320px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .right-side-controls::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .right-side-controls::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        
+        .right-side-controls::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 10px;
+        }
+        
+        .right-side-controls::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.8);
+        }
+        
+        .controls-section-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+        }
+        
+        .slider-section {
+            margin-bottom: 25px;
+        }
+        
+        .slider-section-header {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 10px;
+            font-size: 1em;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 6px;
+        }
+        
+        .range-slider-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .range-slider-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 0.9em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .range-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .range-input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .range-input-label {
+            font-size: 0.75em;
+            color: #777;
+            font-weight: normal;
+        }
+        
+        .range-slider-small {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, #ddd, #667eea);
+        }
+        
+        .range-slider-small::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .range-slider-small::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        
+        .range-value-display {
+            font-size: 0.85em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
         canvas {
             display: block;
             width: 100%;
@@ -787,66 +928,199 @@
             <h2 class="viz-title">Hourly Rating</h2>
             <p class="viz-subtitle" id="chartDate4">Loading...</p>
             
-            <div class="canvas-container">
-                <canvas id="hourlyRatingCanvas"></canvas>
-            </div>
-            
-            <div class="location-label">
-                <div class="location-name">Swanbourne Beach</div>
-                <div class="location-date" id="currentDate4">Loading...</div>
-            </div>
-            
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-color" style="background: linear-gradient(to right, #667eea, #764ba2);"></div>
-                    <span><strong>Normalized Rating</strong> (positive - negative factors)</span>
-                </div>
-            </div>
-            
-            <div class="info-box">
-                <div class="info-title">How to Read This Chart</div>
-                <div class="info-text">
-                    This chart shows the normalized beach rating for each hour of the day. 
-                    The rating uses a multiplicative approach where all factors (Temperature, Water Temperature, Wind Speed, Cloud Cover, Precipitation) are multiplied together.
-                    This means if any single factor is poor, it heavily penalizes the overall rating, providing a more realistic assessment of beach suitability.
-                    The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
-                    Higher values indicate better overall beach conditions.
-                </div>
-            </div>
-            
-            <div class="weight-controls">
-                <div class="weight-controls-title">⚖️ Rating Weights</div>
-                <div class="weight-slider-group">
-                    <div class="weight-slider-item">
-                        <span class="weight-slider-label">🌡️ Temperature</span>
-                        <input type="range" class="weight-slider" id="tempWeight" min="0" max="2" step="0.1" value="1.0">
-                        <span class="weight-value" id="tempWeightValue">1.0</span>
+            <div class="chart-with-controls">
+                <div class="chart-main-area">
+                    <div class="canvas-container">
+                        <canvas id="hourlyRatingCanvas"></canvas>
                     </div>
-                    <div class="weight-slider-item">
-                        <span class="weight-slider-label">🌊 Water Temp</span>
-                        <input type="range" class="weight-slider" id="waterWeight" min="0" max="2" step="0.1" value="1.0">
-                        <span class="weight-value" id="waterWeightValue">1.0</span>
+                    
+                    <div class="location-label">
+                        <div class="location-name">Swanbourne Beach</div>
+                        <div class="location-date" id="currentDate4">Loading...</div>
                     </div>
-                    <div class="weight-slider-item">
-                        <span class="weight-slider-label">💨 Wind Speed</span>
-                        <input type="range" class="weight-slider" id="windWeight" min="0" max="2" step="0.1" value="1.0">
-                        <span class="weight-value" id="windWeightValue">1.0</span>
+                    
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: linear-gradient(to right, #667eea, #764ba2);"></div>
+                            <span><strong>Normalized Rating</strong> (positive - negative factors)</span>
+                        </div>
                     </div>
-                    <div class="weight-slider-item">
-                        <span class="weight-slider-label">☁️ Cloud Cover</span>
-                        <input type="range" class="weight-slider" id="cloudWeight" min="0" max="2" step="0.1" value="1.0">
-                        <span class="weight-value" id="cloudWeightValue">1.0</span>
-                    </div>
-                    <div class="weight-slider-item">
-                        <span class="weight-slider-label">💧 Precipitation</span>
-                        <input type="range" class="weight-slider" id="precipWeight" min="0" max="2" step="0.1" value="1.0">
-                        <span class="weight-value" id="precipWeightValue">1.0</span>
+                    
+                    <div class="info-box">
+                        <div class="info-title">How to Read This Chart</div>
+                        <div class="info-text">
+                            This chart shows the normalized beach rating for each hour of the day. 
+                            The rating uses a multiplicative approach where all factors (Temperature, Water Temperature, Wind Speed, Cloud Cover, Precipitation) are multiplied together.
+                            This means if any single factor is poor, it heavily penalizes the overall rating, providing a more realistic assessment of beach suitability.
+                            The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
+                            Higher values indicate better overall beach conditions.
+                        </div>
                     </div>
                 </div>
-                <div class="weight-buttons">
-                    <button class="weight-btn" id="saveWeightsBtn">💾 Save Weights</button>
-                    <button class="weight-btn secondary" id="loadWeightsBtn">📂 Load Weights</button>
-                    <button class="weight-btn tertiary" id="resetWeightsBtn">↺ Reset to Default</button>
+                
+                <div class="right-side-controls">
+                    <div class="controls-section-title">⚙️ Controls</div>
+                    
+                    <div class="slider-section">
+                        <div class="slider-section-header">⚖️ Rating Weights</div>
+                        <div class="weight-slider-group">
+                            <div class="weight-slider-item">
+                                <span class="weight-slider-label">🌡️ Temperature</span>
+                                <input type="range" class="weight-slider" id="tempWeight" min="0" max="2" step="0.1" value="1.5">
+                                <span class="weight-value" id="tempWeightValue">1.5</span>
+                            </div>
+                            <div class="weight-slider-item">
+                                <span class="weight-slider-label">🌊 Water Temp</span>
+                                <input type="range" class="weight-slider" id="waterWeight" min="0" max="2" step="0.1" value="0.4">
+                                <span class="weight-value" id="waterWeightValue">0.4</span>
+                            </div>
+                            <div class="weight-slider-item">
+                                <span class="weight-slider-label">💨 Wind Speed</span>
+                                <input type="range" class="weight-slider" id="windWeight" min="0" max="2" step="0.1" value="0.6">
+                                <span class="weight-value" id="windWeightValue">0.6</span>
+                            </div>
+                            <div class="weight-slider-item">
+                                <span class="weight-slider-label">☁️ Cloud Cover</span>
+                                <input type="range" class="weight-slider" id="cloudWeight" min="0" max="2" step="0.1" value="0.5">
+                                <span class="weight-value" id="cloudWeightValue">0.5</span>
+                            </div>
+                            <div class="weight-slider-item">
+                                <span class="weight-slider-label">💧 Precipitation</span>
+                                <input type="range" class="weight-slider" id="precipWeight" min="0" max="2" step="0.1" value="1.4">
+                                <span class="weight-value" id="precipWeightValue">1.4</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-section">
+                        <div class="slider-section-header">📊 Ideal Ranges</div>
+                        
+                        <div class="range-slider-item">
+                            <div class="range-slider-label">
+                                <span>🌡️ Temperature (°C)</span>
+                            </div>
+                            <div class="range-inputs">
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Min</span>
+                                    <input type="range" class="range-slider-small" id="tempMinRange" min="0" max="50" step="1" value="22">
+                                    <span class="range-value-display" id="tempMinValue">22°C</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Ideal Min</span>
+                                    <input type="range" class="range-slider-small" id="tempIdealMinRange" min="0" max="50" step="1" value="25">
+                                    <span class="range-value-display" id="tempIdealMinValue">25°C</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Ideal Max</span>
+                                    <input type="range" class="range-slider-small" id="tempIdealMaxRange" min="0" max="50" step="1" value="36">
+                                    <span class="range-value-display" id="tempIdealMaxValue">36°C</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Max</span>
+                                    <input type="range" class="range-slider-small" id="tempMaxRange" min="0" max="50" step="1" value="40">
+                                    <span class="range-value-display" id="tempMaxValue">40°C</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="range-slider-item">
+                            <div class="range-slider-label">
+                                <span>🌊 Water Temp (°C)</span>
+                            </div>
+                            <div class="range-inputs">
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Min</span>
+                                    <input type="range" class="range-slider-small" id="waterMinRange" min="0" max="35" step="1" value="19">
+                                    <span class="range-value-display" id="waterMinValue">19°C</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Ideal Min</span>
+                                    <input type="range" class="range-slider-small" id="waterIdealMinRange" min="0" max="35" step="1" value="20">
+                                    <span class="range-value-display" id="waterIdealMinValue">20°C</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Ideal Max</span>
+                                    <input type="range" class="range-slider-small" id="waterIdealMaxRange" min="0" max="35" step="1" value="25">
+                                    <span class="range-value-display" id="waterIdealMaxValue">25°C</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Max</span>
+                                    <input type="range" class="range-slider-small" id="waterMaxRange" min="0" max="35" step="1" value="35">
+                                    <span class="range-value-display" id="waterMaxValue">35°C</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="range-slider-item">
+                            <div class="range-slider-label">
+                                <span>💨 Wind Speed (km/h)</span>
+                            </div>
+                            <div class="range-inputs">
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Min</span>
+                                    <input type="range" class="range-slider-small" id="windMinRange" min="0" max="50" step="1" value="0">
+                                    <span class="range-value-display" id="windMinValue">0 km/h</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Ideal Min</span>
+                                    <input type="range" class="range-slider-small" id="windIdealMinRange" min="0" max="50" step="1" value="0">
+                                    <span class="range-value-display" id="windIdealMinValue">0 km/h</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Ideal Max</span>
+                                    <input type="range" class="range-slider-small" id="windIdealMaxRange" min="0" max="50" step="1" value="19">
+                                    <span class="range-value-display" id="windIdealMaxValue">19 km/h</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Max</span>
+                                    <input type="range" class="range-slider-small" id="windMaxRange" min="0" max="50" step="1" value="30">
+                                    <span class="range-value-display" id="windMaxValue">30 km/h</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="range-slider-item">
+                            <div class="range-slider-label">
+                                <span>☁️ Cloud Cover (%)</span>
+                            </div>
+                            <div class="range-inputs">
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Min (Best)</span>
+                                    <input type="range" class="range-slider-small" id="cloudMinRange" min="0" max="100" step="5" value="0">
+                                    <span class="range-value-display" id="cloudMinValue">0%</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Max (Worst)</span>
+                                    <input type="range" class="range-slider-small" id="cloudMaxRange" min="0" max="100" step="5" value="100">
+                                    <span class="range-value-display" id="cloudMaxValue">100%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="range-slider-item">
+                            <div class="range-slider-label">
+                                <span>💧 Precipitation (%)</span>
+                            </div>
+                            <div class="range-inputs">
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Min (Best)</span>
+                                    <input type="range" class="range-slider-small" id="precipMinRange" min="0" max="100" step="5" value="0">
+                                    <span class="range-value-display" id="precipMinValue">0%</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Max (Worst)</span>
+                                    <input type="range" class="range-slider-small" id="precipMaxRange" min="0" max="100" step="5" value="100">
+                                    <span class="range-value-display" id="precipMaxValue">100%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="weight-buttons">
+                        <button class="weight-btn" id="saveWeightsBtn">💾 Save Settings</button>
+                        <button class="weight-btn secondary" id="loadWeightsBtn">📂 Load Settings</button>
+                        <button class="weight-btn tertiary" id="resetWeightsBtn">↺ Reset to Default</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -895,11 +1169,41 @@
         
         // Weight factors for normalized rating calculation
         var ratingWeights = {
-            temperature: 1.0,
-            water: 1.0,
-            wind: 1.0,
-            cloud: 1.0,
-            precipitation: 1.0
+            temperature: 1.5,
+            water: 0.4,
+            wind: 0.6,
+            cloud: 0.5,
+            precipitation: 1.4
+        };
+        
+        // Ideal ranges for each data set
+        var idealRanges = {
+            temperature: {
+                min: 22,
+                idealMin: 25,
+                idealMax: 36,
+                max: 40
+            },
+            water: {
+                min: 19,
+                idealMin: 20,
+                idealMax: 25,
+                max: 35
+            },
+            wind: {
+                min: 0,
+                idealMin: 0,
+                idealMax: 19,
+                max: 30
+            },
+            cloud: {
+                min: 0,  // best (0% cloud cover)
+                max: 100 // worst (100% cloud cover)
+            },
+            precipitation: {
+                min: 0,  // best (0% precipitation)
+                max: 100 // worst (100% precipitation)
+            }
         };
         
         // Location and timezone management
@@ -1555,9 +1859,9 @@
         function calculateDayScores(dayData) {
             var scores = [];
             for (var i = 0; i < dayData.hours.length; i++) {
-                var tempScore = calculateRating(dayData.temp[i], 32, 22, 40);
-                var windScore = calculateRating(dayData.wind[i], [0, 15], 0, 30);
-                var waterScore = calculateRating(dayData.water[i], 29, 19, 29);
+                var tempScore = calculateRating(dayData.temp[i], [idealRanges.temperature.idealMin, idealRanges.temperature.idealMax], idealRanges.temperature.min, idealRanges.temperature.max);
+                var windScore = calculateRating(dayData.wind[i], [idealRanges.wind.idealMin, idealRanges.wind.idealMax], idealRanges.wind.min, idealRanges.wind.max);
+                var waterScore = calculateRating(dayData.water[i], [idealRanges.water.idealMin, idealRanges.water.idealMax], idealRanges.water.min, idealRanges.water.max);
                 
                 // Precipitation: lower is better (0% = 1.0 score, 100% = 0.0 score)
                 var precipScore = 1 - (dayData.precipitation[i] / 100);
@@ -2927,24 +3231,75 @@
             loadWeightsFromStorage();
         }
         
+        // Range slider functionality
+        function updateRangeSlider(sliderId, valueId, rangeKey, subKey, unit) {
+            var slider = document.getElementById(sliderId);
+            var valueDisplay = document.getElementById(valueId);
+            
+            if (!slider || !valueDisplay) return;
+            
+            slider.addEventListener('input', function() {
+                var value = parseFloat(this.value);
+                valueDisplay.textContent = value + unit;
+                idealRanges[rangeKey][subKey] = value;
+                updateChart();
+            });
+        }
+        
+        function initializeRangeSliders() {
+            // Temperature sliders
+            updateRangeSlider('tempMinRange', 'tempMinValue', 'temperature', 'min', '°C');
+            updateRangeSlider('tempIdealMinRange', 'tempIdealMinValue', 'temperature', 'idealMin', '°C');
+            updateRangeSlider('tempIdealMaxRange', 'tempIdealMaxValue', 'temperature', 'idealMax', '°C');
+            updateRangeSlider('tempMaxRange', 'tempMaxValue', 'temperature', 'max', '°C');
+            
+            // Water temperature sliders
+            updateRangeSlider('waterMinRange', 'waterMinValue', 'water', 'min', '°C');
+            updateRangeSlider('waterIdealMinRange', 'waterIdealMinValue', 'water', 'idealMin', '°C');
+            updateRangeSlider('waterIdealMaxRange', 'waterIdealMaxValue', 'water', 'idealMax', '°C');
+            updateRangeSlider('waterMaxRange', 'waterMaxValue', 'water', 'max', '°C');
+            
+            // Wind speed sliders
+            updateRangeSlider('windMinRange', 'windMinValue', 'wind', 'min', ' km/h');
+            updateRangeSlider('windIdealMinRange', 'windIdealMinValue', 'wind', 'idealMin', ' km/h');
+            updateRangeSlider('windIdealMaxRange', 'windIdealMaxValue', 'wind', 'idealMax', ' km/h');
+            updateRangeSlider('windMaxRange', 'windMaxValue', 'wind', 'max', ' km/h');
+            
+            // Cloud cover sliders
+            updateRangeSlider('cloudMinRange', 'cloudMinValue', 'cloud', 'min', '%');
+            updateRangeSlider('cloudMaxRange', 'cloudMaxValue', 'cloud', 'max', '%');
+            
+            // Precipitation sliders
+            updateRangeSlider('precipMinRange', 'precipMinValue', 'precipitation', 'min', '%');
+            updateRangeSlider('precipMaxRange', 'precipMaxValue', 'precipitation', 'max', '%');
+            
+            // Load saved ranges from localStorage if available
+            loadRangesFromStorage();
+        }
+        
         function saveWeightsToJSON() {
-            var weightsJSON = JSON.stringify(ratingWeights, null, 2);
+            var settingsData = {
+                weights: ratingWeights,
+                ranges: idealRanges
+            };
+            var settingsJSON = JSON.stringify(settingsData, null, 2);
             
             // Create a blob and download link
-            var blob = new Blob([weightsJSON], { type: 'application/json' });
+            var blob = new Blob([settingsJSON], { type: 'application/json' });
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a');
             a.href = url;
-            a.download = 'beach-rating-weights.json';
+            a.download = 'beach-rating-settings.json';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
             
             // Also save to localStorage
-            localStorage.setItem('beachRatingWeights', weightsJSON);
+            localStorage.setItem('beachRatingWeights', JSON.stringify(ratingWeights));
+            localStorage.setItem('beachIdealRanges', JSON.stringify(idealRanges));
             
-            alert('Weights saved successfully! 📥\nDownloaded as JSON file and saved to browser storage.');
+            alert('Settings saved successfully! 📥\nDownloaded as JSON file and saved to browser storage.');
         }
         
         // Helper function to validate weight values
@@ -2999,6 +3354,124 @@
             ratingWeights.precipitation = weights.precipitation;
         }
         
+        // Helper function to validate ranges
+        function validateRanges(ranges) {
+            if (!ranges || typeof ranges !== 'object') {
+                return { valid: false, error: 'Ranges must be an object' };
+            }
+            
+            // Validate temperature ranges
+            if (!ranges.temperature || typeof ranges.temperature !== 'object') {
+                return { valid: false, error: 'Temperature ranges missing' };
+            }
+            var temp = ranges.temperature;
+            if (typeof temp.min !== 'number' || typeof temp.idealMin !== 'number' || 
+                typeof temp.idealMax !== 'number' || typeof temp.max !== 'number') {
+                return { valid: false, error: 'Temperature range values must be numbers' };
+            }
+            if (temp.min > temp.idealMin || temp.idealMin > temp.idealMax || temp.idealMax > temp.max) {
+                return { valid: false, error: 'Temperature ranges must be in order: min <= idealMin <= idealMax <= max' };
+            }
+            
+            // Validate water ranges
+            if (!ranges.water || typeof ranges.water !== 'object') {
+                return { valid: false, error: 'Water ranges missing' };
+            }
+            var water = ranges.water;
+            if (typeof water.min !== 'number' || typeof water.idealMin !== 'number' || 
+                typeof water.idealMax !== 'number' || typeof water.max !== 'number') {
+                return { valid: false, error: 'Water range values must be numbers' };
+            }
+            if (water.min > water.idealMin || water.idealMin > water.idealMax || water.idealMax > water.max) {
+                return { valid: false, error: 'Water ranges must be in order: min <= idealMin <= idealMax <= max' };
+            }
+            
+            // Validate wind ranges
+            if (!ranges.wind || typeof ranges.wind !== 'object') {
+                return { valid: false, error: 'Wind ranges missing' };
+            }
+            var wind = ranges.wind;
+            if (typeof wind.min !== 'number' || typeof wind.idealMin !== 'number' || 
+                typeof wind.idealMax !== 'number' || typeof wind.max !== 'number') {
+                return { valid: false, error: 'Wind range values must be numbers' };
+            }
+            if (wind.min > wind.idealMin || wind.idealMin > wind.idealMax || wind.idealMax > wind.max) {
+                return { valid: false, error: 'Wind ranges must be in order: min <= idealMin <= idealMax <= max' };
+            }
+            
+            // Validate cloud ranges
+            if (!ranges.cloud || typeof ranges.cloud !== 'object') {
+                return { valid: false, error: 'Cloud ranges missing' };
+            }
+            if (typeof ranges.cloud.min !== 'number' || typeof ranges.cloud.max !== 'number') {
+                return { valid: false, error: 'Cloud range values must be numbers' };
+            }
+            
+            // Validate precipitation ranges
+            if (!ranges.precipitation || typeof ranges.precipitation !== 'object') {
+                return { valid: false, error: 'Precipitation ranges missing' };
+            }
+            if (typeof ranges.precipitation.min !== 'number' || typeof ranges.precipitation.max !== 'number') {
+                return { valid: false, error: 'Precipitation range values must be numbers' };
+            }
+            
+            return { valid: true };
+        }
+        
+        // Helper function to update range sliders UI
+        function updateRangeSlidersUI(ranges) {
+            // Temperature
+            document.getElementById('tempMinRange').value = ranges.temperature.min;
+            document.getElementById('tempMinValue').textContent = ranges.temperature.min + '°C';
+            document.getElementById('tempIdealMinRange').value = ranges.temperature.idealMin;
+            document.getElementById('tempIdealMinValue').textContent = ranges.temperature.idealMin + '°C';
+            document.getElementById('tempIdealMaxRange').value = ranges.temperature.idealMax;
+            document.getElementById('tempIdealMaxValue').textContent = ranges.temperature.idealMax + '°C';
+            document.getElementById('tempMaxRange').value = ranges.temperature.max;
+            document.getElementById('tempMaxValue').textContent = ranges.temperature.max + '°C';
+            
+            // Water
+            document.getElementById('waterMinRange').value = ranges.water.min;
+            document.getElementById('waterMinValue').textContent = ranges.water.min + '°C';
+            document.getElementById('waterIdealMinRange').value = ranges.water.idealMin;
+            document.getElementById('waterIdealMinValue').textContent = ranges.water.idealMin + '°C';
+            document.getElementById('waterIdealMaxRange').value = ranges.water.idealMax;
+            document.getElementById('waterIdealMaxValue').textContent = ranges.water.idealMax + '°C';
+            document.getElementById('waterMaxRange').value = ranges.water.max;
+            document.getElementById('waterMaxValue').textContent = ranges.water.max + '°C';
+            
+            // Wind
+            document.getElementById('windMinRange').value = ranges.wind.min;
+            document.getElementById('windMinValue').textContent = ranges.wind.min + ' km/h';
+            document.getElementById('windIdealMinRange').value = ranges.wind.idealMin;
+            document.getElementById('windIdealMinValue').textContent = ranges.wind.idealMin + ' km/h';
+            document.getElementById('windIdealMaxRange').value = ranges.wind.idealMax;
+            document.getElementById('windIdealMaxValue').textContent = ranges.wind.idealMax + ' km/h';
+            document.getElementById('windMaxRange').value = ranges.wind.max;
+            document.getElementById('windMaxValue').textContent = ranges.wind.max + ' km/h';
+            
+            // Cloud
+            document.getElementById('cloudMinRange').value = ranges.cloud.min;
+            document.getElementById('cloudMinValue').textContent = ranges.cloud.min + '%';
+            document.getElementById('cloudMaxRange').value = ranges.cloud.max;
+            document.getElementById('cloudMaxValue').textContent = ranges.cloud.max + '%';
+            
+            // Precipitation
+            document.getElementById('precipMinRange').value = ranges.precipitation.min;
+            document.getElementById('precipMinValue').textContent = ranges.precipitation.min + '%';
+            document.getElementById('precipMaxRange').value = ranges.precipitation.max;
+            document.getElementById('precipMaxValue').textContent = ranges.precipitation.max + '%';
+        }
+        
+        // Helper function to apply ranges
+        function applyRanges(ranges) {
+            idealRanges.temperature = Object.assign({}, ranges.temperature);
+            idealRanges.water = Object.assign({}, ranges.water);
+            idealRanges.wind = Object.assign({}, ranges.wind);
+            idealRanges.cloud = Object.assign({}, ranges.cloud);
+            idealRanges.precipitation = Object.assign({}, ranges.precipitation);
+        }
+        
         function loadWeightsFromJSON() {
             var input = document.createElement('input');
             input.type = 'file';
@@ -3025,20 +3498,42 @@
                 var reader = new FileReader();
                 reader.onload = function(event) {
                     try {
-                        var weights = JSON.parse(event.target.result);
+                        var data = JSON.parse(event.target.result);
+                        
+                        // Check if it's the new format (with weights and ranges) or old format (just weights)
+                        var weights, ranges;
+                        if (data.weights && data.ranges) {
+                            // New format
+                            weights = data.weights;
+                            ranges = data.ranges;
+                        } else {
+                            // Old format (just weights)
+                            weights = data;
+                            ranges = null;
+                        }
                         
                         // Validate the loaded weights
                         var validation = validateWeights(weights);
                         if (!validation.valid) {
-                            alert('Invalid weights file: ' + validation.error);
+                            alert('Invalid settings file: ' + validation.error);
                             return;
                         }
                         
                         // Apply the weights
                         applyWeights(weights);
-                        
-                        // Update the UI sliders
                         updateSlidersUI(weights);
+                        
+                        // If ranges are provided, validate and apply them
+                        if (ranges) {
+                            var rangeValidation = validateRanges(ranges);
+                            if (!rangeValidation.valid) {
+                                alert('Invalid ranges in file: ' + rangeValidation.error);
+                                return;
+                            }
+                            applyRanges(ranges);
+                            updateRangeSlidersUI(ranges);
+                            localStorage.setItem('beachIdealRanges', JSON.stringify(idealRanges));
+                        }
                         
                         // Save to localStorage
                         localStorage.setItem('beachRatingWeights', JSON.stringify(ratingWeights));
@@ -3046,9 +3541,9 @@
                         // Update the chart
                         updateChart();
                         
-                        alert('Weights loaded successfully! 📂');
+                        alert('Settings loaded successfully! 📂');
                     } catch (error) {
-                        alert('Error loading weights file: ' + error.message);
+                        alert('Error loading settings file: ' + error.message);
                     }
                 };
                 reader.readAsText(file);
@@ -3081,34 +3576,117 @@
             }
         }
         
-        function resetWeights() {
-            // Reset to default values
-            var defaultWeights = {
-                temperature: 1.0,
-                water: 1.0,
-                wind: 1.0,
-                cloud: 1.0,
-                precipitation: 1.0
-            };
-            
-            // Apply the default weights
-            applyWeights(defaultWeights);
-            
-            // Update the UI sliders
-            updateSlidersUI(defaultWeights);
-            
-            // Remove from localStorage
-            localStorage.removeItem('beachRatingWeights');
-            
-            // Update the chart
-            updateChart();
-            
-            alert('Weights reset to default values! ↺');
+        function loadRangesFromStorage() {
+            var stored = localStorage.getItem('beachIdealRanges');
+            if (stored) {
+                try {
+                    var ranges = JSON.parse(stored);
+                    
+                    // Validate the stored ranges
+                    var validation = validateRanges(ranges);
+                    if (!validation.valid) {
+                        console.error('Invalid stored ranges:', validation.error);
+                        return;
+                    }
+                    
+                    // Apply the ranges
+                    applyRanges(ranges);
+                    
+                    // Update the UI sliders
+                    updateRangeSlidersUI(ranges);
+                } catch (error) {
+                    console.error('Error loading ranges from storage:', error);
+                }
+            }
         }
         
-        // Initialize weight sliders when DOM is ready
+        function resetWeights() {
+            // Load defaults from JSON file
+            fetch('data/beach-rating-settings.json')
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Could not load default settings file');
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    if (!data || !data.weights || !data.ranges) {
+                        throw new Error('Invalid settings file format');
+                    }
+                    
+                    // Apply the default weights and ranges
+                    applyWeights(data.weights);
+                    applyRanges(data.ranges);
+                    
+                    // Update the UI sliders
+                    updateSlidersUI(data.weights);
+                    updateRangeSlidersUI(data.ranges);
+                    
+                    // Remove from localStorage
+                    localStorage.removeItem('beachRatingWeights');
+                    localStorage.removeItem('beachIdealRanges');
+                    
+                    // Update the chart
+                    updateChart();
+                    
+                    alert('Settings reset to default values! ↺');
+                })
+                .catch(function(error) {
+                    console.error('Error resetting to defaults:', error);
+                    // Fallback to hardcoded defaults
+                    var defaultWeights = {
+                        temperature: 1.5,
+                        water: 0.4,
+                        wind: 0.6,
+                        cloud: 0.5,
+                        precipitation: 1.4
+                    };
+                    
+                    var defaultRanges = {
+                        temperature: {
+                            min: 22,
+                            idealMin: 25,
+                            idealMax: 36,
+                            max: 40
+                        },
+                        water: {
+                            min: 19,
+                            idealMin: 20,
+                            idealMax: 25,
+                            max: 35
+                        },
+                        wind: {
+                            min: 0,
+                            idealMin: 0,
+                            idealMax: 19,
+                            max: 30
+                        },
+                        cloud: {
+                            min: 0,
+                            max: 100
+                        },
+                        precipitation: {
+                            min: 0,
+                            max: 100
+                        }
+                    };
+                    
+                    applyWeights(defaultWeights);
+                    applyRanges(defaultRanges);
+                    updateSlidersUI(defaultWeights);
+                    updateRangeSlidersUI(defaultRanges);
+                    localStorage.removeItem('beachRatingWeights');
+                    localStorage.removeItem('beachIdealRanges');
+                    updateChart();
+                    
+                    alert('Settings reset to default values (using fallback)! ↺');
+                });
+        }
+        
+        // Initialize weight and range sliders when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
             initializeWeightSliders();
+            initializeRangeSliders();
             
             // Attach event listeners to buttons
             document.getElementById('saveWeightsBtn').addEventListener('click', saveWeightsToJSON);
@@ -3116,7 +3694,46 @@
             document.getElementById('resetWeightsBtn').addEventListener('click', resetWeights);
         });
         
-        // Initialize by fetching weather data
+        // Load default settings from JSON file
+        function loadDefaultSettings() {
+            fetch('data/beach-rating-settings.json')
+                .then(function(response) {
+                    if (!response.ok) {
+                        console.warn('Could not load default settings file, using hardcoded defaults');
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(function(data) {
+                    if (data && data.weights && data.ranges) {
+                        // Validate the loaded weights
+                        var weightValidation = validateWeights(data.weights);
+                        if (!weightValidation.valid) {
+                            console.error('Invalid weights in settings file:', weightValidation.error);
+                            return;
+                        }
+                        
+                        // Validate the loaded ranges
+                        var rangeValidation = validateRanges(data.ranges);
+                        if (!rangeValidation.valid) {
+                            console.error('Invalid ranges in settings file:', rangeValidation.error);
+                            return;
+                        }
+                        
+                        // Apply validated weights and ranges using helper functions
+                        applyWeights(data.weights);
+                        applyRanges(data.ranges);
+                        
+                        console.log('Default settings loaded from data/beach-rating-settings.json');
+                    }
+                })
+                .catch(function(error) {
+                    console.warn('Error loading default settings:', error);
+                });
+        }
+        
+        // Initialize by loading settings and fetching weather data
+        loadDefaultSettings();
         updateLocationTitles(); // Set initial location name in titles
         fetchWeatherData();
         
