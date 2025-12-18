@@ -3706,19 +3706,23 @@
                 })
                 .then(function(data) {
                     if (data && data.weights && data.ranges) {
-                        // Apply default weights
-                        ratingWeights.temperature = data.weights.temperature;
-                        ratingWeights.water = data.weights.water;
-                        ratingWeights.wind = data.weights.wind;
-                        ratingWeights.cloud = data.weights.cloud;
-                        ratingWeights.precipitation = data.weights.precipitation;
+                        // Validate the loaded weights
+                        var weightValidation = validateWeights(data.weights);
+                        if (!weightValidation.valid) {
+                            console.error('Invalid weights in settings file:', weightValidation.error);
+                            return;
+                        }
                         
-                        // Apply default ranges
-                        idealRanges.temperature = Object.assign({}, data.ranges.temperature);
-                        idealRanges.water = Object.assign({}, data.ranges.water);
-                        idealRanges.wind = Object.assign({}, data.ranges.wind);
-                        idealRanges.cloud = Object.assign({}, data.ranges.cloud);
-                        idealRanges.precipitation = Object.assign({}, data.ranges.precipitation);
+                        // Validate the loaded ranges
+                        var rangeValidation = validateRanges(data.ranges);
+                        if (!rangeValidation.valid) {
+                            console.error('Invalid ranges in settings file:', rangeValidation.error);
+                            return;
+                        }
+                        
+                        // Apply validated weights and ranges using helper functions
+                        applyWeights(data.weights);
+                        applyRanges(data.ranges);
                         
                         console.log('Default settings loaded from data/beach-rating-settings.json');
                     }
