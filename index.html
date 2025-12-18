@@ -2109,31 +2109,51 @@
                 // Precipitation
                 var precipDiv = document.createElement('div');
                 precipDiv.className = 'timeline-data-item precip';
-                precipDiv.innerHTML = '<span class="icon">💧</span> ' + s.precipitation + '%';
+                var precipIcon = document.createElement('span');
+                precipIcon.className = 'icon';
+                precipIcon.textContent = '💧';
+                precipDiv.appendChild(precipIcon);
+                precipDiv.appendChild(document.createTextNode(' ' + s.precipitation + '%'));
                 item.appendChild(precipDiv);
                 
                 // Cloud Cover
                 var cloudDiv = document.createElement('div');
                 cloudDiv.className = 'timeline-data-item cloud';
-                cloudDiv.innerHTML = '<span class="icon">☁️</span> ' + s.cloudCover + '%';
+                var cloudIcon = document.createElement('span');
+                cloudIcon.className = 'icon';
+                cloudIcon.textContent = '☁️';
+                cloudDiv.appendChild(cloudIcon);
+                cloudDiv.appendChild(document.createTextNode(' ' + s.cloudCover + '%'));
                 item.appendChild(cloudDiv);
                 
                 // Wind Speed
                 var windDiv = document.createElement('div');
                 windDiv.className = 'timeline-data-item wind';
-                windDiv.innerHTML = '<span class="icon">💨</span> ' + s.wind + ' km/h';
+                var windIcon = document.createElement('span');
+                windIcon.className = 'icon';
+                windIcon.textContent = '💨';
+                windDiv.appendChild(windIcon);
+                windDiv.appendChild(document.createTextNode(' ' + s.wind + ' km/h'));
                 item.appendChild(windDiv);
                 
                 // Water Temperature
                 var waterDiv = document.createElement('div');
                 waterDiv.className = 'timeline-data-item water';
-                waterDiv.innerHTML = '<span class="icon">🌊</span> ' + s.water + '°C';
+                var waterIcon = document.createElement('span');
+                waterIcon.className = 'icon';
+                waterIcon.textContent = '🌊';
+                waterDiv.appendChild(waterIcon);
+                waterDiv.appendChild(document.createTextNode(' ' + s.water + '°C'));
                 item.appendChild(waterDiv);
                 
                 // Air Temperature
                 var tempDiv = document.createElement('div');
                 tempDiv.className = 'timeline-data-item temp';
-                tempDiv.innerHTML = '<span class="icon">☀️</span> ' + s.temp + '°C';
+                var tempIcon = document.createElement('span');
+                tempIcon.className = 'icon';
+                tempIcon.textContent = '☀️';
+                tempDiv.appendChild(tempIcon);
+                tempDiv.appendChild(document.createTextNode(' ' + s.temp + '°C'));
                 item.appendChild(tempDiv);
                 
                 timeline.appendChild(item);
