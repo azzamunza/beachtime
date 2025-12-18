@@ -1006,9 +1006,14 @@
                                     <span class="range-value-display" id="tempMinValue">22°C</span>
                                 </div>
                                 <div class="range-input-group">
-                                    <span class="range-input-label">Ideal</span>
-                                    <input type="range" class="range-slider-small" id="tempIdealRange" min="0" max="50" step="1" value="32">
-                                    <span class="range-value-display" id="tempIdealValue">32°C</span>
+                                    <span class="range-input-label">Ideal Min</span>
+                                    <input type="range" class="range-slider-small" id="tempIdealMinRange" min="0" max="50" step="1" value="28">
+                                    <span class="range-value-display" id="tempIdealMinValue">28°C</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Ideal Max</span>
+                                    <input type="range" class="range-slider-small" id="tempIdealMaxRange" min="0" max="50" step="1" value="34">
+                                    <span class="range-value-display" id="tempIdealMaxValue">34°C</span>
                                 </div>
                                 <div class="range-input-group">
                                     <span class="range-input-label">Max</span>
@@ -1029,9 +1034,14 @@
                                     <span class="range-value-display" id="waterMinValue">19°C</span>
                                 </div>
                                 <div class="range-input-group">
-                                    <span class="range-input-label">Ideal</span>
-                                    <input type="range" class="range-slider-small" id="waterIdealRange" min="0" max="35" step="1" value="26">
-                                    <span class="range-value-display" id="waterIdealValue">26°C</span>
+                                    <span class="range-input-label">Ideal Min</span>
+                                    <input type="range" class="range-slider-small" id="waterIdealMinRange" min="0" max="35" step="1" value="24">
+                                    <span class="range-value-display" id="waterIdealMinValue">24°C</span>
+                                </div>
+                                <div class="range-input-group">
+                                    <span class="range-input-label">Ideal Max</span>
+                                    <input type="range" class="range-slider-small" id="waterIdealMaxRange" min="0" max="35" step="1" value="28">
+                                    <span class="range-value-display" id="waterIdealMaxValue">28°C</span>
                                 </div>
                                 <div class="range-input-group">
                                     <span class="range-input-label">Max</span>
@@ -1170,12 +1180,14 @@
         var idealRanges = {
             temperature: {
                 min: 22,
-                ideal: 32,
+                idealMin: 28,
+                idealMax: 34,
                 max: 40
             },
             water: {
                 min: 19,
-                ideal: 26,
+                idealMin: 24,
+                idealMax: 28,
                 max: 32
             },
             wind: {
@@ -1847,9 +1859,9 @@
         function calculateDayScores(dayData) {
             var scores = [];
             for (var i = 0; i < dayData.hours.length; i++) {
-                var tempScore = calculateRating(dayData.temp[i], idealRanges.temperature.ideal, idealRanges.temperature.min, idealRanges.temperature.max);
+                var tempScore = calculateRating(dayData.temp[i], [idealRanges.temperature.idealMin, idealRanges.temperature.idealMax], idealRanges.temperature.min, idealRanges.temperature.max);
                 var windScore = calculateRating(dayData.wind[i], [idealRanges.wind.idealMin, idealRanges.wind.idealMax], idealRanges.wind.min, idealRanges.wind.max);
-                var waterScore = calculateRating(dayData.water[i], idealRanges.water.ideal, idealRanges.water.min, idealRanges.water.max);
+                var waterScore = calculateRating(dayData.water[i], [idealRanges.water.idealMin, idealRanges.water.idealMax], idealRanges.water.min, idealRanges.water.max);
                 
                 // Precipitation: lower is better (0% = 1.0 score, 100% = 0.0 score)
                 var precipScore = 1 - (dayData.precipitation[i] / 100);
@@ -3237,12 +3249,14 @@
         function initializeRangeSliders() {
             // Temperature sliders
             updateRangeSlider('tempMinRange', 'tempMinValue', 'temperature', 'min', '°C');
-            updateRangeSlider('tempIdealRange', 'tempIdealValue', 'temperature', 'ideal', '°C');
+            updateRangeSlider('tempIdealMinRange', 'tempIdealMinValue', 'temperature', 'idealMin', '°C');
+            updateRangeSlider('tempIdealMaxRange', 'tempIdealMaxValue', 'temperature', 'idealMax', '°C');
             updateRangeSlider('tempMaxRange', 'tempMaxValue', 'temperature', 'max', '°C');
             
             // Water temperature sliders
             updateRangeSlider('waterMinRange', 'waterMinValue', 'water', 'min', '°C');
-            updateRangeSlider('waterIdealRange', 'waterIdealValue', 'water', 'ideal', '°C');
+            updateRangeSlider('waterIdealMinRange', 'waterIdealMinValue', 'water', 'idealMin', '°C');
+            updateRangeSlider('waterIdealMaxRange', 'waterIdealMaxValue', 'water', 'idealMax', '°C');
             updateRangeSlider('waterMaxRange', 'waterMaxValue', 'water', 'max', '°C');
             
             // Wind speed sliders
@@ -3351,11 +3365,12 @@
                 return { valid: false, error: 'Temperature ranges missing' };
             }
             var temp = ranges.temperature;
-            if (typeof temp.min !== 'number' || typeof temp.ideal !== 'number' || typeof temp.max !== 'number') {
+            if (typeof temp.min !== 'number' || typeof temp.idealMin !== 'number' || 
+                typeof temp.idealMax !== 'number' || typeof temp.max !== 'number') {
                 return { valid: false, error: 'Temperature range values must be numbers' };
             }
-            if (temp.min > temp.ideal || temp.ideal > temp.max) {
-                return { valid: false, error: 'Temperature ranges must be in order: min <= ideal <= max' };
+            if (temp.min > temp.idealMin || temp.idealMin > temp.idealMax || temp.idealMax > temp.max) {
+                return { valid: false, error: 'Temperature ranges must be in order: min <= idealMin <= idealMax <= max' };
             }
             
             // Validate water ranges
@@ -3363,11 +3378,12 @@
                 return { valid: false, error: 'Water ranges missing' };
             }
             var water = ranges.water;
-            if (typeof water.min !== 'number' || typeof water.ideal !== 'number' || typeof water.max !== 'number') {
+            if (typeof water.min !== 'number' || typeof water.idealMin !== 'number' || 
+                typeof water.idealMax !== 'number' || typeof water.max !== 'number') {
                 return { valid: false, error: 'Water range values must be numbers' };
             }
-            if (water.min > water.ideal || water.ideal > water.max) {
-                return { valid: false, error: 'Water ranges must be in order: min <= ideal <= max' };
+            if (water.min > water.idealMin || water.idealMin > water.idealMax || water.idealMax > water.max) {
+                return { valid: false, error: 'Water ranges must be in order: min <= idealMin <= idealMax <= max' };
             }
             
             // Validate wind ranges
@@ -3407,16 +3423,20 @@
             // Temperature
             document.getElementById('tempMinRange').value = ranges.temperature.min;
             document.getElementById('tempMinValue').textContent = ranges.temperature.min + '°C';
-            document.getElementById('tempIdealRange').value = ranges.temperature.ideal;
-            document.getElementById('tempIdealValue').textContent = ranges.temperature.ideal + '°C';
+            document.getElementById('tempIdealMinRange').value = ranges.temperature.idealMin;
+            document.getElementById('tempIdealMinValue').textContent = ranges.temperature.idealMin + '°C';
+            document.getElementById('tempIdealMaxRange').value = ranges.temperature.idealMax;
+            document.getElementById('tempIdealMaxValue').textContent = ranges.temperature.idealMax + '°C';
             document.getElementById('tempMaxRange').value = ranges.temperature.max;
             document.getElementById('tempMaxValue').textContent = ranges.temperature.max + '°C';
             
             // Water
             document.getElementById('waterMinRange').value = ranges.water.min;
             document.getElementById('waterMinValue').textContent = ranges.water.min + '°C';
-            document.getElementById('waterIdealRange').value = ranges.water.ideal;
-            document.getElementById('waterIdealValue').textContent = ranges.water.ideal + '°C';
+            document.getElementById('waterIdealMinRange').value = ranges.water.idealMin;
+            document.getElementById('waterIdealMinValue').textContent = ranges.water.idealMin + '°C';
+            document.getElementById('waterIdealMaxRange').value = ranges.water.idealMax;
+            document.getElementById('waterIdealMaxValue').textContent = ranges.water.idealMax + '°C';
             document.getElementById('waterMaxRange').value = ranges.water.max;
             document.getElementById('waterMaxValue').textContent = ranges.water.max + '°C';
             
@@ -3593,12 +3613,14 @@
             var defaultRanges = {
                 temperature: {
                     min: 22,
-                    ideal: 32,
+                    idealMin: 28,
+                    idealMax: 34,
                     max: 40
                 },
                 water: {
                     min: 19,
-                    ideal: 26,
+                    idealMin: 24,
+                    idealMax: 28,
                     max: 32
                 },
                 wind: {
