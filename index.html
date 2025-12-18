@@ -2951,16 +2951,21 @@
         function validateWeights(weights) {
             var requiredFields = ['temperature', 'water', 'wind', 'cloud', 'precipitation'];
             
+            // Check if weights is an object
+            if (!weights || typeof weights !== 'object') {
+                return { valid: false, error: 'Weights must be an object' };
+            }
+            
             // Check if all required fields exist
             for (var i = 0; i < requiredFields.length; i++) {
                 var field = requiredFields[i];
-                if (weights[field] === undefined) {
-                    return { valid: false, error: 'Missing field: ' + field };
+                if (weights[field] === undefined || weights[field] === null) {
+                    return { valid: false, error: 'Missing or null field: ' + field };
                 }
                 
                 // Validate type and range
-                if (typeof weights[field] !== 'number' || isNaN(weights[field])) {
-                    return { valid: false, error: field + ' must be a number' };
+                if (typeof weights[field] !== 'number' || isNaN(weights[field]) || !isFinite(weights[field])) {
+                    return { valid: false, error: field + ' must be a valid number' };
                 }
                 
                 if (weights[field] < 0 || weights[field] > 2) {
@@ -2997,11 +3002,25 @@
         function loadWeightsFromJSON() {
             var input = document.createElement('input');
             input.type = 'file';
-            input.accept = 'application/json';
+            input.accept = 'application/json,.json';
             
             input.addEventListener('change', function(e) {
                 var file = e.target.files[0];
                 if (!file) return;
+                
+                // Validate file extension
+                var fileName = file.name.toLowerCase();
+                if (!fileName.endsWith('.json')) {
+                    alert('Invalid file type. Please select a JSON file.');
+                    return;
+                }
+                
+                // Validate file size (limit to 1MB)
+                var maxSize = 1024 * 1024; // 1MB
+                if (file.size > maxSize) {
+                    alert('File is too large. Maximum size is 1MB.');
+                    return;
+                }
                 
                 var reader = new FileReader();
                 reader.onload = function(event) {
