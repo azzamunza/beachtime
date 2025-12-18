@@ -2644,8 +2644,8 @@
         document.getElementById('globalDaySelector').addEventListener('click', function(e) {
             // Use closest() to handle clicks on button or any child elements
             var button = e.target.closest('.day-btn');
-            if (button && !button.id) { // Ignore if it's the weeklyOverviewBtn
-                var buttons = document.querySelectorAll('#globalDaySelector .day-btn');
+            if (button && button.hasAttribute('data-day')) { // Only handle day selector buttons
+                var buttons = document.querySelectorAll('#globalDaySelector .day-btn[data-day]');
                 for (var i = 0; i < buttons.length; i++) {
                     buttons[i].classList.remove('active');
                 }
