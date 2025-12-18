@@ -445,6 +445,123 @@
             color: #999;
             padding: 20px;
         }
+        
+        .weight-controls {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 25px;
+        }
+        
+        .weight-controls-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        
+        .weight-slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .weight-slider-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+        }
+        
+        .weight-slider-label {
+            min-width: 150px;
+            font-weight: bold;
+            color: #555;
+            font-size: 0.95em;
+        }
+        
+        .weight-slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            background: linear-gradient(to right, #ddd, #667eea);
+        }
+        
+        .weight-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .weight-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .weight-value {
+            min-width: 50px;
+            text-align: right;
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1em;
+        }
+        
+        .weight-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .weight-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .weight-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .weight-btn.secondary {
+            background: #32dbae;
+        }
+        
+        .weight-btn.secondary:hover {
+            background: #28c9a0;
+        }
+        
+        .weight-btn.tertiary {
+            background: #999;
+        }
+        
+        .weight-btn.tertiary:hover {
+            background: #777;
+        }
     </style>
 </head>
 <body>
@@ -696,6 +813,42 @@
                     Higher values indicate better overall beach conditions.
                 </div>
             </div>
+            
+            <div class="weight-controls">
+                <div class="weight-controls-title">⚖️ Rating Weights</div>
+                <div class="weight-slider-group">
+                    <div class="weight-slider-item">
+                        <span class="weight-slider-label">🌡️ Temperature</span>
+                        <input type="range" class="weight-slider" id="tempWeight" min="0" max="2" step="0.1" value="1.0">
+                        <span class="weight-value" id="tempWeightValue">1.0</span>
+                    </div>
+                    <div class="weight-slider-item">
+                        <span class="weight-slider-label">🌊 Water Temp</span>
+                        <input type="range" class="weight-slider" id="waterWeight" min="0" max="2" step="0.1" value="1.0">
+                        <span class="weight-value" id="waterWeightValue">1.0</span>
+                    </div>
+                    <div class="weight-slider-item">
+                        <span class="weight-slider-label">💨 Wind Speed</span>
+                        <input type="range" class="weight-slider" id="windWeight" min="0" max="2" step="0.1" value="1.0">
+                        <span class="weight-value" id="windWeightValue">1.0</span>
+                    </div>
+                    <div class="weight-slider-item">
+                        <span class="weight-slider-label">☁️ Cloud Cover</span>
+                        <input type="range" class="weight-slider" id="cloudWeight" min="0" max="2" step="0.1" value="1.0">
+                        <span class="weight-value" id="cloudWeightValue">1.0</span>
+                    </div>
+                    <div class="weight-slider-item">
+                        <span class="weight-slider-label">💧 Precipitation</span>
+                        <input type="range" class="weight-slider" id="precipWeight" min="0" max="2" step="0.1" value="1.0">
+                        <span class="weight-value" id="precipWeightValue">1.0</span>
+                    </div>
+                </div>
+                <div class="weight-buttons">
+                    <button class="weight-btn" id="saveWeightsBtn">💾 Save Weights</button>
+                    <button class="weight-btn secondary" id="loadWeightsBtn">📂 Load Weights</button>
+                    <button class="weight-btn tertiary" id="resetWeightsBtn">↺ Reset to Default</button>
+                </div>
+            </div>
         </div>
         </div>
         
@@ -739,6 +892,15 @@
         var isLoading = true;
         var searchController;
         var viewMode = 'daily'; // 'daily' or 'weekly'
+        
+        // Weight factors for normalized rating calculation
+        var ratingWeights = {
+            temperature: 1.0,
+            water: 1.0,
+            wind: 1.0,
+            cloud: 1.0,
+            precipitation: 1.0
+        };
         
         // Location and timezone management
         var currentLocationName = 'Swanbourne Beach'; // Default location name
@@ -1408,7 +1570,14 @@
                 // Calculate normalized rating with multiplicative approach (biased towards 0 scores)
                 // This ensures that if any factor is very poor, the overall rating is heavily penalized
                 // Multiply all factors together - if any factor is 0, rating approaches 0
-                var normalizedRating = tempScore * windScore * waterScore * cloudScore * precipScore;
+                // Apply weights by raising each score to the power of its weight
+                var weightedTempScore = Math.pow(tempScore, ratingWeights.temperature);
+                var weightedWaterScore = Math.pow(waterScore, ratingWeights.water);
+                var weightedWindScore = Math.pow(windScore, ratingWeights.wind);
+                var weightedCloudScore = Math.pow(cloudScore, ratingWeights.cloud);
+                var weightedPrecipScore = Math.pow(precipScore, ratingWeights.precipitation);
+                
+                var normalizedRating = weightedTempScore * weightedWaterScore * weightedWindScore * weightedCloudScore * weightedPrecipScore;
                 normalizedRating = Math.max(0, Math.min(1, normalizedRating)); // Clamp to [0, 1]
                 
                 scores.push({
@@ -2732,6 +2901,219 @@
                     document.getElementById('hourlyRatingChart').classList.add('active');
                 }
             }
+        });
+        
+        // Weight slider functionality
+        function updateWeightDisplay(sliderId, valueId, weightKey) {
+            var slider = document.getElementById(sliderId);
+            var valueDisplay = document.getElementById(valueId);
+            
+            slider.addEventListener('input', function() {
+                var value = parseFloat(this.value);
+                valueDisplay.textContent = value.toFixed(1);
+                ratingWeights[weightKey] = value;
+                updateChart();
+            });
+        }
+        
+        function initializeWeightSliders() {
+            updateWeightDisplay('tempWeight', 'tempWeightValue', 'temperature');
+            updateWeightDisplay('waterWeight', 'waterWeightValue', 'water');
+            updateWeightDisplay('windWeight', 'windWeightValue', 'wind');
+            updateWeightDisplay('cloudWeight', 'cloudWeightValue', 'cloud');
+            updateWeightDisplay('precipWeight', 'precipWeightValue', 'precipitation');
+            
+            // Load saved weights from localStorage if available
+            loadWeightsFromStorage();
+        }
+        
+        function saveWeightsToJSON() {
+            var weightsJSON = JSON.stringify(ratingWeights, null, 2);
+            
+            // Create a blob and download link
+            var blob = new Blob([weightsJSON], { type: 'application/json' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'beach-rating-weights.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Also save to localStorage
+            localStorage.setItem('beachRatingWeights', weightsJSON);
+            
+            alert('Weights saved successfully! 📥\nDownloaded as JSON file and saved to browser storage.');
+        }
+        
+        // Helper function to validate weight values
+        function validateWeights(weights) {
+            var requiredFields = ['temperature', 'water', 'wind', 'cloud', 'precipitation'];
+            
+            // Check if weights is an object
+            if (!weights || typeof weights !== 'object') {
+                return { valid: false, error: 'Weights must be an object' };
+            }
+            
+            // Check if all required fields exist
+            for (var i = 0; i < requiredFields.length; i++) {
+                var field = requiredFields[i];
+                if (weights[field] === undefined || weights[field] === null) {
+                    return { valid: false, error: 'Missing or null field: ' + field };
+                }
+                
+                // Validate type and range
+                if (typeof weights[field] !== 'number' || isNaN(weights[field]) || !isFinite(weights[field])) {
+                    return { valid: false, error: field + ' must be a valid number' };
+                }
+                
+                if (weights[field] < 0 || weights[field] > 2) {
+                    return { valid: false, error: field + ' must be between 0 and 2' };
+                }
+            }
+            
+            return { valid: true };
+        }
+        
+        // Helper function to update slider UI
+        function updateSlidersUI(weights) {
+            document.getElementById('tempWeight').value = weights.temperature;
+            document.getElementById('tempWeightValue').textContent = weights.temperature.toFixed(1);
+            document.getElementById('waterWeight').value = weights.water;
+            document.getElementById('waterWeightValue').textContent = weights.water.toFixed(1);
+            document.getElementById('windWeight').value = weights.wind;
+            document.getElementById('windWeightValue').textContent = weights.wind.toFixed(1);
+            document.getElementById('cloudWeight').value = weights.cloud;
+            document.getElementById('cloudWeightValue').textContent = weights.cloud.toFixed(1);
+            document.getElementById('precipWeight').value = weights.precipitation;
+            document.getElementById('precipWeightValue').textContent = weights.precipitation.toFixed(1);
+        }
+        
+        // Helper function to apply weights
+        function applyWeights(weights) {
+            ratingWeights.temperature = weights.temperature;
+            ratingWeights.water = weights.water;
+            ratingWeights.wind = weights.wind;
+            ratingWeights.cloud = weights.cloud;
+            ratingWeights.precipitation = weights.precipitation;
+        }
+        
+        function loadWeightsFromJSON() {
+            var input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json,.json';
+            
+            input.addEventListener('change', function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+                
+                // Validate file extension
+                var fileName = file.name.toLowerCase();
+                if (!fileName.endsWith('.json')) {
+                    alert('Invalid file type. Please select a JSON file.');
+                    return;
+                }
+                
+                // Validate file size (limit to 1MB)
+                var maxSize = 1024 * 1024; // 1MB
+                if (file.size > maxSize) {
+                    alert('File is too large. Maximum size is 1MB.');
+                    return;
+                }
+                
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        var weights = JSON.parse(event.target.result);
+                        
+                        // Validate the loaded weights
+                        var validation = validateWeights(weights);
+                        if (!validation.valid) {
+                            alert('Invalid weights file: ' + validation.error);
+                            return;
+                        }
+                        
+                        // Apply the weights
+                        applyWeights(weights);
+                        
+                        // Update the UI sliders
+                        updateSlidersUI(weights);
+                        
+                        // Save to localStorage
+                        localStorage.setItem('beachRatingWeights', JSON.stringify(ratingWeights));
+                        
+                        // Update the chart
+                        updateChart();
+                        
+                        alert('Weights loaded successfully! 📂');
+                    } catch (error) {
+                        alert('Error loading weights file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            });
+            
+            input.click();
+        }
+        
+        function loadWeightsFromStorage() {
+            var stored = localStorage.getItem('beachRatingWeights');
+            if (stored) {
+                try {
+                    var weights = JSON.parse(stored);
+                    
+                    // Validate the stored weights
+                    var validation = validateWeights(weights);
+                    if (!validation.valid) {
+                        console.error('Invalid stored weights:', validation.error);
+                        return;
+                    }
+                    
+                    // Apply the weights
+                    applyWeights(weights);
+                    
+                    // Update the UI sliders
+                    updateSlidersUI(weights);
+                } catch (error) {
+                    console.error('Error loading weights from storage:', error);
+                }
+            }
+        }
+        
+        function resetWeights() {
+            // Reset to default values
+            var defaultWeights = {
+                temperature: 1.0,
+                water: 1.0,
+                wind: 1.0,
+                cloud: 1.0,
+                precipitation: 1.0
+            };
+            
+            // Apply the default weights
+            applyWeights(defaultWeights);
+            
+            // Update the UI sliders
+            updateSlidersUI(defaultWeights);
+            
+            // Remove from localStorage
+            localStorage.removeItem('beachRatingWeights');
+            
+            // Update the chart
+            updateChart();
+            
+            alert('Weights reset to default values! ↺');
+        }
+        
+        // Initialize weight sliders when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeWeightSliders();
+            
+            // Attach event listeners to buttons
+            document.getElementById('saveWeightsBtn').addEventListener('click', saveWeightsToJSON);
+            document.getElementById('loadWeightsBtn').addEventListener('click', loadWeightsFromJSON);
+            document.getElementById('resetWeightsBtn').addEventListener('click', resetWeights);
         });
         
         // Initialize by fetching weather data
