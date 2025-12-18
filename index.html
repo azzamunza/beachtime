@@ -441,7 +441,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🏖️ Swanbourne Beach Conditions</h1>
+        <h1>🏖️ Beach Conditions</h1>
         
         <div class="controls-section">
             <div class="control-group">
@@ -660,6 +660,22 @@
         var searchController;
         
         // Location and timezone management
+        var currentLocationName = 'Swanbourne Beach'; // Default location name
+        
+        function updateLocationTitles() {
+            // Update all location name elements
+            var locationNameElements = document.querySelectorAll('.location-name');
+            var vizTitles = document.querySelectorAll('.viz-title');
+            
+            locationNameElements.forEach(function(element) {
+                element.textContent = currentLocationName;
+            });
+            
+            vizTitles.forEach(function(element) {
+                element.textContent = currentLocationName;
+            });
+        }
+        
         function getRecentLocations() {
             var stored = localStorage.getItem('recentLocations');
             return stored ? JSON.parse(stored) : [];
@@ -704,6 +720,15 @@
         function selectLocation(location) {
             document.getElementById('latitude').value = location.latitude;
             document.getElementById('longitude').value = location.longitude;
+            
+            // Update location name
+            if (location.name) {
+                currentLocationName = location.name;
+            } else {
+                // Fallback to coordinates if no name
+                currentLocationName = location.latitude.toFixed(4) + ', ' + location.longitude.toFixed(4);
+            }
+            updateLocationTitles();
             
             // Update timezone if available
             if (location.timezone) {
@@ -814,6 +839,9 @@
                 var lon = parseFloat(document.getElementById('longitude').value);
                 // Only fetch if both coordinates are valid numbers
                 if (!isNaN(lat) && !isNaN(lon)) {
+                    // Update location name to coordinates when manually entered
+                    currentLocationName = lat.toFixed(4) + ', ' + lon.toFixed(4);
+                    updateLocationTitles();
                     fetchWeatherData();
                 }
             }, 500); // Wait 500ms after user stops typing
