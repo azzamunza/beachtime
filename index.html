@@ -2947,6 +2947,53 @@
             alert('Weights saved successfully! 📥\nDownloaded as JSON file and saved to browser storage.');
         }
         
+        // Helper function to validate weight values
+        function validateWeights(weights) {
+            var requiredFields = ['temperature', 'water', 'wind', 'cloud', 'precipitation'];
+            
+            // Check if all required fields exist
+            for (var i = 0; i < requiredFields.length; i++) {
+                var field = requiredFields[i];
+                if (weights[field] === undefined) {
+                    return { valid: false, error: 'Missing field: ' + field };
+                }
+                
+                // Validate type and range
+                if (typeof weights[field] !== 'number' || isNaN(weights[field])) {
+                    return { valid: false, error: field + ' must be a number' };
+                }
+                
+                if (weights[field] < 0 || weights[field] > 2) {
+                    return { valid: false, error: field + ' must be between 0 and 2' };
+                }
+            }
+            
+            return { valid: true };
+        }
+        
+        // Helper function to update slider UI
+        function updateSlidersUI(weights) {
+            document.getElementById('tempWeight').value = weights.temperature;
+            document.getElementById('tempWeightValue').textContent = weights.temperature.toFixed(1);
+            document.getElementById('waterWeight').value = weights.water;
+            document.getElementById('waterWeightValue').textContent = weights.water.toFixed(1);
+            document.getElementById('windWeight').value = weights.wind;
+            document.getElementById('windWeightValue').textContent = weights.wind.toFixed(1);
+            document.getElementById('cloudWeight').value = weights.cloud;
+            document.getElementById('cloudWeightValue').textContent = weights.cloud.toFixed(1);
+            document.getElementById('precipWeight').value = weights.precipitation;
+            document.getElementById('precipWeightValue').textContent = weights.precipitation.toFixed(1);
+        }
+        
+        // Helper function to apply weights
+        function applyWeights(weights) {
+            ratingWeights.temperature = weights.temperature;
+            ratingWeights.water = weights.water;
+            ratingWeights.wind = weights.wind;
+            ratingWeights.cloud = weights.cloud;
+            ratingWeights.precipitation = weights.precipitation;
+        }
+        
         function loadWeightsFromJSON() {
             var input = document.createElement('input');
             input.type = 'file';
@@ -2962,39 +3009,25 @@
                         var weights = JSON.parse(event.target.result);
                         
                         // Validate the loaded weights
-                        if (weights.temperature !== undefined && weights.water !== undefined && 
-                            weights.wind !== undefined && weights.cloud !== undefined && 
-                            weights.precipitation !== undefined) {
-                            
-                            // Update the global weights
-                            ratingWeights.temperature = weights.temperature;
-                            ratingWeights.water = weights.water;
-                            ratingWeights.wind = weights.wind;
-                            ratingWeights.cloud = weights.cloud;
-                            ratingWeights.precipitation = weights.precipitation;
-                            
-                            // Update the UI sliders
-                            document.getElementById('tempWeight').value = weights.temperature;
-                            document.getElementById('tempWeightValue').textContent = weights.temperature.toFixed(1);
-                            document.getElementById('waterWeight').value = weights.water;
-                            document.getElementById('waterWeightValue').textContent = weights.water.toFixed(1);
-                            document.getElementById('windWeight').value = weights.wind;
-                            document.getElementById('windWeightValue').textContent = weights.wind.toFixed(1);
-                            document.getElementById('cloudWeight').value = weights.cloud;
-                            document.getElementById('cloudWeightValue').textContent = weights.cloud.toFixed(1);
-                            document.getElementById('precipWeight').value = weights.precipitation;
-                            document.getElementById('precipWeightValue').textContent = weights.precipitation.toFixed(1);
-                            
-                            // Save to localStorage
-                            localStorage.setItem('beachRatingWeights', JSON.stringify(ratingWeights));
-                            
-                            // Update the chart
-                            updateChart();
-                            
-                            alert('Weights loaded successfully! 📂');
-                        } else {
-                            alert('Invalid weights file format. Please ensure all weight fields are present.');
+                        var validation = validateWeights(weights);
+                        if (!validation.valid) {
+                            alert('Invalid weights file: ' + validation.error);
+                            return;
                         }
+                        
+                        // Apply the weights
+                        applyWeights(weights);
+                        
+                        // Update the UI sliders
+                        updateSlidersUI(weights);
+                        
+                        // Save to localStorage
+                        localStorage.setItem('beachRatingWeights', JSON.stringify(ratingWeights));
+                        
+                        // Update the chart
+                        updateChart();
+                        
+                        alert('Weights loaded successfully! 📂');
                     } catch (error) {
                         alert('Error loading weights file: ' + error.message);
                     }
@@ -3012,29 +3045,17 @@
                     var weights = JSON.parse(stored);
                     
                     // Validate the stored weights
-                    if (weights.temperature !== undefined && weights.water !== undefined && 
-                        weights.wind !== undefined && weights.cloud !== undefined && 
-                        weights.precipitation !== undefined) {
-                        
-                        // Update the global weights
-                        ratingWeights.temperature = weights.temperature;
-                        ratingWeights.water = weights.water;
-                        ratingWeights.wind = weights.wind;
-                        ratingWeights.cloud = weights.cloud;
-                        ratingWeights.precipitation = weights.precipitation;
-                        
-                        // Update the UI sliders
-                        document.getElementById('tempWeight').value = weights.temperature;
-                        document.getElementById('tempWeightValue').textContent = weights.temperature.toFixed(1);
-                        document.getElementById('waterWeight').value = weights.water;
-                        document.getElementById('waterWeightValue').textContent = weights.water.toFixed(1);
-                        document.getElementById('windWeight').value = weights.wind;
-                        document.getElementById('windWeightValue').textContent = weights.wind.toFixed(1);
-                        document.getElementById('cloudWeight').value = weights.cloud;
-                        document.getElementById('cloudWeightValue').textContent = weights.cloud.toFixed(1);
-                        document.getElementById('precipWeight').value = weights.precipitation;
-                        document.getElementById('precipWeightValue').textContent = weights.precipitation.toFixed(1);
+                    var validation = validateWeights(weights);
+                    if (!validation.valid) {
+                        console.error('Invalid stored weights:', validation.error);
+                        return;
                     }
+                    
+                    // Apply the weights
+                    applyWeights(weights);
+                    
+                    // Update the UI sliders
+                    updateSlidersUI(weights);
                 } catch (error) {
                     console.error('Error loading weights from storage:', error);
                 }
@@ -3043,23 +3064,19 @@
         
         function resetWeights() {
             // Reset to default values
-            ratingWeights.temperature = 1.0;
-            ratingWeights.water = 1.0;
-            ratingWeights.wind = 1.0;
-            ratingWeights.cloud = 1.0;
-            ratingWeights.precipitation = 1.0;
+            var defaultWeights = {
+                temperature: 1.0,
+                water: 1.0,
+                wind: 1.0,
+                cloud: 1.0,
+                precipitation: 1.0
+            };
+            
+            // Apply the default weights
+            applyWeights(defaultWeights);
             
             // Update the UI sliders
-            document.getElementById('tempWeight').value = 1.0;
-            document.getElementById('tempWeightValue').textContent = '1.0';
-            document.getElementById('waterWeight').value = 1.0;
-            document.getElementById('waterWeightValue').textContent = '1.0';
-            document.getElementById('windWeight').value = 1.0;
-            document.getElementById('windWeightValue').textContent = '1.0';
-            document.getElementById('cloudWeight').value = 1.0;
-            document.getElementById('cloudWeightValue').textContent = '1.0';
-            document.getElementById('precipWeight').value = 1.0;
-            document.getElementById('precipWeightValue').textContent = '1.0';
+            updateSlidersUI(defaultWeights);
             
             // Remove from localStorage
             localStorage.removeItem('beachRatingWeights');
