@@ -626,6 +626,8 @@
         
         .weight-slider {
             flex: 1;
+            min-width: 0;
+            max-width: 100%;
             height: 8px;
             border-radius: 4px;
             outline: none;
@@ -2359,7 +2361,7 @@
                 var dy = cy + Math.sin(angle) * dataDist;
                 
                 // Data label spacing constant
-                var labelSpacing = 15;
+                var labelSpacing = 18;
                 ctx.font = '10px sans-serif';
                 ctx.fillStyle = '#F28C28';
                 ctx.fillText(s.temp + '°C', dx, dy - labelSpacing * 2);
@@ -2618,7 +2620,7 @@
                 var dy = cy + Math.sin(angle) * dataDist;
                 
                 // Data label spacing constant
-                var labelSpacing = 15;
+                var labelSpacing = 18;
                 ctx.font = '10px sans-serif';
                 ctx.fillStyle = '#F28C28';
                 ctx.fillText(s.temp + '°C', dx, dy - labelSpacing * 2);
@@ -2882,7 +2884,7 @@
                 var dy = cy + Math.sin(angle) * dataDist;
                 
                 // Data label spacing constant
-                var labelSpacing = 15;
+                var labelSpacing = 18;
                 ctx.font = '10px sans-serif';
                 ctx.fillStyle = '#F28C28';
                 ctx.fillText(s.temp + '°C', dx, dy - labelSpacing * 2);
