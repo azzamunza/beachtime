@@ -690,8 +690,8 @@
                 <div class="info-title">How to Read This Chart</div>
                 <div class="info-text">
                     This chart shows the normalized beach rating for each hour of the day. 
-                    The rating is calculated as the sum of positive factors (Temperature, Water Temperature, Wind Speed) 
-                    minus negative factors (Cloud Cover, Precipitation), normalized to a 0-1 range.
+                    The rating uses a multiplicative approach where all factors (Temperature, Water Temperature, Wind Speed, Cloud Cover, Precipitation) are multiplied together.
+                    This means if any single factor is poor, it heavily penalizes the overall rating, providing a more realistic assessment of beach suitability.
                     The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
                     Higher values indicate better overall beach conditions.
                 </div>
@@ -724,8 +724,8 @@
                 <div class="info-text">
                     This chart displays the average normalized rating for each day of the week. 
                     Each bar represents a full day's average of hourly ratings (7am-7pm).
-                    The rating considers all positive factors (Temperature, Water Temperature, Wind Speed) 
-                    minus negative factors (Cloud Cover, Precipitation), normalized to a 0-1 range.
+                    The hourly ratings use a multiplicative approach where poor conditions in any factor heavily penalize the overall score.
+                    Daily averages are then calculated from these hourly ratings, providing a realistic view of each day's beach suitability.
                     Higher values indicate better overall beach conditions for that day. Click on the date buttons above to view detailed hourly charts for any day.
                 </div>
             </div>
@@ -1407,14 +1407,18 @@
                 
                 var combined = (tempScore + windScore + waterScore + precipScore + cloudScore) / 5;
                 
-                // Calculate normalized rating: positive scores (temp, wind, water) - negative factors (cloud, rain)
-                // Sum positive values
-                var positiveSum = tempScore + windScore + waterScore;
-                // Sum negative values (we already inverted them, so use raw values)
-                var negativeSum = (cloudCoverValue / 100) + (dayData.precipitation[i] / 100);
-                // Calculate normalized rating: (positive - negative) normalized to [0, 1]
-                // Max positive: 3, Max negative: 2, Range: [-2, 3], Normalized: (value + 2) / 5
-                var normalizedRating = (positiveSum - negativeSum + 2) / 5;
+                // Calculate normalized rating with multiplicative approach (biased towards 0 scores)
+                // This ensures that if any factor is very poor, the overall rating is heavily penalized
+                // Start with product of all positive factors (temp, wind, water)
+                var positiveProduct = tempScore * windScore * waterScore;
+                
+                // Apply negative factors (cloud cover and precipitation) as penalties
+                // Convert raw percentages to penalty multipliers (0% = no penalty, 100% = full penalty)
+                var cloudPenalty = 1 - (cloudCoverValue / 100);
+                var precipPenalty = 1 - (dayData.precipitation[i] / 100);
+                
+                // Multiply all factors together - if any factor is 0, rating approaches 0
+                var normalizedRating = positiveProduct * cloudPenalty * precipPenalty;
                 normalizedRating = Math.max(0, Math.min(1, normalizedRating)); // Clamp to [0, 1]
                 
                 scores.push({
