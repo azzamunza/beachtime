@@ -224,6 +224,14 @@
             display: block;
         }
         
+        .controls-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
         .controls-section {
             background: white;
             border-radius: 15px;
@@ -496,10 +504,15 @@
         <div class="day-selector" id="globalDaySelector">
         </div>
         
-        <div class="tab-menu">
+        <div class="controls-row">
+            <button class="day-btn" id="weeklyOverviewBtn">Weekly Overview</button>
+        </div>
+        
+        <div class="tab-menu" id="chartTabMenu">
             <button class="tab-btn active" data-chart="separated">Separated Rings</button>
             <button class="tab-btn" data-chart="overlaid">Overlaid</button>
             <button class="tab-btn" data-chart="stacked">Stacked</button>
+            <button class="tab-btn" data-chart="hourlyRating">Hourly Rating</button>
         </div>
         
         <div class="chart-container active" id="separatedChart">
@@ -651,6 +664,73 @@
             </div>
         </div>
         </div>
+        
+        <div class="chart-container" id="hourlyRatingChart">
+        <div class="viz-card">
+            <h2 class="viz-title">Hourly Rating</h2>
+            <p class="viz-subtitle" id="chartDate4">Loading...</p>
+            
+            <div class="canvas-container">
+                <canvas id="hourlyRatingCanvas"></canvas>
+            </div>
+            
+            <div class="location-label">
+                <div class="location-name">Swanbourne Beach</div>
+                <div class="location-date" id="currentDate4">Loading...</div>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(to right, #667eea, #764ba2);"></div>
+                    <span><strong>Normalized Rating</strong> (positive - negative factors)</span>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">How to Read This Chart</div>
+                <div class="info-text">
+                    This chart shows the normalized beach rating for each hour of the day. 
+                    The rating is calculated as the sum of positive factors (Temperature, Water Temperature, Wind Speed) 
+                    minus negative factors (Cloud Cover, Precipitation), normalized to a 0-1 range.
+                    The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
+                    Higher values indicate better overall beach conditions.
+                </div>
+            </div>
+        </div>
+        </div>
+        
+        <div class="chart-container" id="weeklyOverviewChart">
+        <div class="viz-card">
+            <h2 class="viz-title">Weekly Overview</h2>
+            <p class="viz-subtitle">Daily normalized ratings for the week</p>
+            
+            <div class="canvas-container">
+                <canvas id="weeklyOverviewCanvas"></canvas>
+            </div>
+            
+            <div class="location-label">
+                <div class="location-name">Swanbourne Beach</div>
+            </div>
+            
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: linear-gradient(to right, #667eea, #764ba2);"></div>
+                    <span><strong>Daily Average Rating</strong> (normalized for the day)</span>
+                </div>
+            </div>
+            
+            <div class="info-box">
+                <div class="info-title">How to Read This Chart</div>
+                <div class="info-text">
+                    This chart displays the average normalized rating for each day of the week. 
+                    Each bar represents a full day's average of hourly ratings (7am-7pm).
+                    The rating considers all positive factors (Temperature, Water Temperature, Wind Speed) 
+                    minus negative factors (Cloud Cover, Precipitation), normalized to a 0-1 range.
+                    Higher values indicate better overall beach conditions for that day. Click on the date buttons above to view detailed hourly charts for any day.
+                </div>
+            </div>
+        </div>
+        </div>
     </div>
     
     <script>
@@ -658,6 +738,7 @@
         var currentDay = 0;
         var isLoading = true;
         var searchController;
+        var viewMode = 'daily'; // 'daily' or 'weekly'
         
         // Location and timezone management
         var currentLocationName = 'Swanbourne Beach'; // Default location name
@@ -1184,6 +1265,15 @@
                 if (chartDate3Element) {
                     chartDate3Element.textContent = formattedDate;
                 }
+                // Update fourth chart date displays (hourly rating)
+                var currentDate4Element = document.getElementById('currentDate4');
+                if (currentDate4Element) {
+                    currentDate4Element.textContent = formattedDate;
+                }
+                var chartDate4Element = document.getElementById('chartDate4');
+                if (chartDate4Element) {
+                    chartDate4Element.textContent = formattedDate;
+                }
             }
         }
         
@@ -1317,6 +1407,16 @@
                 
                 var combined = (tempScore + windScore + waterScore + precipScore + cloudScore) / 5;
                 
+                // Calculate normalized rating: positive scores (temp, wind, water) - negative factors (cloud, rain)
+                // Sum positive values
+                var positiveSum = tempScore + windScore + waterScore;
+                // Sum negative values (we already inverted them, so use raw values)
+                var negativeSum = (cloudCoverValue / 100) + (dayData.precipitation[i] / 100);
+                // Calculate normalized rating: (positive - negative) normalized to [0, 1]
+                // Max positive: 3, Max negative: 2, Range: [-2, 3], Normalized: (value + 2) / 5
+                var normalizedRating = (positiveSum - negativeSum + 2) / 5;
+                normalizedRating = Math.max(0, Math.min(1, normalizedRating)); // Clamp to [0, 1]
+                
                 scores.push({
                     hour: dayData.hours[i],
                     temp: dayData.temp[i],
@@ -1329,12 +1429,34 @@
                     waterScore: waterScore,
                     precipScore: precipScore,
                     cloudCoverNormalized: cloudCoverValue / 100,
-                    combined: combined
+                    cloudScore: cloudScore,
+                    combined: combined,
+                    normalizedRating: normalizedRating
                 });
             }
             // Sort scores by hour to ensure chronological order (7am to 7pm)
             scores.sort(function(a, b) { return a.hour - b.hour; });
             return scores;
+        }
+        
+        // Calculate daily normalized rating for all days (weekly overview)
+        function calculateWeeklyRatings() {
+            var weeklyRatings = [];
+            for (var d = 0; d < weatherData.length; d++) {
+                var dayScores = calculateDayScores(weatherData[d]);
+                // Average the normalized ratings across all hours of the day
+                var sumRating = 0;
+                for (var i = 0; i < dayScores.length; i++) {
+                    sumRating += dayScores[i].normalizedRating;
+                }
+                var avgRating = dayScores.length > 0 ? sumRating / dayScores.length : 0;
+                
+                weeklyRatings.push({
+                    date: weatherData[d].date,
+                    rating: avgRating
+                });
+            }
+            return weeklyRatings;
         }
         
         function formatTime(hour) {
@@ -2309,12 +2431,212 @@
             }
         }
         
+        function drawHourlyRatingChart(scores) {
+            var canvas = document.getElementById('hourlyRatingCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            
+            // Make canvas responsive to container width
+            var container = canvas.parentElement;
+            if (!container) return;
+            var containerWidth = container.clientWidth;
+            var width = containerWidth || 1000;
+            var height = width * 0.6;
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            var sidePadding = 120;
+            var topPadding = 100;
+            var bottomPadding = 20;
+            
+            var cx = width / 2;
+            var cy = height - bottomPadding;
+            
+            var maxRadiusVertical = cy - topPadding;
+            var maxRadiusHorizontal = cx - sidePadding;
+            var maxAllowedRadius = Math.min(maxRadiusVertical, maxRadiusHorizontal);
+            
+            var innerRadius = maxAllowedRadius * 0.25;
+            var maxHeight = maxAllowedRadius - innerRadius;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            var startAngle = Math.PI;
+            var angleRange = Math.PI;
+            
+            // Create point arrays for the normalized rating
+            var ratingPoints = [];
+            var innerPoints = [];
+            
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange;
+                
+                var ratingHeight = s.normalizedRating * maxHeight;
+                
+                innerPoints.push({ angle: angle, radius: innerRadius });
+                ratingPoints.push({ angle: angle, radius: innerRadius + ratingHeight });
+            }
+            
+            var smoothRating = createSmoothPath(ratingPoints, 10);
+            var smoothInner = createSmoothPath(innerPoints, 10);
+            
+            // Draw rating area with gradient
+            var gradient = ctx.createLinearGradient(0, cy - maxAllowedRadius, 0, cy);
+            gradient.addColorStop(0, 'rgba(118, 75, 162, 0.8)');
+            gradient.addColorStop(1, 'rgba(102, 126, 234, 0.6)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            for (var i = 0; i < smoothRating.length; i++) {
+                var x = cx + Math.cos(smoothRating[i].angle) * smoothRating[i].radius;
+                var y = cy + Math.sin(smoothRating[i].angle) * smoothRating[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            for (var i = smoothInner.length - 1; i >= 0; i--) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(102, 126, 234, 1.0)';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            
+            // Draw the inner boundary circle
+            ctx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (var i = 0; i < smoothInner.length; i++) {
+                var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+                var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            
+            // Draw time labels and markers
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                var t = i / (scores.length - 1);
+                var angle = startAngle + t * angleRange;
+                
+                var maxRadius = ratingPoints[i].radius;
+                
+                ctx.strokeStyle = 'rgba(200,200,200,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * innerRadius, cy + Math.sin(angle) * innerRadius);
+                ctx.lineTo(cx + Math.cos(angle) * (maxRadius + 20), cy + Math.sin(angle) * (maxRadius + 20));
+                ctx.stroke();
+                
+                var labelDist = maxAllowedRadius + 50;
+                var x = cx + Math.cos(angle) * labelDist;
+                var y = cy + Math.sin(angle) * labelDist;
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(formatTime(s.hour), x, y);
+                
+                var dataDist = maxAllowedRadius + 90;
+                var dx = cx + Math.cos(angle) * dataDist;
+                var dy = cy + Math.sin(angle) * dataDist;
+                
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillStyle = '#667eea';
+                ctx.fillText((s.normalizedRating * 100).toFixed(0) + '%', dx, dy);
+            }
+        }
+        
+        function drawWeeklyOverviewChart() {
+            var canvas = document.getElementById('weeklyOverviewCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            
+            var container = canvas.parentElement;
+            if (!container) return;
+            var containerWidth = container.clientWidth;
+            var width = containerWidth || 1000;
+            var height = width * 0.5;
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            ctx.clearRect(0, 0, width, height);
+            
+            var weeklyRatings = calculateWeeklyRatings();
+            if (weeklyRatings.length === 0) return;
+            
+            var padding = 80;
+            var chartWidth = width - 2 * padding;
+            var chartHeight = height - 2 * padding;
+            
+            var barWidth = chartWidth / weeklyRatings.length;
+            var barSpacing = barWidth * 0.2;
+            var actualBarWidth = barWidth - barSpacing;
+            
+            // Draw bars
+            for (var i = 0; i < weeklyRatings.length; i++) {
+                var rating = weeklyRatings[i];
+                var barHeight = rating.rating * chartHeight;
+                var x = padding + i * barWidth + barSpacing / 2;
+                var y = height - padding - barHeight;
+                
+                // Gradient for each bar
+                var gradient = ctx.createLinearGradient(x, y, x, height - padding);
+                gradient.addColorStop(0, 'rgba(118, 75, 162, 0.9)');
+                gradient.addColorStop(1, 'rgba(102, 126, 234, 0.7)');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(x, y, actualBarWidth, barHeight);
+                
+                ctx.strokeStyle = 'rgba(102, 126, 234, 1.0)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(x, y, actualBarWidth, barHeight);
+                
+                // Draw date label
+                var dateObj = new Date(rating.date + 'T00:00:00');
+                var dateLabel = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                
+                ctx.fillStyle = '#333';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(dateLabel, x + actualBarWidth / 2, height - padding + 20);
+                
+                // Draw rating percentage on top of bar
+                ctx.fillStyle = '#667eea';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.fillText((rating.rating * 100).toFixed(0) + '%', x + actualBarWidth / 2, y - 10);
+            }
+            
+            // Draw baseline
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Draw axis labels
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Daily Beach Rating', width / 2, height - 10);
+        }
+        
         function updateChart() {
             if (weatherData.length > 0 && weatherData[currentDay]) {
                 var scores = calculateDayScores(weatherData[currentDay]);
                 drawRadialSpline(scores);
                 drawOverlaidChart(scores);
                 drawStackedChart(scores);
+                drawHourlyRatingChart(scores);
                 updateDateDisplay();
             }
         }
@@ -2322,16 +2644,71 @@
         document.getElementById('globalDaySelector').addEventListener('click', function(e) {
             // Use closest() to handle clicks on button or any child elements
             var button = e.target.closest('.day-btn');
-            if (button) {
-                var buttons = document.querySelectorAll('.day-btn');
+            if (button && button.hasAttribute('data-day')) { // Only handle day selector buttons
+                var buttons = document.querySelectorAll('#globalDaySelector .day-btn[data-day]');
                 for (var i = 0; i < buttons.length; i++) {
                     buttons[i].classList.remove('active');
                 }
                 button.classList.add('active');
                 currentDay = parseInt(button.getAttribute('data-day'));
+                
+                // Switch to daily view if coming from weekly view
+                if (viewMode === 'weekly') {
+                    switchToDailyView();
+                }
                 updateChart();
             }
         });
+        
+        // Weekly overview button handler
+        document.getElementById('weeklyOverviewBtn').addEventListener('click', function() {
+            switchToWeeklyView();
+        });
+        
+        function switchToDailyView() {
+            viewMode = 'daily';
+            document.getElementById('chartTabMenu').style.display = 'flex';
+            document.getElementById('weeklyOverviewChart').classList.remove('active');
+            document.getElementById('weeklyOverviewBtn').classList.remove('active');
+            
+            // Show the currently selected chart tab
+            var activeTabBtn = document.querySelector('.tab-btn.active');
+            if (activeTabBtn) {
+                var chartType = activeTabBtn.getAttribute('data-chart');
+                if (chartType === 'separated') {
+                    document.getElementById('separatedChart').classList.add('active');
+                } else if (chartType === 'overlaid') {
+                    document.getElementById('overlaidChart').classList.add('active');
+                } else if (chartType === 'stacked') {
+                    document.getElementById('stackedChart').classList.add('active');
+                } else if (chartType === 'hourlyRating') {
+                    document.getElementById('hourlyRatingChart').classList.add('active');
+                }
+            }
+        }
+        
+        function switchToWeeklyView() {
+            viewMode = 'weekly';
+            document.getElementById('chartTabMenu').style.display = 'none';
+            
+            // Hide all daily charts
+            var chartContainers = document.querySelectorAll('.chart-container');
+            for (var i = 0; i < chartContainers.length; i++) {
+                chartContainers[i].classList.remove('active');
+            }
+            
+            // Show weekly overview chart
+            document.getElementById('weeklyOverviewChart').classList.add('active');
+            document.getElementById('weeklyOverviewBtn').classList.add('active');
+            
+            // Remove active state from day selector buttons
+            var dayButtons = document.querySelectorAll('#globalDaySelector .day-btn');
+            for (var i = 0; i < dayButtons.length; i++) {
+                dayButtons[i].classList.remove('active');
+            }
+            
+            drawWeeklyOverviewChart();
+        }
         
         // Tab menu event listener
         document.querySelector('.tab-menu').addEventListener('click', function(e) {
@@ -2358,6 +2735,8 @@
                     document.getElementById('overlaidChart').classList.add('active');
                 } else if (chartType === 'stacked') {
                     document.getElementById('stackedChart').classList.add('active');
+                } else if (chartType === 'hourlyRating') {
+                    document.getElementById('hourlyRatingChart').classList.add('active');
                 }
             }
         });
