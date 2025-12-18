@@ -705,6 +705,95 @@
         .weight-btn.tertiary:hover {
             background: #777;
         }
+        
+        .data-timeline {
+            margin-top: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .timeline-title {
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+        }
+        
+        .timeline-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        
+        .timeline-item {
+            flex: 1;
+            min-width: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 10px 5px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: transform 0.2s;
+        }
+        
+        .timeline-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .timeline-time {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e0e0e0;
+            width: 100%;
+        }
+        
+        .timeline-data-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            margin: 4px 0;
+            font-size: 0.85em;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .timeline-data-item .icon {
+            font-size: 1.1em;
+        }
+        
+        .timeline-data-item.temp {
+            color: #F28C28;
+        }
+        
+        .timeline-data-item.water {
+            color: #1F5FA8;
+        }
+        
+        .timeline-data-item.wind {
+            color: #32dbae;
+        }
+        
+        .timeline-data-item.cloud {
+            color: #8b95a8;
+        }
+        
+        .timeline-data-item.precip {
+            color: #7993e8;
+        }
     </style>
 </head>
 <body>
@@ -784,6 +873,11 @@
                 <canvas id="mainCanvas"></canvas>
             </div>
             
+            <div class="data-timeline">
+                <div class="timeline-title">Hourly Data</div>
+                <div class="timeline-container" id="timeline1"></div>
+            </div>
+            
             <div class="location-label">
                 <div class="location-name">Swanbourne Beach</div>
                 <div class="location-date" id="currentDate">Loading...</div>
@@ -834,6 +928,11 @@
                 <canvas id="overlayCanvas"></canvas>
             </div>
             
+            <div class="data-timeline">
+                <div class="timeline-title">Hourly Data</div>
+                <div class="timeline-container" id="timeline2"></div>
+            </div>
+            
             <div class="location-label">
                 <div class="location-name">Swanbourne Beach</div>
                 <div class="location-date" id="currentDate2">Loading...</div>
@@ -882,6 +981,11 @@
             
             <div class="canvas-container">
                 <canvas id="stackedCanvas"></canvas>
+            </div>
+            
+            <div class="data-timeline">
+                <div class="timeline-title">Hourly Data</div>
+                <div class="timeline-container" id="timeline3"></div>
             </div>
             
             <div class="location-label">
@@ -1985,6 +2089,77 @@
             return smoothPoints;
         }
         
+        function renderTimeline(scores, timelineId) {
+            var timeline = document.getElementById(timelineId);
+            if (!timeline) return;
+            
+            timeline.innerHTML = '';
+            
+            for (var i = 0; i < scores.length; i++) {
+                var s = scores[i];
+                
+                var item = document.createElement('div');
+                item.className = 'timeline-item';
+                
+                var timeDiv = document.createElement('div');
+                timeDiv.className = 'timeline-time';
+                timeDiv.textContent = formatTime(s.hour);
+                item.appendChild(timeDiv);
+                
+                // Precipitation
+                var precipDiv = document.createElement('div');
+                precipDiv.className = 'timeline-data-item precip';
+                var precipIcon = document.createElement('span');
+                precipIcon.className = 'icon';
+                precipIcon.textContent = '💧';
+                precipDiv.appendChild(precipIcon);
+                precipDiv.appendChild(document.createTextNode(' ' + s.precipitation + '%'));
+                item.appendChild(precipDiv);
+                
+                // Cloud Cover
+                var cloudDiv = document.createElement('div');
+                cloudDiv.className = 'timeline-data-item cloud';
+                var cloudIcon = document.createElement('span');
+                cloudIcon.className = 'icon';
+                cloudIcon.textContent = '☁️';
+                cloudDiv.appendChild(cloudIcon);
+                cloudDiv.appendChild(document.createTextNode(' ' + s.cloudCover + '%'));
+                item.appendChild(cloudDiv);
+                
+                // Wind Speed
+                var windDiv = document.createElement('div');
+                windDiv.className = 'timeline-data-item wind';
+                var windIcon = document.createElement('span');
+                windIcon.className = 'icon';
+                windIcon.textContent = '💨';
+                windDiv.appendChild(windIcon);
+                windDiv.appendChild(document.createTextNode(' ' + s.wind + ' km/h'));
+                item.appendChild(windDiv);
+                
+                // Water Temperature
+                var waterDiv = document.createElement('div');
+                waterDiv.className = 'timeline-data-item water';
+                var waterIcon = document.createElement('span');
+                waterIcon.className = 'icon';
+                waterIcon.textContent = '🌊';
+                waterDiv.appendChild(waterIcon);
+                waterDiv.appendChild(document.createTextNode(' ' + s.water + '°C'));
+                item.appendChild(waterDiv);
+                
+                // Air Temperature
+                var tempDiv = document.createElement('div');
+                tempDiv.className = 'timeline-data-item temp';
+                var tempIcon = document.createElement('span');
+                tempIcon.className = 'icon';
+                tempIcon.textContent = '☀️';
+                tempDiv.appendChild(tempIcon);
+                tempDiv.appendChild(document.createTextNode(' ' + s.temp + '°C'));
+                item.appendChild(tempDiv);
+                
+                timeline.appendChild(item);
+            }
+        }
+        
         function drawRadialSpline(scores) {
             var canvas = document.getElementById('mainCanvas');
             if (!canvas) return;
@@ -2002,10 +2177,9 @@
             canvas.height = height;
             
             // Calculate spacing for labels around the chart
-            // Labels are positioned at radius + 50, data values at radius + 90
-            // Reserve space on all sides for these labels
-            var sidePadding = 120; // Space needed on left/right for labels + data values
-            var topPadding = 100; // Space needed at top for labels + data values
+            // Labels are positioned at radius + 50 (time labels only, data moved to timeline below)
+            var sidePadding = 80; // Space needed on left/right for time labels
+            var topPadding = 70; // Space needed at top for time labels
             var bottomPadding = 20; // Small space at bottom
             
             // Calculate center position and maximum radius
@@ -2354,28 +2528,10 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(formatTime(s.hour), x, y);
-                
-                // Draw data values in a ring around the chart
-                var dataDist = maxRadius + 120;
-                var dx = cx + Math.cos(angle) * dataDist;
-                var dy = cy + Math.sin(angle) * dataDist;
-                
-                // Data label spacing constant
-                var labelSpacing = 25;
-                ctx.font = '10px sans-serif';
-                ctx.fillStyle = '#F28C28';
-                ctx.fillText(s.temp + '°C', dx, dy - labelSpacing * 2);
-                ctx.fillStyle = '#1F5FA8';
-                ctx.fillText(s.water + '°C', dx, dy - labelSpacing);
-                ctx.fillStyle = '#32dbae';
-                ctx.fillText(s.wind + ' km/h', dx, dy);
-                ctx.fillStyle = '#c1cad9';
-                ctx.fillText(s.cloudCover + '% ☁', dx, dy + labelSpacing);
-                ctx.fillStyle = '#7993e8';
-                ctx.fillText(s.precipitation + '% 💧', dx, dy + labelSpacing * 2);
             }
             
-            // Center circle is now empty (no label)
+            // Render the timeline below the chart
+            renderTimeline(scores, 'timeline1');
         }
         
         function drawOverlaidChart(scores) {
@@ -2395,8 +2551,8 @@
             canvas.height = height;
             
             // Calculate spacing for labels around the chart
-            var sidePadding = 120; // Space needed on left/right for labels + data values
-            var topPadding = 100; // Space needed at top for labels + data values
+            var sidePadding = 80; // Space needed on left/right for time labels
+            var topPadding = 70; // Space needed at top for time labels
             var bottomPadding = 20; // Small space at bottom
             
             // Calculate center position and maximum radius
@@ -2613,26 +2769,10 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(formatTime(s.hour), x, y);
-                
-                // Draw data values in a ring around the chart
-                var dataDist = maxAllowedRadius + 90;
-                var dx = cx + Math.cos(angle) * dataDist;
-                var dy = cy + Math.sin(angle) * dataDist;
-                
-                // Data label spacing constant
-                var labelSpacing = 18;
-                ctx.font = '10px sans-serif';
-                ctx.fillStyle = '#F28C28';
-                ctx.fillText(s.temp + '°C', dx, dy - labelSpacing * 2);
-                ctx.fillStyle = '#1F5FA8';
-                ctx.fillText(s.water + '°C', dx, dy - labelSpacing);
-                ctx.fillStyle = '#32dbae';
-                ctx.fillText(s.wind + ' km/h', dx, dy);
-                ctx.fillStyle = '#c1cad9';
-                ctx.fillText(s.cloudCover + '% ☁', dx, dy + labelSpacing);
-                ctx.fillStyle = '#7993e8';
-                ctx.fillText(s.precipitation + '% 💧', dx, dy + labelSpacing * 2);
             }
+            
+            // Render the timeline below the chart
+            renderTimeline(scores, 'timeline2');
         }
         
         function drawStackedChart(scores) {
@@ -2652,8 +2792,8 @@
             canvas.height = height;
             
             // Calculate spacing for labels around the chart
-            var sidePadding = 120; // Space needed on left/right for labels + data values
-            var topPadding = 100; // Space needed at top for labels + data values
+            var sidePadding = 80; // Space needed on left/right for time labels
+            var topPadding = 70; // Space needed at top for time labels
             var bottomPadding = 20; // Small space at bottom
             
             // Calculate center position and maximum radius
@@ -2877,26 +3017,10 @@
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(formatTime(s.hour), x, y);
-                
-                // Draw data values in a ring around the chart
-                var dataDist = maxAllowedRadius + 90;
-                var dx = cx + Math.cos(angle) * dataDist;
-                var dy = cy + Math.sin(angle) * dataDist;
-                
-                // Data label spacing constant
-                var labelSpacing = 18;
-                ctx.font = '10px sans-serif';
-                ctx.fillStyle = '#F28C28';
-                ctx.fillText(s.temp + '°C', dx, dy - labelSpacing * 2);
-                ctx.fillStyle = '#1F5FA8';
-                ctx.fillText(s.water + '°C', dx, dy - labelSpacing);
-                ctx.fillStyle = '#32dbae';
-                ctx.fillText(s.wind + ' km/h', dx, dy);
-                ctx.fillStyle = '#c1cad9';
-                ctx.fillText(s.cloudCover + '% ☁', dx, dy + labelSpacing);
-                ctx.fillStyle = '#7993e8';
-                ctx.fillText(s.precipitation + '% 💧', dx, dy + labelSpacing * 2);
             }
+            
+            // Render the timeline below the chart
+            renderTimeline(scores, 'timeline3');
         }
         
         function drawHourlyRatingChart(scores) {
@@ -2914,8 +3038,8 @@
             canvas.width = width;
             canvas.height = height;
             
-            var sidePadding = 120;
-            var topPadding = 100;
+            var sidePadding = 80;
+            var topPadding = 70;
             var bottomPadding = 20;
             
             var cx = width / 2;
