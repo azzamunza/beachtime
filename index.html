@@ -1405,20 +1405,10 @@
                 var cloudCoverValue = dayData.cloudCover[i];
                 var cloudScore = 1 - (cloudCoverValue / 100);
                 
-                var combined = (tempScore + windScore + waterScore + precipScore + cloudScore) / 5;
-                
                 // Calculate normalized rating with multiplicative approach (biased towards 0 scores)
                 // This ensures that if any factor is very poor, the overall rating is heavily penalized
-                // Start with product of all positive factors (temp, wind, water)
-                var positiveProduct = tempScore * windScore * waterScore;
-                
-                // Apply negative factors (cloud cover and precipitation) as penalties
-                // Convert raw percentages to penalty multipliers (0% = no penalty, 100% = full penalty)
-                var cloudPenalty = 1 - (cloudCoverValue / 100);
-                var precipPenalty = 1 - (dayData.precipitation[i] / 100);
-                
                 // Multiply all factors together - if any factor is 0, rating approaches 0
-                var normalizedRating = positiveProduct * cloudPenalty * precipPenalty;
+                var normalizedRating = tempScore * windScore * waterScore * cloudScore * precipScore;
                 normalizedRating = Math.max(0, Math.min(1, normalizedRating)); // Clamp to [0, 1]
                 
                 scores.push({
@@ -1434,7 +1424,6 @@
                     precipScore: precipScore,
                     cloudCoverNormalized: cloudCoverValue / 100,
                     cloudScore: cloudScore,
-                    combined: combined,
                     normalizedRating: normalizedRating
                 });
             }
