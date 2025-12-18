@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Radial Smooth Spline - Swanbourne Beach</title>
+    <title>Beach Conditions Chart</title>
     <style>
         * {
             margin: 0;
@@ -2363,6 +2363,7 @@
         });
         
         // Initialize by fetching weather data
+        updateLocationTitles(); // Set initial location name in titles
         fetchWeatherData();
         
         var resizeTimer;
