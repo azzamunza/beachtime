@@ -1,7 +1,7 @@
 /**
  * tide-harmonic.js
  * Client-side harmonic tide prediction module
- * No external dependencies, browser-compatible ES6
+ * No external dependencies, browser-compatible
  */
 
 // Tidal constituent speeds in degrees per hour
@@ -55,7 +55,7 @@ let stationsData = [];
  * @param {string} url - URL to the stations JSON file
  * @returns {Promise<Array>} Array of station objects
  */
-export async function loadStations(url) {
+async function loadStations(url) {
     try {
         const response = await fetch(url);
         if (!response.ok) {
@@ -73,7 +73,7 @@ export async function loadStations(url) {
  * Get all loaded stations
  * @returns {Array} Array of station objects
  */
-export function getStations() {
+function getStations() {
     return stationsData;
 }
 
@@ -82,7 +82,7 @@ export function getStations() {
  * @param {string} stationId - Station identifier
  * @returns {Object|null} Station object or null if not found
  */
-export function findStation(stationId) {
+function findStation(stationId) {
     return stationsData.find(station => station.id === stationId) || null;
 }
 
@@ -92,7 +92,7 @@ export function findStation(stationId) {
  * @param {number} longitude - Target longitude
  * @returns {Object|null} Nearest station or null if no stations loaded
  */
-export function findNearestStation(latitude, longitude) {
+function findNearestStation(latitude, longitude) {
     if (stationsData.length === 0) {
         return null;
     }
@@ -151,12 +151,18 @@ function toRadians(degrees) {
  * @param {Date} date - Date/time for prediction (UTC)
  * @returns {number} Predicted tide height in meters
  */
-export function predictTideHeight(station, date) {
+function predictTideHeight(station, date) {
     if (!station || !station.constituents) {
         throw new Error('Invalid station or missing constituents');
     }
     
     const constituents = station.constituents;
+    
+    // Validate that we have at least some constituents
+    if (Object.keys(constituents).length === 0) {
+        throw new Error('Station has no tidal constituents defined');
+    }
+    
     const datum = station.datum || 0;
     
     // Calculate time in hours since epoch (J2000.0: 2000-01-01 12:00:00 UTC)
@@ -198,7 +204,7 @@ export function predictTideHeight(station, date) {
  * @param {number} stepMinutes - Time step in minutes (default: 10)
  * @returns {Array} Array of {time: Date, height: number} objects
  */
-export function generateTideSeries(station, startDate, hours, stepMinutes = 10) {
+function generateTideSeries(station, startDate, hours, stepMinutes = 10) {
     const series = [];
     const totalMinutes = hours * 60;
     const steps = Math.floor(totalMinutes / stepMinutes);
@@ -217,7 +223,7 @@ export function generateTideSeries(station, startDate, hours, stepMinutes = 10) 
  * @param {Array} series - Tide series from generateTideSeries
  * @returns {Object} Object with {highs: Array, lows: Array}
  */
-export function findHighLowTides(series) {
+function findHighLowTides(series) {
     if (!series || series.length < 3) {
         return { highs: [], lows: [] };
     }
@@ -258,7 +264,7 @@ export function findHighLowTides(series) {
  * @param {number} deltaMinutes - Time delta for derivative calculation (default: 5)
  * @returns {number} Rate of change in meters per hour
  */
-export function calculateTideMovement(station, date, deltaMinutes = 5) {
+function calculateTideMovement(station, date, deltaMinutes = 5) {
     const deltaMs = deltaMinutes * 60 * 1000;
     
     const before = new Date(date.getTime() - deltaMs);
@@ -280,7 +286,7 @@ export function calculateTideMovement(station, date, deltaMinutes = 5) {
  * @param {Date} date - Date/time for prediction (UTC)
  * @returns {Object} {state: string, movement: number}
  */
-export function getTideState(station, date) {
+function getTideState(station, date) {
     const movement = calculateTideMovement(station, date);
     const threshold = 0.01; // meters per hour threshold for "slack"
     
@@ -294,4 +300,30 @@ export function getTideState(station, date) {
     }
     
     return { state, movement };
+}
+
+// Export functions to global window object for browser compatibility
+if (typeof window !== 'undefined') {
+    window.TideHarmonic = {
+        loadStations,
+        getStations,
+        findStation,
+        findNearestStation,
+        predictTideHeight,
+        generateTideSeries,
+        findHighLowTides,
+        calculateTideMovement,
+        getTideState
+    };
+    
+    // Also export individual functions
+    window.loadStations = loadStations;
+    window.getStations = getStations;
+    window.findStation = findStation;
+    window.findNearestStation = findNearestStation;
+    window.predictTideHeight = predictTideHeight;
+    window.generateTideSeries = generateTideSeries;
+    window.findHighLowTides = findHighLowTides;
+    window.calculateTideMovement = calculateTideMovement;
+    window.getTideState = getTideState;
 }

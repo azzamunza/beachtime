@@ -682,14 +682,7 @@ function initTimeSlider() {
 
 // Load tide stations data
 function loadTideStations() {
-    fetch('/home/runner/work/beachtime/beachtime/data/tide-stations.json')
-        .then(function(response) {
-            if (!response.ok) {
-                // Try alternative path
-                return fetch('data/tide-stations.json');
-            }
-            return response;
-        })
+    fetch('data/tide-stations.json')
         .then(function(response) {
             return response.json();
         })
@@ -805,22 +798,31 @@ var activeDatasets = {
     tide: true
 };
 
+// Mapping from checkbox IDs to dataset names
+var datasetIdMapping = {
+    'showPressure': 'pressure',
+    'showTemperature': 'temperature',
+    'showWindSpeed': 'windSpeed',
+    'showCloudCover': 'cloudCover',
+    'showRain': 'rain',
+    'showWaveHeight': 'waveHeight',
+    'showTide': 'tide'
+};
+
 function initDatasetCheckboxes() {
     var checkboxes = document.querySelectorAll('.dataset-checkbox-item input[type="checkbox"]');
     
     checkboxes.forEach(function(checkbox) {
         checkbox.addEventListener('change', function() {
-            var datasetName = this.id.replace('show', '').toLowerCase();
-            // Convert camelCase to lowercase
-            if (datasetName === 'cloudcover') datasetName = 'cloudCover';
-            if (datasetName === 'windspeed') datasetName = 'windSpeed';
-            if (datasetName === 'waveheight') datasetName = 'waveHeight';
+            var datasetName = datasetIdMapping[this.id];
             
-            activeDatasets[datasetName] = this.checked;
-            
-            // Trigger chart update
-            if (typeof updateChart === 'function') {
-                updateChart();
+            if (datasetName) {
+                activeDatasets[datasetName] = this.checked;
+                
+                // Trigger chart update
+                if (typeof updateChart === 'function') {
+                    updateChart();
+                }
             }
         });
     });
