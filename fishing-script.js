@@ -11,6 +11,9 @@
 //
 // Chart normalisation and rendering uses existing BeachTime methods.
 
+// Constants for water temperature estimation
+var WATER_TEMP_OFFSET = 2.5; // Degrees Celsius below air temperature for estimated water temp
+
 // Initialise variables for fishing page
 var fishingWeatherData = [];
 var fishingCurrentDay = 0;
@@ -531,7 +534,7 @@ function processFishingWeatherData(data, marineData) {
             hours: day.hours,
             temp: day.temp,
             wind: day.wind,
-            water: day.temp.map(function(t) { return Math.round((t - 2.5) * 10) / 10; }), // Estimate water temp
+            water: day.temp.map(function(t) { return Math.round((t - WATER_TEMP_OFFSET) * 10) / 10; }), // Estimate water temp
             precipitation: day.rain,
             cloudCover: day.cloudCover
         };
