@@ -88,7 +88,7 @@ const Clouds = ({ cover, windSpeed, windDir }) => {
         })
       )
     ),
-    React.createElement('style', null, '@ keyframes float { 0% { transform: translateX(-200px); } 100% { transform: translateX(2400px); } }')
+    React.createElement('style', null, '@keyframes float { 0% { transform: translateX(-200px); } 100% { transform: translateX(2400px); } }')
   );
 };
 
@@ -120,7 +120,7 @@ const Water = ({ tideLevel, windSpeed, landscapeType }) => {
       d: `M0,${yPos + 8} Q500,${yPos + 8 + waveHeight} 1000,${yPos + 8} T2000,${yPos + 8} V400 H0 Z`,
       style: { animation: `wave ${waveSpeed * 0.8}s linear infinite reverse` }
     }),
-    React.createElement('style', null, '@ keyframes wave { 0% { transform: scaleY(1); } 50% { transform: scaleY(1.05); } 100% { transform: scaleY(1); } }')
+    React.createElement('style', null, '@keyframes wave { 0% { transform: scaleY(1); } 50% { transform: scaleY(1.05); } 100% { transform: scaleY(1); } }')
   );
 };
 
@@ -146,7 +146,7 @@ const Rain = ({ intensity, windSpeed, windDir }) => {
         style: { animation: `fall ${1 / drop.speed}s linear infinite` }
       })
     ),
-    React.createElement('style', null, '@ keyframes fall { 0% { transform: translateY(-400px); } 100% { transform: translateY(400px); } }')
+    React.createElement('style', null, '@keyframes fall { 0% { transform: translateY(-400px); } 100% { transform: translateY(400px); } }')
   );
 };
 
@@ -239,7 +239,7 @@ const Birds = ({ landscapeType, timeOfDay }) => {
       )
     ),
     React.createElement('style', null, `
-      @ keyframes fly {
+      @keyframes fly {
         0% { transform: translateX(0) translateY(0); }
         25% { transform: translateX(100px) translateY(-15px); }
         50% { transform: translateX(200px) translateY(0); }
@@ -365,9 +365,9 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
     React.createElement('style', null, `
       .leg-swing { animation: swing 3s ease-in-out infinite; transform-origin: 0 0; }
       .leg-swing-offset { animation: swing 3s ease-in-out infinite; animation-delay: 0.5s; transform-origin: -14px 0; }
-      @ keyframes swing { 0% { transform: rotate(-10deg); } 50% { transform: rotate(20deg); } 100% { transform: rotate(-10deg); } }
+      @keyframes swing { 0% { transform: rotate(-10deg); } 50% { transform: rotate(20deg); } 100% { transform: rotate(-10deg); } }
       .arm-drink { animation: drink-move 2.5s ease-in-out forwards; transform-origin: 0 0; }
-      @ keyframes drink-move { 
+      @keyframes drink-move { 
         0% { transform: rotate(0deg); }
         30% { transform: rotate(-10deg); }
         50% { transform: rotate(-15deg); }
