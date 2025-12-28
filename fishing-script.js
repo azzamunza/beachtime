@@ -1,18 +1,76 @@
 // Fishing Time Script
 // This script handles fishing-specific functionality
+//
+// IMPORTANT: All chart generation logic remains BeachTime-native.
+// This script only handles fishing-specific features such as:
+// - Enhanced fish species database
+// - Location-based species information
+// - Map interaction for coordinate selection
+// - Timezone detection
+// - Marine data integration
+//
+// Chart normalisation and rendering uses existing BeachTime methods.
 
-// Initialize variables for fishing page
+// Initialise variables for fishing page
 var fishingWeatherData = [];
 var fishingCurrentDay = 0;
 var fishingMap = null;
 var fishingMarkers = [];
+var currentFishingLocation = {
+    lat: -31.9688,
+    lng: 115.7673,
+    name: 'Swanbourne Beach, WA',
+    timezone: 'Australia/Perth'
+};
 
-// Fishing locations data (sample data - would normally come from database)
+// Enhanced fishing locations data with more species information
 var fishingLocations = [
-    { name: "Swanbourne Beach", lat: -31.9688, lng: 115.7673, species: ["Whiting", "Herring", "Tailor", "Salmon"] },
-    { name: "Cottesloe Beach", lat: -31.9965, lng: 115.7567, species: ["Whiting", "Flathead", "Herring"] },
-    { name: "City Beach", lat: -31.9374, lng: 115.7583, species: ["Tailor", "Herring", "Skipjack"] },
-    { name: "Scarborough Beach", lat: -31.8933, lng: 115.7597, species: ["Salmon", "Tailor", "Skipjack", "Mackerel"] }
+    { 
+        name: "Swanbourne Beach, WA", 
+        lat: -31.9688, 
+        lng: 115.7673, 
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Australian Herring", season: "Summer-Autumn", size: "20-30cm" },
+            { name: "Tailor", season: "Spring-Autumn", size: "30-50cm" },
+            { name: "Australian Salmon", season: "Autumn-Winter", size: "40-70cm" }
+        ]
+    },
+    { 
+        name: "Cottesloe Beach, WA", 
+        lat: -31.9965, 
+        lng: 115.7567,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Flathead", season: "Year-round", size: "30-50cm" },
+            { name: "Australian Herring", season: "Summer-Autumn", size: "20-30cm" }
+        ]
+    },
+    { 
+        name: "City Beach, WA", 
+        lat: -31.9374, 
+        lng: 115.7583,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Tailor", season: "Spring-Autumn", size: "30-50cm" },
+            { name: "Australian Herring", season: "Summer-Autumn", size: "20-30cm" },
+            { name: "Skipjack Trevally", season: "Summer", size: "30-40cm" }
+        ]
+    },
+    { 
+        name: "Scarborough Beach, WA", 
+        lat: -31.8933, 
+        lng: 115.7597,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Australian Salmon", season: "Autumn-Winter", size: "40-70cm" },
+            { name: "Tailor", season: "Spring-Autumn", size: "30-50cm" },
+            { name: "Skipjack Trevally", season: "Summer", size: "30-40cm" },
+            { name: "Spanish Mackerel", season: "Summer", size: "80-120cm" }
+        ]
+    }
 ];
 
 // Fishing rating weights
@@ -61,7 +119,7 @@ var fishingIdealRanges = {
     }
 };
 
-// Initialize the fishing map
+// Initialise the fishing map
 function initFishingMap() {
     if (typeof L === 'undefined') {
         console.error('Leaflet library not loaded. Please ensure Leaflet.js is included in fishing.html before this script.');
@@ -71,8 +129,8 @@ function initFishingMap() {
     var mapElement = document.getElementById('fishingMap');
     if (!mapElement) return;
     
-    // Create map centered on default location
-    fishingMap = L.map('fishingMap').setView([-31.9688, 115.7673], 11);
+    // Create map centred on default location
+    fishingMap = L.map('fishingMap').setView([currentFishingLocation.lat, currentFishingLocation.lng], 11);
     
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -92,13 +150,29 @@ function initFishingMap() {
         
         fishingMarkers.push(marker);
     });
+    
+    // Add click event to map for custom location selection
+    fishingMap.on('click', function(e) {
+        selectCustomLocation(e.latlng);
+    });
 }
 
-// Select a fishing location
+// Select a fishing location from predefined list
 function selectFishingLocation(location) {
-    // Update coordinates
+    currentFishingLocation = {
+        lat: location.lat,
+        lng: location.lng,
+        name: location.name,
+        timezone: location.timezone
+    };
+    
+    // Update coordinates display
+    updateLocationDisplay();
+    
+    // Update hidden inputs
     document.getElementById('latitude-fishing').value = location.lat;
     document.getElementById('longitude-fishing').value = location.lng;
+    document.getElementById('timezoneSelectFishing').value = location.timezone;
     
     // Update fish species table
     updateFishSpeciesTable(location.species);
@@ -106,30 +180,88 @@ function selectFishingLocation(location) {
     // Fetch weather data for this location
     fetchFishingWeatherData();
     
-    // Center map on location
+    // Centre map on location
     if (fishingMap) {
         fishingMap.setView([location.lat, location.lng], 13);
     }
 }
 
-// Update fish species table
+// Select a custom location by clicking on map
+function selectCustomLocation(latlng) {
+    currentFishingLocation = {
+        lat: latlng.lat,
+        lng: latlng.lng,
+        name: 'Custom Location',
+        timezone: 'Australia/Perth' // Default timezone
+    };
+    
+    // Fetch timezone from Open-Meteo API
+    fetch('https://api.open-meteo.com/v1/forecast?latitude=' + latlng.lat + '&longitude=' + latlng.lng + '&timezone=auto')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.timezone) {
+                currentFishingLocation.timezone = data.timezone;
+                document.getElementById('timezoneSelectFishing').value = data.timezone;
+            }
+            
+            // Update location display
+            updateLocationDisplay();
+            
+            // Update hidden inputs
+            document.getElementById('latitude-fishing').value = latlng.lat.toFixed(4);
+            document.getElementById('longitude-fishing').value = latlng.lng.toFixed(4);
+            
+            // Update fish species table with generic species
+            updateFishSpeciesTable([
+                { name: "Local Species", season: "Various", size: "Varies" }
+            ]);
+            
+            // Fetch weather data
+            fetchFishingWeatherData();
+        })
+        .catch(function(error) {
+            console.error('Error fetching timezone:', error);
+            updateLocationDisplay();
+            updateFishSpeciesTable([]);
+            fetchFishingWeatherData();
+        });
+}
+
+// Update location display banner
+function updateLocationDisplay() {
+    var locationNameEl = document.getElementById('locationNameDisplay');
+    var locationCoordsEl = document.getElementById('locationCoords');
+    
+    if (locationNameEl) {
+        locationNameEl.textContent = currentFishingLocation.name;
+    }
+    
+    if (locationCoordsEl) {
+        locationCoordsEl.textContent = 'Lat: ' + currentFishingLocation.lat.toFixed(4) + ', Lng: ' + currentFishingLocation.lng.toFixed(4);
+    }
+}
+
+// Update fish species table with enhanced display
 function updateFishSpeciesTable(species) {
     var tableContainer = document.getElementById('fishSpeciesTable');
     if (!tableContainer) return;
     
     if (!species || species.length === 0) {
-        tableContainer.innerHTML = '<p>No fish species data available for this location.</p>';
+        tableContainer.innerHTML = '<p>No fish species data available for this location. Select a predefined location for detailed species information.</p>';
         return;
     }
     
     var tableHTML = '<table>';
-    tableHTML += '<thead><tr><th>Fish Species</th><th>Availability</th></tr></thead>';
+    tableHTML += '<thead><tr><th>Fish Species</th><th>Season</th><th>Typical Size</th></tr></thead>';
     tableHTML += '<tbody>';
     
     species.forEach(function(fish) {
         tableHTML += '<tr>';
-        tableHTML += '<td><strong>' + fish + '</strong></td>';
-        tableHTML += '<td>Year-round</td>';
+        tableHTML += '<td><strong>' + fish.name + '</strong></td>';
+        tableHTML += '<td>' + fish.season + '</td>';
+        tableHTML += '<td>' + fish.size + '</td>';
         tableHTML += '</tr>';
     });
     
@@ -195,18 +327,9 @@ function fetchFishingWeatherData() {
         }
         
         processFishingWeatherData(weatherApiData, marineData);
-        
-        // TODO: Implement chart rendering for fishing data
-        // Next steps:
-        // 1. Create fishing-specific chart rendering functions (similar to Beach Time)
-        // 2. Calculate fishing ratings based on all 6 parameters
-        // 3. Render Separated, Overlaid, Stacked, and Hourly Rating charts
-        // 4. Add 7-day forecast functionality
-        // 5. Implement Weekly Overview chart
-        console.log('Fishing weather data loaded successfully - chart rendering to be implemented');
     })
     .catch(function(error) {
-        console.error('Unexpected error:', error);
+        console.error('Error loading fishing weather data:', error);
     });
 }
 
@@ -275,31 +398,17 @@ function processFishingWeatherData(data, marineData) {
     fishingWeatherData.sort(function(a, b) {
         return new Date(a.date) - new Date(b.date);
     });
-    
-    console.log('Processed fishing weather data:', fishingWeatherData);
 }
 
-// Initialize fishing page when DOM is ready
+// Initialise fishing page when DOM is ready
 if (document.getElementById('fishingMap')) {
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialize map
+        // Initialise hamburger menu and slide-out panel
+        initSlideOutPanel();
+        
+        // Initialise map
         if (typeof L !== 'undefined') {
             setTimeout(initFishingMap, 100);
-        }
-        
-        // Initialize location search
-        var locationSearchBtn = document.getElementById('locationSearchBtnFishing');
-        if (locationSearchBtn) {
-            locationSearchBtn.addEventListener('click', function() {
-                document.getElementById('locationModalFishing').classList.add('active');
-            });
-        }
-        
-        var closeModalBtn = document.getElementById('closeModalFishing');
-        if (closeModalBtn) {
-            closeModalBtn.addEventListener('click', function() {
-                document.getElementById('locationModalFishing').classList.remove('active');
-            });
         }
         
         // Fetch initial weather data
@@ -308,8 +417,87 @@ if (document.getElementById('fishingMap')) {
         // Show default fish species
         updateFishSpeciesTable(fishingLocations[0].species);
         
-        // Set up range slider listeners (similar to beach time)
-        // This would be a full implementation in production
-        console.log('Fishing Time page initialized');
+        // Update initial location display
+        updateLocationDisplay();
+    });
+}
+
+// Initialise slide-out panel functionality
+function initSlideOutPanel() {
+    var hamburgerMenu = document.getElementById('hamburgerMenu');
+    var slideOutPanel = document.getElementById('slideOutPanel');
+    var closePanelBtn = document.getElementById('closePanelBtn');
+    var slideOutContent = document.getElementById('slideOutContent');
+    
+    if (!hamburgerMenu || !slideOutPanel || !closePanelBtn) {
+        console.warn('Slide-out panel elements not found');
+        return;
+    }
+    
+    // Move dataset controls to slide-out panel
+    var datasetControls = document.querySelector('.right-side-controls');
+    if (datasetControls && slideOutContent) {
+        // Clone the controls to the slide-out panel
+        var clonedControls = datasetControls.cloneNode(true);
+        slideOutContent.appendChild(clonedControls);
+        
+        // Keep original controls visible on desktop, hide on mobile
+        // The slide-out will overlay on top
+    }
+    
+    // Toggle slide-out panel
+    hamburgerMenu.addEventListener('click', function() {
+        var isActive = slideOutPanel.classList.toggle('active');
+        hamburgerMenu.classList.toggle('active');
+        
+        // Prevent body scroll when panel is open
+        if (isActive) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Close panel
+    closePanelBtn.addEventListener('click', function() {
+        slideOutPanel.classList.remove('active');
+        hamburgerMenu.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+    
+    // Close panel when clicking outside
+    slideOutPanel.addEventListener('click', function(e) {
+        if (e.target === slideOutPanel) {
+            slideOutPanel.classList.remove('active');
+            hamburgerMenu.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Sync slider changes between original and cloned controls
+    syncSliderControls();
+}
+
+// Synchronise slider controls between original and cloned versions
+function syncSliderControls() {
+    // Find all range inputs in both original and cloned controls
+    var allRangeInputs = document.querySelectorAll('.range-slider-small, .weight-slider');
+    
+    allRangeInputs.forEach(function(input) {
+        input.addEventListener('input', function() {
+            var inputId = this.id;
+            
+            // Find matching inputs by ID and update them
+            var matchingInputs = document.querySelectorAll('#' + inputId);
+            matchingInputs.forEach(function(matchingInput) {
+                if (matchingInput !== input) {
+                    matchingInput.value = input.value;
+                    
+                    // Trigger change event to update displays
+                    var event = new Event('input', { bubbles: true });
+                    matchingInput.dispatchEvent(event);
+                }
+            });
+        });
     });
 }

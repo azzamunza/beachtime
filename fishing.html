@@ -18,58 +18,31 @@
         </nav>
     </header>
     
+    <!-- Hamburger Menu Button -->
+    <button class="hamburger-menu" id="hamburgerMenu" aria-label="Open controls menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+    </button>
+    
+    <!-- Slide-out Controls Panel -->
+    <div class="slide-out-panel" id="slideOutPanel">
+        <div class="slide-out-header">
+            <h2 class="slide-out-title">⚙️ Dataset Controls</h2>
+            <button class="close-panel-btn" id="closePanelBtn" aria-label="Close controls menu">&times;</button>
+        </div>
+        <div class="slide-out-content" id="slideOutContent">
+            <!-- Controls will be moved here dynamically -->
+        </div>
+    </div>
+    
     <div class="container">
         <h1>🎣 Fishing Conditions</h1>
         
-        <div class="controls-section">
-            <div class="control-group">
-                <label for="latitude-fishing">Latitude</label>
-                <input type="text" id="latitude-fishing" value="-31.9688" />
-            </div>
-            <div class="control-group">
-                <label for="longitude-fishing">Longitude</label>
-                <input type="text" id="longitude-fishing" value="115.7673" />
-            </div>
-            <button class="search-btn" id="locationSearchBtnFishing">
-                <span>🔍</span>
-                <span>Location Search</span>
-            </button>
-            <div class="timezone-dropdown">
-                <span>🌐</span>
-                <select id="timezoneSelectFishing">
-                    <option value="Australia/Perth" selected>Australia/Perth</option>
-                    <option value="UTC">UTC</option>
-                    <option value="Australia/Adelaide">Australia/Adelaide</option>
-                    <option value="Australia/Sydney">Australia/Sydney</option>
-                    <option value="Australia/Brisbane">Australia/Brisbane</option>
-                    <option value="Australia/Darwin">Australia/Darwin</option>
-                    <option value="Australia/Hobart">Australia/Hobart</option>
-                    <option value="Asia/Singapore">Asia/Singapore</option>
-                    <option value="Asia/Tokyo">Asia/Tokyo</option>
-                    <option value="Europe/London">Europe/London</option>
-                    <option value="Europe/Berlin">Europe/Berlin</option>
-                    <option value="America/New_York">America/New_York</option>
-                    <option value="America/Los_Angeles">America/Los_Angeles</option>
-                </select>
-            </div>
-        </div>
-        
-        <div class="modal-overlay" id="locationModalFishing">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 class="modal-title">Search Location</h2>
-                    <button class="close-btn" id="closeModalFishing">&times;</button>
-                </div>
-                <div class="search-input-container">
-                    <input type="text" id="locationSearchInputFishing" class="search-input" placeholder="Search for a fishing location..." autocomplete="off" />
-                </div>
-                <ul id="searchResultsFishing" class="search-results" style="display: none;"></ul>
-                <div class="recent-section">
-                    <h3 class="recent-title">Recent Locations</h3>
-                    <ul id="recentLocationsFishing" class="recent-list"></ul>
-                </div>
-            </div>
-        </div>
+        <!-- Hidden inputs to store coordinates and timezone -->
+        <input type="hidden" id="latitude-fishing" value="-31.9688" />
+        <input type="hidden" id="longitude-fishing" value="115.7673" />
+        <input type="hidden" id="timezoneSelectFishing" value="Australia/Perth" />
         
         <div class="day-selector" id="globalDaySelectorFishing">
         </div>
@@ -85,13 +58,20 @@
             <button class="tab-btn" data-chart="hourlyRating">Hourly Rating</button>
         </div>
         
-        <!-- Fishing Map and Chart Container -->
-        <div class="fishing-layout">
-            <div class="fishing-map-container" id="fishingMapContainer">
-                <div id="fishingMap" style="height: 400px; border-radius: 15px;"></div>
+        <!-- Fishing Map and Chart Container (50/50 split) -->
+        <div class="fishing-layout-split">
+            <div class="fishing-map-half" id="fishingMapContainer">
+                <div class="location-info-banner" id="locationInfoBanner">
+                    <div class="location-info-text">
+                        <span class="location-icon">📍</span>
+                        <span class="location-name-display" id="locationNameDisplay">Click on map to select location</span>
+                    </div>
+                    <div class="location-coords" id="locationCoords">Lat: -31.9688, Lng: 115.7673</div>
+                </div>
+                <div id="fishingMap" style="height: 500px; border-radius: 15px;"></div>
             </div>
             
-            <div class="fishing-charts-container">
+            <div class="fishing-chart-half">
                 <div class="chart-container active" id="separatedChartFishing">
                 <div class="viz-card">
                     <h2 class="viz-title">Fishing Location</h2>
@@ -352,11 +332,23 @@
             </div>
         </div>
         
-        <!-- Fish Species Table -->
+        <!-- Location Animation and Fish Species Section -->
+        <div class="location-animation-section" id="locationAnimationSection">
+            <div class="wave-animation">
+                <svg class="wave-svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+                    <path d="M0,50 Q300,10 600,50 T1200,50 L1200,120 L0,120 Z" fill="rgba(102, 126, 234, 0.3)" class="wave-path wave-1"/>
+                    <path d="M0,60 Q300,20 600,60 T1200,60 L1200,120 L0,120 Z" fill="rgba(102, 126, 234, 0.2)" class="wave-path wave-2"/>
+                    <path d="M0,70 Q300,30 600,70 T1200,70 L1200,120 L0,120 Z" fill="rgba(102, 126, 234, 0.1)" class="wave-path wave-3"/>
+                </svg>
+            </div>
+        </div>
+        
+        <!-- Fish Species Table with Enhanced Marine Database -->
         <div class="fish-table-container" id="fishTableContainer">
-            <h2 class="section-title">🐟 Fish Species at This Location</h2>
+            <h2 class="section-title">🐟 Marine Species Database</h2>
+            <p class="section-subtitle">Fish species commonly found at this location</p>
             <div id="fishSpeciesTable" class="fish-species-table">
-                <p>Loading fish species data...</p>
+                <p>Select a location on the map to view local fish species...</p>
             </div>
         </div>
     </div>
