@@ -506,7 +506,7 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
       React.createElement(TackleBox, { onJettyX: 1400, onJettyY: 288 }),
       React.createElement(Fisherman, { onJettyX: 1400, onJettyY: 288 })
     ),
-    React.createElement(WindIndicator, { speed: windSpeed, direction: direction }),
+    React.createElement(WindIndicator, { speed: windSpeed, direction: windDir }),
     React.createElement(Rain, { intensity: rain, windSpeed: windSpeed, windDir: windDir }),
     isStormy && rain > 80 && React.createElement('rect', { width: '100%', height: '100%', fill: 'white', opacity: '0' },
       React.createElement('animate', { 
