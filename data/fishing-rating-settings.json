@@ -1,0 +1,44 @@
+{
+  "weights": {
+    "pressure": 1.2,
+    "temperature": 1.0,
+    "windSpeed": 0.8,
+    "cloudCover": 0.4,
+    "rain": 1.5,
+    "waveHeight": 1.0
+  },
+  "ranges": {
+    "pressure": {
+      "min": 980,
+      "idealMin": 1010,
+      "idealMax": 1020,
+      "max": 1040
+    },
+    "temperature": {
+      "min": 10,
+      "idealMin": 15,
+      "idealMax": 25,
+      "max": 35
+    },
+    "windSpeed": {
+      "min": 0,
+      "idealMin": 0,
+      "idealMax": 15,
+      "max": 40
+    },
+    "cloudCover": {
+      "min": 0,
+      "max": 100
+    },
+    "rain": {
+      "min": 0,
+      "max": 100
+    },
+    "waveHeight": {
+      "min": 0,
+      "idealMin": 0,
+      "idealMax": 1.5,
+      "max": 5
+    }
+  }
+}

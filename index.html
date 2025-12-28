@@ -7,6 +7,16 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <header class="sticky-header">
+        <nav class="nav-container">
+            <div class="nav-brand">🏖️ BeachTime</div>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="index.html" class="nav-link active">Beach Time</a></li>
+                <li class="nav-item"><a href="fishing.html" class="nav-link">Fishing Time</a></li>
+            </ul>
+        </nav>
+    </header>
+    
     <div class="container">
         <h1>🏖️ Beach Conditions</h1>
         
@@ -229,11 +239,12 @@
             <div class="info-box">
                 <div class="info-title">How to Read This Chart</div>
                 <div class="info-text">
-                    This chart shows all metrics stacked on top of each other in the same 0-1 range. 
+                    This chart shows all metrics stacked on top of each other with normalized values. 
+                    Each metric is divided by the total number of datasets (4), ensuring the combined stack never exceeds 1.0.
                     Temperature forms the base layer, Water Temp is stacked on top, Wind Speed comes next, and Cloud Cover (inverted) at the outermost.
                     Precipitation probability is shown as a water droplet pattern in the background of each hour segment.
                     The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
-                    The total height at any time shows the combined scores of all metrics.
+                    The total height at any time shows the normalized combined scores of all metrics.
                 </div>
             </div>
         </div>
