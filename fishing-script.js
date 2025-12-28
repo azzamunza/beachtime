@@ -175,7 +175,7 @@ function selectFishingLocation(location) {
     document.getElementById('timezoneSelectFishing').value = location.timezone;
     
     // Update fish species table
-    updateFishSpeciesTable(location.species);
+    updateFishSpeciesTable(location.name);
     
     // Fetch weather data for this location
     fetchFishingWeatherData();
@@ -214,9 +214,7 @@ function selectCustomLocation(latlng) {
             document.getElementById('longitude-fishing').value = latlng.lng.toFixed(4);
             
             // Update fish species table with generic species
-            updateFishSpeciesTable([
-                { name: "Local Species", season: "Various", size: "Varies" }
-            ]);
+            updateFishSpeciesTable('Custom Location');
             
             // Fetch weather data
             fetchFishingWeatherData();
@@ -224,7 +222,7 @@ function selectCustomLocation(latlng) {
         .catch(function(error) {
             console.error('Error fetching timezone:', error);
             updateLocationDisplay();
-            updateFishSpeciesTable([]);
+            updateFishSpeciesTable('Custom Location');
             fetchFishingWeatherData();
         });
 }
@@ -243,30 +241,156 @@ function updateLocationDisplay() {
     }
 }
 
-// Update fish species table with enhanced display
-function updateFishSpeciesTable(species) {
+// Update fish species table with enhanced accordion display
+function updateFishSpeciesTable(locationName) {
     var tableContainer = document.getElementById('fishSpeciesTable');
     if (!tableContainer) return;
     
-    if (!species || species.length === 0) {
-        tableContainer.innerHTML = '<p>No fish species data available for this location. Select a predefined location for detailed species information.</p>';
-        return;
+    // Get species from marine database if available
+    var species = [];
+    if (typeof marineSpeciesDatabase !== 'undefined' && typeof getSpeciesForLocation === 'function') {
+        // Try to match location to get appropriate species
+        var locationMapping = {
+            'Swanbourne Beach, WA': 'Perth Coast',
+            'Cottesloe Beach, WA': 'Perth Coast',
+            'City Beach, WA': 'Perth Coast',
+            'Scarborough Beach, WA': 'Perth Coast'
+        };
+        var locationType = locationMapping[locationName] || 'Perth Coast';
+        species = getSpeciesForLocation(locationType);
     }
     
-    var tableHTML = '<table>';
-    tableHTML += '<thead><tr><th>Fish Species</th><th>Season</th><th>Typical Size</th></tr></thead>';
-    tableHTML += '<tbody>';
+    if (!species || species.length === 0) {
+        // Fallback to showing all species
+        if (typeof marineSpeciesDatabase !== 'undefined') {
+            species = marineSpeciesDatabase;
+        } else {
+            tableContainer.innerHTML = '<p>Loading fish species database...</p>';
+            return;
+        }
+    }
     
+    // Create accordion-style list
+    var html = '';
     species.forEach(function(fish) {
-        tableHTML += '<tr>';
-        tableHTML += '<td><strong>' + fish.name + '</strong></td>';
-        tableHTML += '<td>' + fish.season + '</td>';
-        tableHTML += '<td>' + fish.size + '</td>';
-        tableHTML += '</tr>';
+        html += '<div class="fish-item" data-fish-id="' + fish.id + '">';
+        html += '  <div class="fish-item-header">';
+        html += '    <img src="' + fish.image + '" alt="' + fish.name + '" class="fish-item-image" />';
+        html += '    <div class="fish-item-info">';
+        html += '      <div class="fish-item-name">' + fish.name;
+        html += '        <span class="category-badge">' + fish.category + '</span>';
+        html += '      </div>';
+        html += '      <div class="fish-item-scientific">' + fish.scientificName + '</div>';
+        html += '      <div class="fish-item-basic">' + fish.basicInfo + '</div>';
+        html += '    </div>';
+        html += '    <div class="fish-item-expand">▼</div>';
+        html += '  </div>';
+        html += '  <div class="fish-item-details">';
+        
+        // Best Locations
+        if (fish.locations && fish.locations.length > 0) {
+            html += '    <div class="fish-detail-section">';
+            html += '      <div class="fish-detail-title">📍 Best Locations</div>';
+            html += '      <div class="fish-detail-content">' + fish.locations.join(', ') + '</div>';
+            html += '    </div>';
+        }
+        
+        // Best Fishing Times
+        html += '    <div class="fish-detail-section">';
+        html += '      <div class="fish-detail-title">⏰ Best Fishing Times</div>';
+        html += '      <div class="fish-detail-grid">';
+        html += '        <div class="detail-item">';
+        html += '          <div class="detail-label">Time of Day</div>';
+        html += '          <div class="detail-value">' + (fish.bestTime || 'Variable') + '</div>';
+        html += '        </div>';
+        html += '        <div class="detail-item">';
+        html += '          <div class="detail-label">Tide</div>';
+        html += '          <div class="detail-value">' + (fish.bestTide || 'Variable') + '</div>';
+        html += '        </div>';
+        html += '        <div class="detail-item">';
+        html += '          <div class="detail-label">Season</div>';
+        html += '          <div class="detail-value">' + (fish.bestSeason || 'Year-round') + '</div>';
+        html += '        </div>';
+        if (fish.bestTimes && fish.bestTimes.weather) {
+            html += '        <div class="detail-item">';
+            html += '          <div class="detail-label">Weather</div>';
+            html += '          <div class="detail-value">' + fish.bestTimes.weather + '</div>';
+            html += '        </div>';
+        }
+        html += '      </div>';
+        html += '    </div>';
+        
+        // Rig Setup
+        if (fish.rig) {
+            html += '    <div class="fish-detail-section">';
+            html += '      <div class="fish-detail-title">🎣 Rig Setup</div>';
+            html += '      <div class="fish-detail-grid">';
+            html += '        <div class="detail-item">';
+            html += '          <div class="detail-label">Rod & Line</div>';
+            html += '          <div class="detail-value">' + fish.rig.description + '</div>';
+            html += '        </div>';
+            if (fish.rig.hookSize) {
+                html += '        <div class="detail-item">';
+                html += '          <div class="detail-label">Hook Size</div>';
+                html += '          <div class="detail-value">' + fish.rig.hookSize + '</div>';
+                html += '        </div>';
+            }
+            if (fish.rig.sinkerWeight) {
+                html += '        <div class="detail-item">';
+                html += '          <div class="detail-label">Sinker</div>';
+                html += '          <div class="detail-value">' + fish.rig.sinkerWeight + '</div>';
+                html += '        </div>';
+            }
+            if (fish.rig.leader) {
+                html += '        <div class="detail-item">';
+                html += '          <div class="detail-label">Leader</div>';
+                html += '          <div class="detail-value">' + fish.rig.leader + '</div>';
+                html += '        </div>';
+            }
+            html += '      </div>';
+            html += '    </div>';
+        }
+        
+        // Bait & Lures
+        if (fish.bait) {
+            html += '    <div class="fish-detail-section">';
+            html += '      <div class="fish-detail-title">🦐 Bait & Lures</div>';
+            if (fish.bait.primary && fish.bait.primary.length > 0) {
+                html += '      <div class="detail-item" style="margin-bottom: 8px;">';
+                html += '        <div class="detail-label">Bait</div>';
+                html += '        <div class="detail-value">' + fish.bait.primary.join(', ') + '</div>';
+                html += '      </div>';
+            }
+            if (fish.bait.lures && fish.bait.lures.length > 0) {
+                html += '      <div class="detail-item">';
+                html += '        <div class="detail-label">Lures</div>';
+                html += '        <div class="detail-value">' + fish.bait.lures.join(', ') + '</div>';
+                html += '      </div>';
+            }
+            html += '    </div>';
+        }
+        
+        // Tactics & Tips
+        if (fish.tactics) {
+            html += '    <div class="fish-detail-section">';
+            html += '      <div class="fish-detail-title">💡 Tactics & Tips</div>';
+            html += '      <div class="fish-detail-content">' + fish.tactics + '</div>';
+            html += '    </div>';
+        }
+        
+        html += '  </div>';
+        html += '</div>';
     });
     
-    tableHTML += '</tbody></table>';
-    tableContainer.innerHTML = tableHTML;
+    tableContainer.innerHTML = html;
+    
+    // Add click handlers for accordion
+    var fishItems = tableContainer.querySelectorAll('.fish-item');
+    fishItems.forEach(function(item) {
+        item.addEventListener('click', function() {
+            this.classList.toggle('expanded');
+        });
+    });
 }
 
 // Fetch fishing weather data from Open-Meteo API
@@ -415,7 +539,7 @@ if (document.getElementById('fishingMap')) {
         fetchFishingWeatherData();
         
         // Show default fish species
-        updateFishSpeciesTable(fishingLocations[0].species);
+        updateFishSpeciesTable(fishingLocations[0].name);
         
         // Update initial location display
         updateLocationDisplay();

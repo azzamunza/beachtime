@@ -313,8 +313,16 @@ function generateMockData() {
 
 // Fetch weather data from Open-Meteo API
 function fetchWeatherData() {
-    var latValue = document.getElementById('latitude').value;
-    var lonValue = document.getElementById('longitude').value;
+    var latElement = document.getElementById('latitude');
+    var lonElement = document.getElementById('longitude');
+    
+    // Check if elements exist (only run on beach page)
+    if (!latElement || !lonElement) {
+        return;
+    }
+    
+    var latValue = latElement.value;
+    var lonValue = lonElement.value;
     var latitude = latValue !== '' && latValue != null ? parseFloat(latValue) : -31.9688;
     var longitude = lonValue !== '' && lonValue != null ? parseFloat(lonValue) : 115.7673;
     
@@ -2258,16 +2266,27 @@ function validateWeights(weights) {
 
 // Helper function to update slider UI
 function updateSlidersUI(weights) {
-    document.getElementById('tempWeight').value = weights.temperature;
-    document.getElementById('tempWeightValue').textContent = weights.temperature.toFixed(1);
-    document.getElementById('waterWeight').value = weights.water;
-    document.getElementById('waterWeightValue').textContent = weights.water.toFixed(1);
-    document.getElementById('windWeight').value = weights.wind;
-    document.getElementById('windWeightValue').textContent = weights.wind.toFixed(1);
-    document.getElementById('cloudWeight').value = weights.cloud;
-    document.getElementById('cloudWeightValue').textContent = weights.cloud.toFixed(1);
-    document.getElementById('precipWeight').value = weights.precipitation;
-    document.getElementById('precipWeightValue').textContent = weights.precipitation.toFixed(1);
+    var tempWeight = document.getElementById('tempWeight');
+    var tempWeightValue = document.getElementById('tempWeightValue');
+    var waterWeight = document.getElementById('waterWeight');
+    var waterWeightValue = document.getElementById('waterWeightValue');
+    var windWeight = document.getElementById('windWeight');
+    var windWeightValue = document.getElementById('windWeightValue');
+    var cloudWeight = document.getElementById('cloudWeight');
+    var cloudWeightValue = document.getElementById('cloudWeightValue');
+    var precipWeight = document.getElementById('precipWeight');
+    var precipWeightValue = document.getElementById('precipWeightValue');
+    
+    if (tempWeight) tempWeight.value = weights.temperature;
+    if (tempWeightValue) tempWeightValue.textContent = weights.temperature.toFixed(1);
+    if (waterWeight) waterWeight.value = weights.water;
+    if (waterWeightValue) waterWeightValue.textContent = weights.water.toFixed(1);
+    if (windWeight) windWeight.value = weights.wind;
+    if (windWeightValue) windWeightValue.textContent = weights.wind.toFixed(1);
+    if (cloudWeight) cloudWeight.value = weights.cloud;
+    if (cloudWeightValue) cloudWeightValue.textContent = weights.cloud.toFixed(1);
+    if (precipWeight) precipWeight.value = weights.precipitation;
+    if (precipWeightValue) precipWeightValue.textContent = weights.precipitation.toFixed(1);
 }
 
 // Helper function to apply weights
@@ -2346,46 +2365,83 @@ function validateRanges(ranges) {
 // Helper function to update range sliders UI
 function updateRangeSlidersUI(ranges) {
     // Temperature
-    document.getElementById('tempMinRange').value = ranges.temperature.min;
-    document.getElementById('tempMinValue').textContent = ranges.temperature.min + '°C';
-    document.getElementById('tempIdealMinRange').value = ranges.temperature.idealMin;
-    document.getElementById('tempIdealMinValue').textContent = ranges.temperature.idealMin + '°C';
-    document.getElementById('tempIdealMaxRange').value = ranges.temperature.idealMax;
-    document.getElementById('tempIdealMaxValue').textContent = ranges.temperature.idealMax + '°C';
-    document.getElementById('tempMaxRange').value = ranges.temperature.max;
-    document.getElementById('tempMaxValue').textContent = ranges.temperature.max + '°C';
+    var tempMinRange = document.getElementById('tempMinRange');
+    var tempMinValue = document.getElementById('tempMinValue');
+    var tempIdealMinRange = document.getElementById('tempIdealMinRange');
+    var tempIdealMinValue = document.getElementById('tempIdealMinValue');
+    var tempIdealMaxRange = document.getElementById('tempIdealMaxRange');
+    var tempIdealMaxValue = document.getElementById('tempIdealMaxValue');
+    var tempMaxRange = document.getElementById('tempMaxRange');
+    var tempMaxValue = document.getElementById('tempMaxValue');
+    
+    if (tempMinRange) tempMinRange.value = ranges.temperature.min;
+    if (tempMinValue) tempMinValue.textContent = ranges.temperature.min + '°C';
+    if (tempIdealMinRange) tempIdealMinRange.value = ranges.temperature.idealMin;
+    if (tempIdealMinValue) tempIdealMinValue.textContent = ranges.temperature.idealMin + '°C';
+    if (tempIdealMaxRange) tempIdealMaxRange.value = ranges.temperature.idealMax;
+    if (tempIdealMaxValue) tempIdealMaxValue.textContent = ranges.temperature.idealMax + '°C';
+    if (tempMaxRange) tempMaxRange.value = ranges.temperature.max;
+    if (tempMaxValue) tempMaxValue.textContent = ranges.temperature.max + '°C';
     
     // Water
-    document.getElementById('waterMinRange').value = ranges.water.min;
-    document.getElementById('waterMinValue').textContent = ranges.water.min + '°C';
-    document.getElementById('waterIdealMinRange').value = ranges.water.idealMin;
-    document.getElementById('waterIdealMinValue').textContent = ranges.water.idealMin + '°C';
-    document.getElementById('waterIdealMaxRange').value = ranges.water.idealMax;
-    document.getElementById('waterIdealMaxValue').textContent = ranges.water.idealMax + '°C';
-    document.getElementById('waterMaxRange').value = ranges.water.max;
-    document.getElementById('waterMaxValue').textContent = ranges.water.max + '°C';
+    var waterMinRange = document.getElementById('waterMinRange');
+    var waterMinValue = document.getElementById('waterMinValue');
+    var waterIdealMinRange = document.getElementById('waterIdealMinRange');
+    var waterIdealMinValue = document.getElementById('waterIdealMinValue');
+    var waterIdealMaxRange = document.getElementById('waterIdealMaxRange');
+    var waterIdealMaxValue = document.getElementById('waterIdealMaxValue');
+    var waterMaxRange = document.getElementById('waterMaxRange');
+    var waterMaxValue = document.getElementById('waterMaxValue');
+    
+    if (waterMinRange) waterMinRange.value = ranges.water.min;
+    if (waterMinValue) waterMinValue.textContent = ranges.water.min + '°C';
+    if (waterIdealMinRange) waterIdealMinRange.value = ranges.water.idealMin;
+    if (waterIdealMinValue) waterIdealMinValue.textContent = ranges.water.idealMin + '°C';
+    if (waterIdealMaxRange) waterIdealMaxRange.value = ranges.water.idealMax;
+    if (waterIdealMaxValue) waterIdealMaxValue.textContent = ranges.water.idealMax + '°C';
+    if (waterMaxRange) waterMaxRange.value = ranges.water.max;
+    if (waterMaxValue) waterMaxValue.textContent = ranges.water.max + '°C';
     
     // Wind
-    document.getElementById('windMinRange').value = ranges.wind.min;
-    document.getElementById('windMinValue').textContent = ranges.wind.min + ' km/h';
-    document.getElementById('windIdealMinRange').value = ranges.wind.idealMin;
-    document.getElementById('windIdealMinValue').textContent = ranges.wind.idealMin + ' km/h';
-    document.getElementById('windIdealMaxRange').value = ranges.wind.idealMax;
-    document.getElementById('windIdealMaxValue').textContent = ranges.wind.idealMax + ' km/h';
-    document.getElementById('windMaxRange').value = ranges.wind.max;
-    document.getElementById('windMaxValue').textContent = ranges.wind.max + ' km/h';
+    var windMinRange = document.getElementById('windMinRange');
+    var windMinValue = document.getElementById('windMinValue');
+    var windIdealMinRange = document.getElementById('windIdealMinRange');
+    var windIdealMinValue = document.getElementById('windIdealMinValue');
+    var windIdealMaxRange = document.getElementById('windIdealMaxRange');
+    var windIdealMaxValue = document.getElementById('windIdealMaxValue');
+    var windMaxRange = document.getElementById('windMaxRange');
+    var windMaxValue = document.getElementById('windMaxValue');
+    
+    if (windMinRange) windMinRange.value = ranges.wind.min;
+    if (windMinValue) windMinValue.textContent = ranges.wind.min + ' km/h';
+    if (windIdealMinRange) windIdealMinRange.value = ranges.wind.idealMin;
+    if (windIdealMinValue) windIdealMinValue.textContent = ranges.wind.idealMin + ' km/h';
+    if (windIdealMaxRange) windIdealMaxRange.value = ranges.wind.idealMax;
+    if (windIdealMaxValue) windIdealMaxValue.textContent = ranges.wind.idealMax + ' km/h';
+    if (windMaxRange) windMaxRange.value = ranges.wind.max;
+    if (windMaxValue) windMaxValue.textContent = ranges.wind.max + ' km/h';
     
     // Cloud
-    document.getElementById('cloudMinRange').value = ranges.cloud.min;
-    document.getElementById('cloudMinValue').textContent = ranges.cloud.min + '%';
-    document.getElementById('cloudMaxRange').value = ranges.cloud.max;
-    document.getElementById('cloudMaxValue').textContent = ranges.cloud.max + '%';
+    var cloudMinRange = document.getElementById('cloudMinRange');
+    var cloudMinValue = document.getElementById('cloudMinValue');
+    var cloudMaxRange = document.getElementById('cloudMaxRange');
+    var cloudMaxValue = document.getElementById('cloudMaxValue');
+    
+    if (cloudMinRange) cloudMinRange.value = ranges.cloud.min;
+    if (cloudMinValue) cloudMinValue.textContent = ranges.cloud.min + '%';
+    if (cloudMaxRange) cloudMaxRange.value = ranges.cloud.max;
+    if (cloudMaxValue) cloudMaxValue.textContent = ranges.cloud.max + '%';
     
     // Precipitation
-    document.getElementById('precipMinRange').value = ranges.precipitation.min;
-    document.getElementById('precipMinValue').textContent = ranges.precipitation.min + '%';
-    document.getElementById('precipMaxRange').value = ranges.precipitation.max;
-    document.getElementById('precipMaxValue').textContent = ranges.precipitation.max + '%';
+    var precipMinRange = document.getElementById('precipMinRange');
+    var precipMinValue = document.getElementById('precipMinValue');
+    var precipMaxRange = document.getElementById('precipMaxRange');
+    var precipMaxValue = document.getElementById('precipMaxValue');
+    
+    if (precipMinRange) precipMinRange.value = ranges.precipitation.min;
+    if (precipMinValue) precipMinValue.textContent = ranges.precipitation.min + '%';
+    if (precipMaxRange) precipMaxRange.value = ranges.precipitation.max;
+    if (precipMaxValue) precipMaxValue.textContent = ranges.precipitation.max + '%';
 }
 
 // Helper function to apply ranges

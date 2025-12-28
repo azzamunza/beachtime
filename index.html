@@ -17,6 +17,24 @@
         </nav>
     </header>
     
+    <!-- Hamburger Menu Button -->
+    <button class="hamburger-menu" id="hamburgerMenu" aria-label="Open controls menu">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+    </button>
+    
+    <!-- Slide-out Controls Panel -->
+    <div class="slide-out-panel" id="slideOutPanel">
+        <div class="slide-out-header">
+            <h2 class="slide-out-title">⚙️ Dataset Controls</h2>
+            <button class="close-panel-btn" id="closePanelBtn" aria-label="Close controls menu">&times;</button>
+        </div>
+        <div class="slide-out-content" id="slideOutContent">
+            <!-- Controls will be moved here dynamically -->
+        </div>
+    </div>
+    
     <div class="container">
         <h1>🏖️ Beach Conditions</h1>
         
@@ -620,5 +638,62 @@
     </div>
     
     <script src="script.js"></script>
+    <script>
+        // Initialize slide-out panel for beach page
+        document.addEventListener('DOMContentLoaded', function() {
+            var hamburgerMenu = document.getElementById('hamburgerMenu');
+            var slideOutPanel = document.getElementById('slideOutPanel');
+            var closePanelBtn = document.getElementById('closePanelBtn');
+            var slideOutContent = document.getElementById('slideOutContent');
+            
+            if (!hamburgerMenu || !slideOutPanel || !closePanelBtn) {
+                return;
+            }
+            
+            // Move dataset controls to slide-out panel
+            var datasetControls = document.querySelector('.right-side-controls');
+            if (datasetControls && slideOutContent) {
+                // Clone the controls to the slide-out panel
+                var clonedControls = datasetControls.cloneNode(true);
+                slideOutContent.appendChild(clonedControls);
+                
+                // Sync slider controls between original and cloned versions
+                var allRangeInputs = document.querySelectorAll('.range-slider-small, .weight-slider');
+                allRangeInputs.forEach(function(input) {
+                    input.addEventListener('input', function() {
+                        var inputId = this.id;
+                        var matchingInputs = document.querySelectorAll('#' + inputId);
+                        matchingInputs.forEach(function(matchingInput) {
+                            if (matchingInput !== input) {
+                                matchingInput.value = input.value;
+                                var event = new Event('input', { bubbles: true });
+                                matchingInput.dispatchEvent(event);
+                            }
+                        });
+                    });
+                });
+            }
+            
+            // Toggle slide-out panel
+            hamburgerMenu.addEventListener('click', function() {
+                var isActive = slideOutPanel.classList.toggle('active');
+                hamburgerMenu.classList.toggle('active');
+            });
+            
+            // Close panel
+            closePanelBtn.addEventListener('click', function() {
+                slideOutPanel.classList.remove('active');
+                hamburgerMenu.classList.remove('active');
+            });
+            
+            // Close on outside click
+            document.addEventListener('click', function(e) {
+                if (!slideOutPanel.contains(e.target) && !hamburgerMenu.contains(e.target) && slideOutPanel.classList.contains('active')) {
+                    slideOutPanel.classList.remove('active');
+                    hamburgerMenu.classList.remove('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
