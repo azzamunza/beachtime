@@ -539,13 +539,17 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
   );
 };
 
+// Global state for animation
+let animationRoot = null;
+let currentAnimationData = null;
+
 // Initialize the animation with current weather data
 function initFishingAnimation() {
   const rootElement = document.getElementById('fishing-animation-root');
   if (!rootElement) return;
 
   // Sample data - this should be replaced with actual weather data
-  const sampleData = {
+  currentAnimationData = {
     tide: 50,
     windSpeed: 15,
     windDir: 90,
@@ -562,16 +566,116 @@ function initFishingAnimation() {
     flow: 1
   };
 
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(React.createElement(Landscape, { 
-    data: sampleData, 
+  animationRoot = ReactDOM.createRoot(rootElement);
+  animationRoot.render(React.createElement(Landscape, { 
+    data: currentAnimationData, 
     tideStats: tideStats,
     landscapeType: 'beach'
   }));
+}
+
+// Update animation for a specific time
+function updateFishingAnimationTime(timeOfDay, tideHeight) {
+  if (!animationRoot || !currentAnimationData) return;
+  
+  // Update time and tide in animation data
+  const updatedData = {
+    ...currentAnimationData,
+    time: timeOfDay,
+    tide: tideHeight || 50
+  };
+  
+  currentAnimationData = updatedData;
+  
+  // Calculate tide stats
+  const tideStats = calculateTideStats(tideHeight, timeOfDay);
+  
+  // Re-render with updated data
+  animationRoot.render(React.createElement(Landscape, { 
+    data: updatedData, 
+    tideStats: tideStats,
+    landscapeType: 'beach'
+  }));
+}
+
+// Calculate tide statistics
+function calculateTideStats(tideHeight, timeOfDay) {
+  // Simple tide movement detection based on time of day
+  const tidePhase = (timeOfDay / 12) * Math.PI;
+  const tideTrend = Math.cos(tidePhase);
+  
+  if (tideTrend > 0.1) {
+    return {
+      status: 'Rising',
+      arrow: '↑',
+      color: '#32dbae',
+      flow: 1
+    };
+  } else if (tideTrend < -0.1) {
+    return {
+      status: 'Falling',
+      arrow: '↓',
+      color: '#e74c3c',
+      flow: -1
+    };
+  } else {
+    return {
+      status: 'Slack',
+      arrow: '→',
+      color: '#f39c12',
+      flow: 0
+    };
+  }
+}
+
+// Update animation with weather data
+function updateFishingAnimationData(weatherData, tideData) {
+  if (!animationRoot) return;
+  
+  currentAnimationData = {
+    tide: tideData?.heightPercent || 50,
+    windSpeed: weatherData?.windSpeed || 15,
+    windDir: weatherData?.windDir || 90,
+    rain: weatherData?.rain || 0,
+    clouds: weatherData?.clouds || 30,
+    moonPhase: calculateMoonPhase(),
+    time: currentAnimationData?.time || new Date().getHours()
+  };
+  
+  const tideStats = {
+    status: tideData?.status || 'Unknown',
+    arrow: tideData?.arrow || '→',
+    color: tideData?.color || '#32dbae',
+    flow: tideData?.flow || 0
+  };
+  
+  animationRoot.render(React.createElement(Landscape, { 
+    data: currentAnimationData, 
+    tideStats: tideStats,
+    landscapeType: 'beach'
+  }));
+}
+
+// Calculate current moon phase (0-1)
+function calculateMoonPhase() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  
+  // Simplified moon phase calculation
+  const c = Math.floor(365.25 * year);
+  const e = Math.floor(30.6 * month);
+  const jd = c + e + day - 694039.09;
+  const daysSinceNew = jd % 29.53;
+  
+  return daysSinceNew / 29.53;
 }
 
 // Export for use in main app
 if (typeof window !== 'undefined') {
   window.Landscape = Landscape;
   window.initFishingAnimation = initFishingAnimation;
+  window.updateFishingAnimationTime = updateFishingAnimationTime;
+  window.updateFishingAnimationData = updateFishingAnimationData;
 }

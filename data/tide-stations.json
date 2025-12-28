@@ -1,0 +1,152 @@
+[
+  {
+    "id": "fremantle",
+    "name": "Fremantle Harbour",
+    "latitude": -32.055,
+    "longitude": 115.745,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 0.25, "phase": 123.4 },
+      "S2": { "amplitude": 0.08, "phase": 110.1 },
+      "K1": { "amplitude": 0.14, "phase": 45.2 },
+      "O1": { "amplitude": 0.11, "phase": 210.9 },
+      "N2": { "amplitude": 0.05, "phase": 105.3 },
+      "P1": { "amplitude": 0.05, "phase": 43.7 }
+    }
+  },
+  {
+    "id": "hillarys",
+    "name": "Hillarys Boat Harbour",
+    "latitude": -31.824,
+    "longitude": 115.740,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 0.24, "phase": 122.8 },
+      "S2": { "amplitude": 0.08, "phase": 109.5 },
+      "K1": { "amplitude": 0.14, "phase": 44.8 },
+      "O1": { "amplitude": 0.11, "phase": 210.3 },
+      "N2": { "amplitude": 0.05, "phase": 104.9 },
+      "P1": { "amplitude": 0.05, "phase": 43.2 }
+    }
+  },
+  {
+    "id": "perth",
+    "name": "Perth (Swan River)",
+    "latitude": -31.968,
+    "longitude": 115.767,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 0.22, "phase": 125.0 },
+      "S2": { "amplitude": 0.07, "phase": 112.0 },
+      "K1": { "amplitude": 0.13, "phase": 46.0 },
+      "O1": { "amplitude": 0.10, "phase": 212.0 },
+      "N2": { "amplitude": 0.04, "phase": 106.5 },
+      "P1": { "amplitude": 0.04, "phase": 44.5 }
+    }
+  },
+  {
+    "id": "bunbury",
+    "name": "Bunbury",
+    "latitude": -33.327,
+    "longitude": 115.644,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 0.26, "phase": 126.2 },
+      "S2": { "amplitude": 0.09, "phase": 113.8 },
+      "K1": { "amplitude": 0.15, "phase": 47.5 },
+      "O1": { "amplitude": 0.12, "phase": 213.5 },
+      "N2": { "amplitude": 0.05, "phase": 108.0 },
+      "P1": { "amplitude": 0.05, "phase": 46.0 }
+    }
+  },
+  {
+    "id": "geraldton",
+    "name": "Geraldton",
+    "latitude": -28.776,
+    "longitude": 114.608,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 0.28, "phase": 118.5 },
+      "S2": { "amplitude": 0.10, "phase": 105.2 },
+      "K1": { "amplitude": 0.16, "phase": 41.8 },
+      "O1": { "amplitude": 0.13, "phase": 207.5 },
+      "N2": { "amplitude": 0.06, "phase": 101.2 },
+      "P1": { "amplitude": 0.05, "phase": 40.5 }
+    }
+  },
+  {
+    "id": "esperance",
+    "name": "Esperance",
+    "latitude": -33.864,
+    "longitude": 121.891,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 0.30, "phase": 135.0 },
+      "S2": { "amplitude": 0.10, "phase": 122.5 },
+      "K1": { "amplitude": 0.12, "phase": 52.0 },
+      "O1": { "amplitude": 0.10, "phase": 218.0 },
+      "N2": { "amplitude": 0.06, "phase": 115.5 },
+      "P1": { "amplitude": 0.04, "phase": 50.5 }
+    }
+  },
+  {
+    "id": "albany",
+    "name": "Albany",
+    "latitude": -35.024,
+    "longitude": 117.884,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 0.32, "phase": 130.5 },
+      "S2": { "amplitude": 0.11, "phase": 118.0 },
+      "K1": { "amplitude": 0.13, "phase": 49.5 },
+      "O1": { "amplitude": 0.11, "phase": 215.5 },
+      "N2": { "amplitude": 0.06, "phase": 112.0 },
+      "P1": { "amplitude": 0.04, "phase": 48.0 }
+    }
+  },
+  {
+    "id": "broome",
+    "name": "Broome",
+    "latitude": -17.963,
+    "longitude": 122.233,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 3.20, "phase": 95.0 },
+      "S2": { "amplitude": 1.10, "phase": 85.0 },
+      "K1": { "amplitude": 0.85, "phase": 28.0 },
+      "O1": { "amplitude": 0.65, "phase": 195.0 },
+      "N2": { "amplitude": 0.65, "phase": 78.0 },
+      "P1": { "amplitude": 0.28, "phase": 26.5 }
+    }
+  },
+  {
+    "id": "port_hedland",
+    "name": "Port Hedland",
+    "latitude": -20.313,
+    "longitude": 118.574,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 2.80, "phase": 102.0 },
+      "S2": { "amplitude": 0.95, "phase": 92.0 },
+      "K1": { "amplitude": 0.75, "phase": 32.5 },
+      "O1": { "amplitude": 0.58, "phase": 198.5 },
+      "N2": { "amplitude": 0.55, "phase": 85.0 },
+      "P1": { "amplitude": 0.25, "phase": 31.0 }
+    }
+  },
+  {
+    "id": "exmouth",
+    "name": "Exmouth",
+    "latitude": -21.939,
+    "longitude": 114.125,
+    "datum": 0,
+    "constituents": {
+      "M2": { "amplitude": 0.95, "phase": 108.0 },
+      "S2": { "amplitude": 0.32, "phase": 98.0 },
+      "K1": { "amplitude": 0.42, "phase": 36.5 },
+      "O1": { "amplitude": 0.32, "phase": 202.0 },
+      "N2": { "amplitude": 0.19, "phase": 92.0 },
+      "P1": { "amplitude": 0.14, "phase": 35.0 }
+    }
+  }
+]

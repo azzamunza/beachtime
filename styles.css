@@ -1470,3 +1470,161 @@ canvas {
         position: static;
     }
 }
+
+/* Dataset Checkboxes Styling */
+.dataset-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    justify-content: center;
+}
+
+.dataset-checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    background: #f8f9fa;
+}
+
+.dataset-checkbox-item:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.dataset-checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.dataset-checkbox-item span {
+    font-weight: 500;
+    color: #333;
+    user-select: none;
+}
+
+/* Time Slider Styling */
+.time-slider-container {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.time-slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.time-slider-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.time-slider-value {
+    font-weight: 700;
+    color: #667eea;
+    font-size: 1.2em;
+    font-family: 'Courier New', monospace;
+}
+
+.time-slider-track {
+    position: relative;
+}
+
+.time-slider-input {
+    width: 100%;
+    height: 8px;
+    border-radius: 5px;
+    background: linear-gradient(to right, #2c3e50 0%, #3498db 25%, #f39c12 50%, #e74c3c 75%, #2c3e50 100%);
+    outline: none;
+    -webkit-appearance: none;
+    margin-bottom: 30px;
+}
+
+.time-slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    border: 3px solid #667eea;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.time-slider-input::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.time-slider-input::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+    border: 3px solid #667eea;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+}
+
+.time-slider-input::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.time-slider-markers {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    width: 100%;
+    top: 20px;
+}
+
+.time-marker {
+    font-size: 0.85em;
+    color: #666;
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+}
+
+/* Responsive adjustments for new components */
+@media (max-width: 768px) {
+    .dataset-checkboxes {
+        gap: 10px;
+        padding: 15px;
+    }
+    
+    .dataset-checkbox-item {
+        font-size: 0.9em;
+        padding: 6px 12px;
+    }
+    
+    .time-slider-container {
+        padding: 15px;
+    }
+    
+    .time-marker {
+        font-size: 0.75em;
+    }
+    
+    .fishing-layout-split {
+        flex-direction: column;
+    }
+}
