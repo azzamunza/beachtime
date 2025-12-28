@@ -55,6 +55,60 @@ const Moon = ({ phase, timeOfDay, cloudCover }) => {
   );
 };
 
+const Sun = ({ timeOfDay, cloudCover }) => {
+  // Sun is visible during daytime
+  const opacity = (timeOfDay >= 6 && timeOfDay <= 18) ? 1 : 0;
+  const cloudOpacityMod = Math.max(0.3, 1 - (cloudCover / 100));
+  
+  // Sun position follows an arc across the sky
+  // At 6am (sunrise): left side, low
+  // At 12pm (noon): center, high
+  // At 6pm (sunset): right side, low
+  const sunProgress = (timeOfDay - 6) / 12; // 0 to 1 from sunrise to sunset
+  const cx = 200 + (sunProgress * 1600); // Move from left to right
+  const cy = 200 - (Math.sin(sunProgress * Math.PI) * 120); // Arc up and down
+  const r = 40;
+  
+  // Sun color changes from orange at sunrise/sunset to yellow at noon
+  const getSunColor = () => {
+    if (timeOfDay < 8 || timeOfDay > 17) {
+      return '#ff6b35'; // Orange
+    } else if (timeOfDay < 10 || timeOfDay > 15) {
+      return '#ffa500'; // Orange-yellow
+    } else {
+      return '#ffd700'; // Golden yellow
+    }
+  };
+  
+  return React.createElement('g', { style: { opacity: opacity * cloudOpacityMod, transition: 'opacity 1s' } },
+    // Sun glow
+    React.createElement('circle', { cx: cx, cy: cy, r: r * 1.8, fill: getSunColor(), opacity: '0.2' }),
+    React.createElement('circle', { cx: cx, cy: cy, r: r * 1.4, fill: getSunColor(), opacity: '0.3' }),
+    // Sun body
+    React.createElement('circle', { cx: cx, cy: cy, r: r, fill: getSunColor() }),
+    // Sun rays
+    Array.from({ length: 12 }).map((_, i) => {
+      const angle = (i / 12) * 2 * Math.PI;
+      const x1 = cx + Math.cos(angle) * (r + 5);
+      const y1 = cy + Math.sin(angle) * (r + 5);
+      const x2 = cx + Math.cos(angle) * (r + 15);
+      const y2 = cy + Math.sin(angle) * (r + 15);
+      
+      return React.createElement('line', {
+        key: i,
+        x1: x1,
+        y1: y1,
+        x2: x2,
+        y2: y2,
+        stroke: getSunColor(),
+        strokeWidth: '3',
+        strokeLinecap: 'round',
+        opacity: '0.8'
+      });
+    })
+  );
+};
+
 const Clouds = ({ cover, windSpeed, windDir }) => {
   const cloudCount = 6;
   const clouds = useMemo(() => Array.from({ length: cloudCount }).map((_, i) => ({
@@ -378,6 +432,217 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
   );
 };
 
+// Tide Height Markers Component
+const TideHeightMarkers = ({ tideLevel, waterY }) => {
+  const markerX = 100;
+  const maxHeight = 320; // Bottom of view
+  const minHeight = 200; // Top water level
+  
+  // Create 5 markers from 0% to 100%
+  const markers = [0, 25, 50, 75, 100];
+  
+  return React.createElement('g', null,
+    // Tide pole
+    React.createElement('line', {
+      x1: markerX,
+      y1: minHeight,
+      x2: markerX,
+      y2: maxHeight,
+      stroke: '#5d4037',
+      strokeWidth: '4'
+    }),
+    // Markers
+    markers.map((percent) => {
+      const y = maxHeight - ((maxHeight - minHeight) * (percent / 100));
+      const isCurrentLevel = Math.abs(percent - tideLevel) < 10;
+      
+      return React.createElement('g', { key: percent },
+        React.createElement('line', {
+          x1: markerX - 10,
+          y1: y,
+          x2: markerX + 10,
+          y2: y,
+          stroke: isCurrentLevel ? '#e74c3c' : 'white',
+          strokeWidth: isCurrentLevel ? '3' : '2'
+        }),
+        React.createElement('text', {
+          x: markerX - 20,
+          y: y + 5,
+          textAnchor: 'end',
+          fill: isCurrentLevel ? '#e74c3c' : 'white',
+          fontSize: isCurrentLevel ? '14' : '12',
+          fontWeight: isCurrentLevel ? 'bold' : 'normal',
+          style: { textShadow: '1px 1px 2px black' }
+        }, `${percent}%`)
+      );
+    }),
+    // Current water level indicator
+    React.createElement('circle', {
+      cx: markerX,
+      cy: waterY,
+      r: '8',
+      fill: '#e74c3c',
+      stroke: 'white',
+      strokeWidth: '2'
+    })
+  );
+};
+
+// Marine Life Component
+const MarineLife = ({ tideLevel, timeOfDay, waterY }) => {
+  const { useState, useEffect, useMemo } = React;
+  
+  // Determine which species to show based on conditions
+  const getActiveSpecies = () => {
+    const species = [];
+    
+    // Tailor - active during incoming/high tide, dawn/dusk
+    if (tideLevel > 40 && (timeOfDay < 8 || timeOfDay > 17)) {
+      species.push({ type: 'tailor', count: 3 });
+    }
+    
+    // Squid - active at night during high tide
+    if (tideLevel > 50 && (timeOfDay < 6 || timeOfDay > 20)) {
+      species.push({ type: 'squid', count: 2 });
+    }
+    
+    // Whiting - active during incoming tide, daytime
+    if (tideLevel > 30 && tideLevel < 70 && timeOfDay > 6 && timeOfDay < 18) {
+      species.push({ type: 'whiting', count: 4 });
+    }
+    
+    // Bream - active year-round, any tide
+    if (timeOfDay > 5 && timeOfDay < 20) {
+      species.push({ type: 'bream', count: 2 });
+    }
+    
+    // Flathead - active on outgoing tide
+    if (tideLevel < 60 && timeOfDay > 7 && timeOfDay < 19) {
+      species.push({ type: 'flathead', count: 2 });
+    }
+    
+    return species;
+  };
+  
+  const activeSpecies = useMemo(getActiveSpecies, [tideLevel, timeOfDay]);
+  
+  // Generate fish positions
+  const generateFish = (species, count, index) => {
+    const baseY = waterY + 30 + (index * 25);
+    const fishes = [];
+    
+    for (let i = 0; i < count; i++) {
+      const x = 300 + (i * 200) + (index * 50);
+      fishes.push({
+        id: `${species}-${i}`,
+        type: species,
+        x: x,
+        y: baseY + (Math.sin(i) * 15),
+        size: species === 'squid' ? 20 : (species === 'flathead' ? 25 : 15)
+      });
+    }
+    
+    return fishes;
+  };
+  
+  const allFish = [];
+  activeSpecies.forEach((spec, idx) => {
+    allFish.push(...generateFish(spec.type, spec.count, idx));
+  });
+  
+  return React.createElement('g', { opacity: 0.8 },
+    allFish.map(fish => 
+      React.createElement('g', { 
+        key: fish.id,
+        transform: `translate(${fish.x}, ${fish.y})`,
+        style: { 
+          animation: `swim 4s ease-in-out infinite`,
+          animationDelay: `${Math.random() * 2}s`
+        }
+      },
+        // Fish silhouette
+        React.createElement('ellipse', {
+          cx: 0,
+          cy: 0,
+          rx: fish.size,
+          ry: fish.size * 0.6,
+          fill: fish.type === 'squid' ? '#8e44ad' : (fish.type === 'tailor' ? '#2c3e50' : '#34495e'),
+          opacity: 0.7
+        }),
+        // Tail
+        React.createElement('path', {
+          d: `M ${-fish.size},0 L ${-fish.size - 8},-6 L ${-fish.size - 8},6 Z`,
+          fill: fish.type === 'squid' ? '#8e44ad' : '#34495e',
+          opacity: 0.7
+        }),
+        // Eye
+        React.createElement('circle', {
+          cx: fish.size * 0.4,
+          cy: -2,
+          r: 2,
+          fill: 'white'
+        })
+      )
+    ),
+    React.createElement('style', null, `
+      @keyframes swim {
+        0%, 100% { transform: translateX(0) translateY(0); }
+        25% { transform: translateX(30px) translateY(-10px); }
+        50% { transform: translateX(60px) translateY(0); }
+        75% { transform: translateX(30px) translateY(10px); }
+      }
+    `)
+  );
+};
+
+// Underwater Environment Component  
+const UnderwaterView = ({ waterY, tideLevel }) => {
+  return React.createElement('g', null,
+    // Water column with gradient
+    React.createElement('defs', null,
+      React.createElement('linearGradient', { id: 'underwaterGradient', x1: '0%', y1: '0%', x2: '0%', y2: '100%' },
+        React.createElement('stop', { offset: '0%', stopColor: '#3498db', stopOpacity: '0.3' }),
+        React.createElement('stop', { offset: '100%', stopColor: '#1abc9c', stopOpacity: '0.6' })
+      )
+    ),
+    
+    // Underwater zone
+    React.createElement('rect', {
+      x: 0,
+      y: waterY,
+      width: 2000,
+      height: 400 - waterY,
+      fill: 'url(#underwaterGradient)'
+    }),
+    
+    // Seaweed/kelp
+    Array.from({ length: 12 }).map((_, i) => {
+      const x = 200 + (i * 150);
+      const height = 30 + Math.random() * 40;
+      return React.createElement('g', { key: i, transform: `translate(${x}, 370)` },
+        React.createElement('path', {
+          d: `M0,0 Q ${5 + Math.random() * 5},-${height/3} 0,-${height/2} Q ${-5 - Math.random() * 5},-${2*height/3} 0,-${height}`,
+          stroke: '#27ae60',
+          strokeWidth: 3,
+          fill: 'none',
+          opacity: 0.6,
+          style: { 
+            animation: `sway ${2 + Math.random()}s ease-in-out infinite`,
+            animationDelay: `${Math.random()}s`
+          }
+        })
+      );
+    }),
+    
+    React.createElement('style', null, `
+      @keyframes sway {
+        0%, 100% { transform: rotate(0deg); }
+        50% { transform: rotate(5deg); }
+      }
+    `)
+  );
+};
+
 const LandscapeBackground = ({ landscapeType, waterY }) => {
   switch(landscapeType) {
     case 'beach':
@@ -470,11 +735,23 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
   },
     React.createElement(SkyGradient, { timeOfDay: time, cloudCover: clouds, isStormy: isStormy }),
     React.createElement('rect', { width: '100%', height: '100%', fill: 'url(#skyGradient)' }),
+    React.createElement(Sun, { timeOfDay: time, cloudCover: clouds }),
     React.createElement(Moon, { phase: moonPhase, timeOfDay: time, cloudCover: clouds }),
     React.createElement(LandscapeBackground, { landscapeType: landscapeType, waterY: waterY }),
     React.createElement(Clouds, { cover: clouds, windSpeed: windSpeed, windDir: windDir }),
     React.createElement(Birds, { landscapeType: landscapeType, timeOfDay: time }),
+    
+    // Underwater environment and marine life
+    React.createElement(UnderwaterView, { waterY: waterY, tideLevel: tide }),
+    React.createElement(MarineLife, { tideLevel: tide, timeOfDay: time, waterY: waterY }),
+    
+    // Water surface
     React.createElement(Water, { tideLevel: tide, windSpeed: windSpeed, landscapeType: landscapeType }),
+    
+    // Tide height markers (left side)
+    React.createElement(TideHeightMarkers, { tideLevel: tide, waterY: waterY }),
+    
+    // Jetty and fisherman
     React.createElement('g', { transform: 'translate(0, 5)' },
       React.createElement('rect', { x: '1450', y: '280', width: '10', height: '140', fill: '#5d4037' }),
       React.createElement('rect', { x: '1750', y: '280', width: '10', height: '140', fill: '#5d4037' }),
@@ -539,13 +816,17 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
   );
 };
 
+// Global state for animation
+let animationRoot = null;
+let currentAnimationData = null;
+
 // Initialize the animation with current weather data
 function initFishingAnimation() {
   const rootElement = document.getElementById('fishing-animation-root');
   if (!rootElement) return;
 
   // Sample data - this should be replaced with actual weather data
-  const sampleData = {
+  currentAnimationData = {
     tide: 50,
     windSpeed: 15,
     windDir: 90,
@@ -562,16 +843,116 @@ function initFishingAnimation() {
     flow: 1
   };
 
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(React.createElement(Landscape, { 
-    data: sampleData, 
+  animationRoot = ReactDOM.createRoot(rootElement);
+  animationRoot.render(React.createElement(Landscape, { 
+    data: currentAnimationData, 
     tideStats: tideStats,
     landscapeType: 'beach'
   }));
+}
+
+// Update animation for a specific time
+function updateFishingAnimationTime(timeOfDay, tideHeight) {
+  if (!animationRoot || !currentAnimationData) return;
+  
+  // Update time and tide in animation data
+  const updatedData = {
+    ...currentAnimationData,
+    time: timeOfDay,
+    tide: tideHeight || 50
+  };
+  
+  currentAnimationData = updatedData;
+  
+  // Calculate tide stats
+  const tideStats = calculateTideStats(tideHeight, timeOfDay);
+  
+  // Re-render with updated data
+  animationRoot.render(React.createElement(Landscape, { 
+    data: updatedData, 
+    tideStats: tideStats,
+    landscapeType: 'beach'
+  }));
+}
+
+// Calculate tide statistics
+function calculateTideStats(tideHeight, timeOfDay) {
+  // Simple tide movement detection based on time of day
+  const tidePhase = (timeOfDay / 12) * Math.PI;
+  const tideTrend = Math.cos(tidePhase);
+  
+  if (tideTrend > 0.1) {
+    return {
+      status: 'Rising',
+      arrow: '↑',
+      color: '#32dbae',
+      flow: 1
+    };
+  } else if (tideTrend < -0.1) {
+    return {
+      status: 'Falling',
+      arrow: '↓',
+      color: '#e74c3c',
+      flow: -1
+    };
+  } else {
+    return {
+      status: 'Slack',
+      arrow: '→',
+      color: '#f39c12',
+      flow: 0
+    };
+  }
+}
+
+// Update animation with weather data
+function updateFishingAnimationData(weatherData, tideData) {
+  if (!animationRoot) return;
+  
+  currentAnimationData = {
+    tide: tideData?.heightPercent || 50,
+    windSpeed: weatherData?.windSpeed || 15,
+    windDir: weatherData?.windDir || 90,
+    rain: weatherData?.rain || 0,
+    clouds: weatherData?.clouds || 30,
+    moonPhase: calculateMoonPhase(),
+    time: currentAnimationData?.time || new Date().getHours()
+  };
+  
+  const tideStats = {
+    status: tideData?.status || 'Unknown',
+    arrow: tideData?.arrow || '→',
+    color: tideData?.color || '#32dbae',
+    flow: tideData?.flow || 0
+  };
+  
+  animationRoot.render(React.createElement(Landscape, { 
+    data: currentAnimationData, 
+    tideStats: tideStats,
+    landscapeType: 'beach'
+  }));
+}
+
+// Calculate current moon phase (0-1)
+function calculateMoonPhase() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  
+  // Simplified moon phase calculation
+  const c = Math.floor(365.25 * year);
+  const e = Math.floor(30.6 * month);
+  const jd = c + e + day - 694039.09;
+  const daysSinceNew = jd % 29.53;
+  
+  return daysSinceNew / 29.53;
 }
 
 // Export for use in main app
 if (typeof window !== 'undefined') {
   window.Landscape = Landscape;
   window.initFishingAnimation = initFishingAnimation;
+  window.updateFishingAnimationTime = updateFishingAnimationTime;
+  window.updateFishingAnimationData = updateFishingAnimationData;
 }

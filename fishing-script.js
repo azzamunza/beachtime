@@ -654,3 +654,183 @@ function syncSliderControls() {
         });
     });
 }
+
+// Time Slider Functionality
+var currentAnimationTime = 12; // Default to noon
+var tideStations = [];
+var currentTideStation = null;
+
+// Initialize time slider
+function initTimeSlider() {
+    var timeSlider = document.getElementById('timeSlider');
+    var timeSliderValue = document.getElementById('timeSliderValue');
+    
+    if (!timeSlider || !timeSliderValue) return;
+    
+    // Load tide stations
+    loadTideStations();
+    
+    timeSlider.addEventListener('input', function() {
+        currentAnimationTime = parseFloat(this.value);
+        updateTimeDisplay();
+        updateAnimationForTime(currentAnimationTime);
+    });
+    
+    // Initialize display
+    updateTimeDisplay();
+}
+
+// Load tide stations data
+function loadTideStations() {
+    fetch('data/tide-stations.json')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            tideStations = data;
+            // Find nearest station to current location
+            updateTideStation();
+        })
+        .catch(function(error) {
+            console.warn('Could not load tide stations:', error);
+        });
+}
+
+// Update tide station based on current location
+function updateTideStation() {
+    if (tideStations.length === 0) return;
+    
+    var lat = currentFishingLocation.lat;
+    var lng = currentFishingLocation.lng;
+    
+    // Find nearest station
+    var minDist = Infinity;
+    var nearest = null;
+    
+    for (var i = 0; i < tideStations.length; i++) {
+        var station = tideStations[i];
+        var dist = calculateDistance(lat, lng, station.latitude, station.longitude);
+        if (dist < minDist) {
+            minDist = dist;
+            nearest = station;
+        }
+    }
+    
+    currentTideStation = nearest;
+}
+
+// Calculate distance between two points (Haversine formula)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    var R = 6371; // Earth radius in km
+    var dLat = toRadians(lat2 - lat1);
+    var dLon = toRadians(lon2 - lon1);
+    
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+function toRadians(degrees) {
+    return degrees * Math.PI / 180;
+}
+
+// Update time display
+function updateTimeDisplay() {
+    var timeSliderValue = document.getElementById('timeSliderValue');
+    if (!timeSliderValue) return;
+    
+    var hours = Math.floor(currentAnimationTime);
+    var minutes = Math.round((currentAnimationTime - hours) * 60);
+    
+    var timeStr = hours.toString().padStart(2, '0') + ':' + minutes.toString().padStart(2, '0');
+    timeSliderValue.textContent = timeStr;
+}
+
+// Update animation for specific time
+function updateAnimationForTime(time) {
+    if (typeof window.updateFishingAnimationTime === 'function') {
+        // Calculate tide height for this time
+        var tideHeight = calculateTideHeightForTime(time);
+        window.updateFishingAnimationTime(time, tideHeight);
+    }
+}
+
+// Calculate tide height for a specific time of day
+function calculateTideHeightForTime(timeOfDay) {
+    if (!currentTideStation) return 50; // Default to 50%
+    
+    // Get current date and set time
+    var now = new Date();
+    var targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    targetDate.setHours(Math.floor(timeOfDay));
+    targetDate.setMinutes((timeOfDay % 1) * 60);
+    
+    try {
+        // Use tide harmonic prediction if available
+        if (typeof predictTideHeight === 'function') {
+            var heightMeters = predictTideHeight(currentTideStation, targetDate);
+            // Convert to percentage (assuming 0-2m range, normalized to 0-100%)
+            var heightPercent = Math.max(0, Math.min(100, (heightMeters + 1) * 50));
+            return heightPercent;
+        }
+    } catch (error) {
+        console.warn('Tide calculation error:', error);
+    }
+    
+    // Fallback: simple sinusoidal approximation
+    // Two tides per day (semi-diurnal)
+    var tidePhase = (timeOfDay / 12) * Math.PI;
+    var tideHeight = 50 + 40 * Math.sin(tidePhase);
+    return tideHeight;
+}
+
+// Dataset Checkboxes Functionality
+var activeDatasets = {
+    pressure: true,
+    temperature: true,
+    windSpeed: true,
+    cloudCover: true,
+    rain: true,
+    waveHeight: true,
+    tide: true
+};
+
+// Mapping from checkbox IDs to dataset names
+var datasetIdMapping = {
+    'showPressure': 'pressure',
+    'showTemperature': 'temperature',
+    'showWindSpeed': 'windSpeed',
+    'showCloudCover': 'cloudCover',
+    'showRain': 'rain',
+    'showWaveHeight': 'waveHeight',
+    'showTide': 'tide'
+};
+
+function initDatasetCheckboxes() {
+    var checkboxes = document.querySelectorAll('.dataset-checkbox-item input[type="checkbox"]');
+    
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            var datasetName = datasetIdMapping[this.id];
+            
+            if (datasetName) {
+                activeDatasets[datasetName] = this.checked;
+                
+                // Trigger chart update
+                if (typeof updateChart === 'function') {
+                    updateChart();
+                }
+            }
+        });
+    });
+}
+
+// Export for use in other scripts
+if (typeof window !== 'undefined') {
+    window.initTimeSlider = initTimeSlider;
+    window.initDatasetCheckboxes = initDatasetCheckboxes;
+    window.activeDatasets = activeDatasets;
+}

@@ -40,7 +40,25 @@
         <h1>🎣 Fishing Conditions</h1>
         
         <!-- Fishing Animation -->
-        <div id="fishing-animation-root" style="height: 400px; margin-bottom: 2rem;"></div>
+        <div id="fishing-animation-root" style="height: 400px; margin-bottom: 1rem;"></div>
+        
+        <!-- Interactive Time Slider -->
+        <div class="time-slider-container">
+            <div class="time-slider-header">
+                <span class="time-slider-label">Time of Day</span>
+                <span class="time-slider-value" id="timeSliderValue">12:00</span>
+            </div>
+            <div class="time-slider-track">
+                <input type="range" id="timeSlider" min="0" max="24" step="0.5" value="12" class="time-slider-input">
+                <div class="time-slider-markers">
+                    <span class="time-marker">00:00</span>
+                    <span class="time-marker">06:00</span>
+                    <span class="time-marker">12:00</span>
+                    <span class="time-marker">18:00</span>
+                    <span class="time-marker">24:00</span>
+                </div>
+            </div>
+        </div>
         
         <!-- Hidden inputs to store coordinates and timezone -->
         <input type="hidden" id="latitude-fishing" value="-31.9688" />
@@ -50,27 +68,58 @@
         <div class="day-selector" id="globalDaySelectorFishing">
         </div>
         
-        <div class="controls-row">
-            <button class="day-btn" id="weeklyOverviewBtnFishing">Weekly Overview</button>
-        </div>
-        
         <div class="tab-menu" id="chartTabMenuFishing">
             <button class="tab-btn active" data-chart="separated">Separated Rings</button>
             <button class="tab-btn" data-chart="overlaid">Overlaid</button>
             <button class="tab-btn" data-chart="stacked">Stacked</button>
             <button class="tab-btn" data-chart="hourlyRating">Hourly Rating</button>
+            <button class="tab-btn" id="weeklyOverviewBtnFishing">Weekly Overview</button>
+        </div>
+        
+        <!-- Location Info Banner (full-width above split layout) -->
+        <div class="location-info-banner" id="locationInfoBanner">
+            <div class="location-info-text">
+                <span class="location-icon">📍</span>
+                <span class="location-name-display" id="locationNameDisplay">Click on map to select location</span>
+            </div>
+            <div class="location-coords" id="locationCoords">Lat: -31.9688, Lng: 115.7673</div>
+        </div>
+        
+        <!-- Dataset Control Checkboxes (full-width) -->
+        <div class="dataset-checkboxes" id="datasetCheckboxes">
+            <label class="dataset-checkbox-item">
+                <input type="checkbox" id="showPressure" checked>
+                <span>Pressure</span>
+            </label>
+            <label class="dataset-checkbox-item">
+                <input type="checkbox" id="showTemperature" checked>
+                <span>Temperature</span>
+            </label>
+            <label class="dataset-checkbox-item">
+                <input type="checkbox" id="showWindSpeed" checked>
+                <span>Wind Speed</span>
+            </label>
+            <label class="dataset-checkbox-item">
+                <input type="checkbox" id="showCloudCover" checked>
+                <span>Cloud Cover</span>
+            </label>
+            <label class="dataset-checkbox-item">
+                <input type="checkbox" id="showRain" checked>
+                <span>Rain</span>
+            </label>
+            <label class="dataset-checkbox-item">
+                <input type="checkbox" id="showWaveHeight" checked>
+                <span>Wave Height</span>
+            </label>
+            <label class="dataset-checkbox-item">
+                <input type="checkbox" id="showTide" checked>
+                <span>Tide</span>
+            </label>
         </div>
         
         <!-- Fishing Map and Chart Container (50/50 split) -->
         <div class="fishing-layout-split">
             <div class="fishing-map-half" id="fishingMapContainer">
-                <div class="location-info-banner" id="locationInfoBanner">
-                    <div class="location-info-text">
-                        <span class="location-icon">📍</span>
-                        <span class="location-name-display" id="locationNameDisplay">Click on map to select location</span>
-                    </div>
-                    <div class="location-coords" id="locationCoords">Lat: -31.9688, Lng: 115.7673</div>
-                </div>
                 <div id="fishingMap" style="height: 500px; border-radius: 15px;"></div>
             </div>
             
@@ -153,6 +202,99 @@
             </div>
         </div>
         
+        <!-- Dataset Controls (hidden by default, cloned to slide-out panel) -->
+        <div class="right-side-controls" style="display: none;">
+            <div class="controls-section-title">⚙️ Fishing Dataset Controls</div>
+            
+            <div class="slider-section">
+                <div class="slider-section-header">🎣 Fishing Ideal Ranges</div>
+                
+                <div class="range-slider-item">
+                    <div class="range-slider-label">
+                        <span>🌡️ Temperature (°C)</span>
+                    </div>
+                    <div class="range-inputs-vertical">
+                        <div class="range-input-group">
+                            <span class="range-input-label">Min</span>
+                            <input type="range" class="range-slider-small" id="fishTempMinRange" min="0" max="50" step="1" value="10">
+                            <span class="range-value-display" id="fishTempMinValue">10°C</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Min</span>
+                            <input type="range" class="range-slider-small" id="fishTempIdealMinRange" min="0" max="50" step="1" value="15">
+                            <span class="range-value-display" id="fishTempIdealMinValue">15°C</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Max</span>
+                            <input type="range" class="range-slider-small" id="fishTempIdealMaxRange" min="0" max="50" step="1" value="25">
+                            <span class="range-value-display" id="fishTempIdealMaxValue">25°C</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Max</span>
+                            <input type="range" class="range-slider-small" id="fishTempMaxRange" min="0" max="50" step="1" value="35">
+                            <span class="range-value-display" id="fishTempMaxValue">35°C</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="range-slider-item">
+                    <div class="range-slider-label">
+                        <span>💨 Wind Speed (km/h)</span>
+                    </div>
+                    <div class="range-inputs-vertical">
+                        <div class="range-input-group">
+                            <span class="range-input-label">Min</span>
+                            <input type="range" class="range-slider-small" id="fishWindMinRange" min="0" max="50" step="1" value="0">
+                            <span class="range-value-display" id="fishWindMinValue">0 km/h</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Min</span>
+                            <input type="range" class="range-slider-small" id="fishWindIdealMinRange" min="0" max="50" step="1" value="0">
+                            <span class="range-value-display" id="fishWindIdealMinValue">0 km/h</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Max</span>
+                            <input type="range" class="range-slider-small" id="fishWindIdealMaxRange" min="0" max="50" step="1" value="15">
+                            <span class="range-value-display" id="fishWindIdealMaxValue">15 km/h</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Max</span>
+                            <input type="range" class="range-slider-small" id="fishWindMaxRange" min="0" max="50" step="1" value="40">
+                            <span class="range-value-display" id="fishWindMaxValue">40 km/h</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="range-slider-item">
+                    <div class="range-slider-label">
+                        <span>🌊 Wave Height (m)</span>
+                    </div>
+                    <div class="range-inputs-vertical">
+                        <div class="range-input-group">
+                            <span class="range-input-label">Min</span>
+                            <input type="range" class="range-slider-small" id="fishWaveMinRange" min="0" max="10" step="0.5" value="0">
+                            <span class="range-value-display" id="fishWaveMinValue">0m</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Min</span>
+                            <input type="range" class="range-slider-small" id="fishWaveIdealMinRange" min="0" max="10" step="0.5" value="0">
+                            <span class="range-value-display" id="fishWaveIdealMinValue">0m</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Max</span>
+                            <input type="range" class="range-slider-small" id="fishWaveIdealMaxRange" min="0" max="10" step="0.5" value="1.5">
+                            <span class="range-value-display" id="fishWaveIdealMaxValue">1.5m</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Max</span>
+                            <input type="range" class="range-slider-small" id="fishWaveMaxRange" min="0" max="10" step="0.5" value="5">
+                            <span class="range-value-display" id="fishWaveMaxValue">5m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- Full-width sections after the split layout -->
         <div class="data-timeline">
             <div class="timeline-title">Hourly Data</div>
@@ -216,6 +358,7 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="tide-harmonic.js"></script>
     <script src="marine-species.js"></script>
     <script src="fishing-animation.js"></script>
     <script src="script.js"></script>
@@ -227,6 +370,12 @@
                 // Delay animation initialization to ensure all dependencies are loaded
                 setTimeout(initFishingAnimation, 500);
             }
+            
+            // Initialize time slider
+            initTimeSlider();
+            
+            // Initialize dataset checkboxes
+            initDatasetCheckboxes();
         });
     </script>
 </body>
