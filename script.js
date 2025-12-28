@@ -1562,9 +1562,11 @@ function drawStackedChart(scores) {
         var t = i / (scores.length - 1);
         var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
         
-        // Normalize stacked values by dividing by the number of datasets (4)
+        // Normalize stacked values by dividing by the number of datasets
         // This ensures the total stacked value never exceeds 1.0
-        var datasetCount = 4; // temperature, water, wind, cloud
+        // Count: temperature, water, wind, cloud = 4 datasets
+        var datasets = [s.tempScore, s.waterScore, s.windScore, s.cloudCoverNormalized];
+        var datasetCount = datasets.length;
         var normalizedTempScore = s.tempScore / datasetCount;
         var normalizedWaterScore = s.waterScore / datasetCount;
         var normalizedWindScore = s.windScore / datasetCount;

@@ -64,7 +64,7 @@ var fishingIdealRanges = {
 // Initialize the fishing map
 function initFishingMap() {
     if (typeof L === 'undefined') {
-        console.error('Leaflet library not loaded');
+        console.error('Leaflet library not loaded. Please ensure Leaflet.js is included in fishing.html before this script.');
         return;
     }
     
@@ -196,9 +196,14 @@ function fetchFishingWeatherData() {
         
         processFishingWeatherData(weatherApiData, marineData);
         
-        // Note: Full implementation would include chart rendering here
-        // For now, display a message that data is loaded
-        console.log('Fishing weather data loaded successfully');
+        // TODO: Implement chart rendering for fishing data
+        // Next steps:
+        // 1. Create fishing-specific chart rendering functions (similar to Beach Time)
+        // 2. Calculate fishing ratings based on all 6 parameters
+        // 3. Render Separated, Overlaid, Stacked, and Hourly Rating charts
+        // 4. Add 7-day forecast functionality
+        // 5. Implement Weekly Overview chart
+        console.log('Fishing weather data loaded successfully - chart rendering to be implemented');
     })
     .catch(function(error) {
         console.error('Unexpected error:', error);
