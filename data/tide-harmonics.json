@@ -1,0 +1,219 @@
+{
+  "version": "1.0",
+  "description": "Consolidated tide harmonics database for Australian coastal locations",
+  "locations": [
+    {
+      "name": "Fremantle, WA",
+      "latitude": -32.0569,
+      "longitude": 115.7439,
+      "timezone": "Australia/Perth",
+      "harmonics": {
+        "M2": { "amplitude": 0.28, "phase": 147.3 },
+        "S2": { "amplitude": 0.09, "phase": 176.8 },
+        "N2": { "amplitude": 0.06, "phase": 128.1 },
+        "K2": { "amplitude": 0.02, "phase": 179.5 },
+        "K1": { "amplitude": 0.11, "phase": 247.2 },
+        "O1": { "amplitude": 0.08, "phase": 221.4 },
+        "P1": { "amplitude": 0.04, "phase": 245.1 },
+        "Q1": { "amplitude": 0.02, "phase": 203.7 }
+      },
+      "datum": "LAT"
+    },
+    {
+      "name": "Perth, Swanbourne, WA",
+      "latitude": -31.9688,
+      "longitude": 115.7673,
+      "timezone": "Australia/Perth",
+      "harmonics": {
+        "M2": { "amplitude": 0.26, "phase": 149.1 },
+        "S2": { "amplitude": 0.08, "phase": 178.3 },
+        "N2": { "amplitude": 0.05, "phase": 130.2 },
+        "K2": { "amplitude": 0.02, "phase": 181.1 },
+        "K1": { "amplitude": 0.10, "phase": 249.5 },
+        "O1": { "amplitude": 0.07, "phase": 223.8 },
+        "P1": { "amplitude": 0.03, "phase": 247.2 },
+        "Q1": { "amplitude": 0.01, "phase": 205.9 }
+      },
+      "datum": "LAT"
+    },
+    {
+      "name": "Cottesloe, WA",
+      "latitude": -31.9965,
+      "longitude": 115.7567,
+      "timezone": "Australia/Perth",
+      "harmonics": {
+        "M2": { "amplitude": 0.27, "phase": 148.5 },
+        "S2": { "amplitude": 0.08, "phase": 177.9 },
+        "N2": { "amplitude": 0.06, "phase": 129.7 },
+        "K2": { "amplitude": 0.02, "phase": 180.8 },
+        "K1": { "amplitude": 0.10, "phase": 248.9 },
+        "O1": { "amplitude": 0.07, "phase": 223.1 },
+        "P1": { "amplitude": 0.03, "phase": 246.8 },
+        "Q1": { "amplitude": 0.01, "phase": 205.2 }
+      },
+      "datum": "LAT"
+    },
+    {
+      "name": "Scarborough, WA",
+      "latitude": -31.8933,
+      "longitude": 115.7597,
+      "timezone": "Australia/Perth",
+      "harmonics": {
+        "M2": { "amplitude": 0.25, "phase": 150.2 },
+        "S2": { "amplitude": 0.08, "phase": 179.1 },
+        "N2": { "amplitude": 0.05, "phase": 131.4 },
+        "K2": { "amplitude": 0.02, "phase": 182.0 },
+        "K1": { "amplitude": 0.09, "phase": 250.8 },
+        "O1": { "amplitude": 0.07, "phase": 225.2 },
+        "P1": { "amplitude": 0.03, "phase": 248.5 },
+        "Q1": { "amplitude": 0.01, "phase": 207.1 }
+      },
+      "datum": "LAT"
+    },
+    {
+      "name": "Sydney, NSW",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "timezone": "Australia/Sydney",
+      "harmonics": {
+        "M2": { "amplitude": 0.41, "phase": 162.5 },
+        "S2": { "amplitude": 0.14, "phase": 191.3 },
+        "N2": { "amplitude": 0.09, "phase": 143.8 },
+        "K2": { "amplitude": 0.04, "phase": 194.7 },
+        "K1": { "amplitude": 0.19, "phase": 261.2 },
+        "O1": { "amplitude": 0.14, "phase": 235.6 },
+        "P1": { "amplitude": 0.06, "phase": 259.1 },
+        "Q1": { "amplitude": 0.03, "phase": 218.4 }
+      },
+      "datum": "LAT"
+    },
+    {
+      "name": "Melbourne, VIC",
+      "latitude": -37.8136,
+      "longitude": 144.9631,
+      "timezone": "Australia/Melbourne",
+      "harmonics": {
+        "M2": { "amplitude": 0.52, "phase": 178.9 },
+        "S2": { "amplitude": 0.18, "phase": 207.4 },
+        "N2": { "amplitude": 0.11, "phase": 159.2 },
+        "K2": { "amplitude": 0.05, "phase": 210.8 },
+        "K1": { "amplitude": 0.23, "phase": 277.5 },
+        "O1": { "amplitude": 0.17, "phase": 251.3 },
+        "P1": { "amplitude": 0.07, "phase": 275.2 },
+        "Q1": { "amplitude": 0.04, "phase": 233.7 }
+      },
+      "datum": "LAT"
+    },
+    {
+      "name": "Brisbane, QLD",
+      "latitude": -27.4698,
+      "longitude": 153.0251,
+      "timezone": "Australia/Brisbane",
+      "harmonics": {
+        "M2": { "amplitude": 0.68, "phase": 154.7 },
+        "S2": { "amplitude": 0.22, "phase": 183.2 },
+        "N2": { "amplitude": 0.14, "phase": 135.9 },
+        "K2": { "amplitude": 0.06, "phase": 186.5 },
+        "K1": { "amplitude": 0.31, "phase": 253.8 },
+        "O1": { "amplitude": 0.23, "phase": 228.1 },
+        "P1": { "amplitude": 0.10, "phase": 251.7 },
+        "Q1": { "amplitude": 0.05, "phase": 210.4 }
+      },
+      "datum": "LAT"
+    },
+    {
+      "name": "Adelaide, SA",
+      "latitude": -34.9285,
+      "longitude": 138.6007,
+      "timezone": "Australia/Adelaide",
+      "harmonics": {
+        "M2": { "amplitude": 0.45, "phase": 171.3 },
+        "S2": { "amplitude": 0.15, "phase": 199.8 },
+        "N2": { "amplitude": 0.10, "phase": 152.5 },
+        "K2": { "amplitude": 0.04, "phase": 203.1 },
+        "K1": { "amplitude": 0.21, "phase": 269.7 },
+        "O1": { "amplitude": 0.15, "phase": 243.9 },
+        "P1": { "amplitude": 0.07, "phase": 267.4 },
+        "Q1": { "amplitude": 0.03, "phase": 226.2 }
+      },
+      "datum": "LAT"
+    },
+    {
+      "name": "Hobart, TAS",
+      "latitude": -42.8821,
+      "longitude": 147.3272,
+      "timezone": "Australia/Hobart",
+      "harmonics": {
+        "M2": { "amplitude": 0.58, "phase": 185.6 },
+        "S2": { "amplitude": 0.19, "phase": 214.1 },
+        "N2": { "amplitude": 0.12, "phase": 166.8 },
+        "K2": { "amplitude": 0.05, "phase": 217.4 },
+        "K1": { "amplitude": 0.26, "phase": 284.2 },
+        "O1": { "amplitude": 0.19, "phase": 258.7 },
+        "P1": { "amplitude": 0.08, "phase": 281.9 },
+        "Q1": { "amplitude": 0.04, "phase": 241.1 }
+      },
+      "datum": "LAT"
+    },
+    {
+      "name": "Darwin, NT",
+      "latitude": -12.4634,
+      "longitude": 130.8456,
+      "timezone": "Australia/Darwin",
+      "harmonics": {
+        "M2": { "amplitude": 1.82, "phase": 142.3 },
+        "S2": { "amplitude": 0.61, "phase": 171.5 },
+        "N2": { "amplitude": 0.38, "phase": 123.7 },
+        "K2": { "amplitude": 0.17, "phase": 174.8 },
+        "K1": { "amplitude": 0.85, "phase": 241.9 },
+        "O1": { "amplitude": 0.63, "phase": 216.2 },
+        "P1": { "amplitude": 0.28, "phase": 239.6 },
+        "Q1": { "amplitude": 0.13, "phase": 198.5 }
+      },
+      "datum": "LAT"
+    }
+  ],
+  "constituents": {
+    "M2": {
+      "name": "Principal lunar semidiurnal",
+      "period_hours": 12.42,
+      "species": "semidiurnal"
+    },
+    "S2": {
+      "name": "Principal solar semidiurnal",
+      "period_hours": 12.00,
+      "species": "semidiurnal"
+    },
+    "N2": {
+      "name": "Larger lunar elliptic semidiurnal",
+      "period_hours": 12.66,
+      "species": "semidiurnal"
+    },
+    "K2": {
+      "name": "Lunisolar semidiurnal",
+      "period_hours": 11.97,
+      "species": "semidiurnal"
+    },
+    "K1": {
+      "name": "Lunisolar diurnal",
+      "period_hours": 23.93,
+      "species": "diurnal"
+    },
+    "O1": {
+      "name": "Lunar diurnal",
+      "period_hours": 25.82,
+      "species": "diurnal"
+    },
+    "P1": {
+      "name": "Solar diurnal",
+      "period_hours": 24.07,
+      "species": "diurnal"
+    },
+    "Q1": {
+      "name": "Larger lunar elliptic diurnal",
+      "period_hours": 26.87,
+      "species": "diurnal"
+    }
+  },
+  "notes": "Harmonics data represents simplified tide predictions for Australian coastal locations. Amplitude in metres, phase in degrees. LAT = Lowest Astronomical Tide datum."
+}
