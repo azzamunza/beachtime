@@ -1174,14 +1174,6 @@ canvas {
 }
 
 /* Enhanced Fish Table */
-.section-subtitle {
-    text-align: center;
-    color: #666;
-    font-size: 1.1em;
-    margin-bottom: 20px;
-    font-style: italic;
-}
-
 #fishingMap {
     border-radius: 15px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.12);

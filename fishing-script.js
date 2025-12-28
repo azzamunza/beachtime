@@ -1,6 +1,6 @@
 // Fishing Time Script
 // This script handles fishing-specific functionality
-// 
+//
 // IMPORTANT: All chart generation logic remains BeachTime-native.
 // This script only handles fishing-specific features such as:
 // - Enhanced fish species database
@@ -327,18 +327,9 @@ function fetchFishingWeatherData() {
         }
         
         processFishingWeatherData(weatherApiData, marineData);
-        
-        // TODO: Implement chart rendering for fishing data
-        // Next steps:
-        // 1. Create fishing-specific chart rendering functions (similar to Beach Time)
-        // 2. Calculate fishing ratings based on all 6 parameters
-        // 3. Render Separated, Overlaid, Stacked, and Hourly Rating charts
-        // 4. Add 7-day forecast functionality
-        // 5. Implement Weekly Overview chart
-        console.log('Fishing weather data loaded successfully - chart rendering to be implemented');
     })
     .catch(function(error) {
-        console.error('Unexpected error:', error);
+        console.error('Error loading fishing weather data:', error);
     });
 }
 
@@ -407,8 +398,6 @@ function processFishingWeatherData(data, marineData) {
     fishingWeatherData.sort(function(a, b) {
         return new Date(a.date) - new Date(b.date);
     });
-    
-    console.log('Processed fishing weather data:', fishingWeatherData);
 }
 
 // Initialise fishing page when DOM is ready
@@ -430,10 +419,6 @@ if (document.getElementById('fishingMap')) {
         
         // Update initial location display
         updateLocationDisplay();
-        
-        // Set up range slider listeners (similar to beach time)
-        // This would be a full implementation in production
-        console.log('Fishing Time page initialised');
     });
 }
 
