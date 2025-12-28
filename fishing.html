@@ -195,6 +195,7 @@
         // Initialize fishing animation after page loads
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof initFishingAnimation === 'function') {
+                // Delay animation initialization to ensure all dependencies are loaded
                 setTimeout(initFishingAnimation, 500);
             }
         });

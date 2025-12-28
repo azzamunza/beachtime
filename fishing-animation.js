@@ -482,7 +482,7 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
         React.createElement('rect', { x: '0', y: '0', width: '12', height: '140', fill: '#4e342e' }),
         [...Array(8)].map((_, i) => React.createElement('rect', { key: i, x: '2', y: 15 + (i * 15), width: '8', height: '2', fill: 'white', opacity: '0.5' })),
         React.createElement('g', { transform: `translate(0, ${Math.max(0, waterY - 280)})` },
-          tideStats.flow !== 0 && React.createElement(React.Fragment, null,
+          tideStats.flow !== 0 && React.createElement('g', null,
             React.createElement('path', { 
               d: tideStats.flow > 0 ? 'M-15,5 L-5,5 M15,5 L25,5' : 'M-5,5 L-15,5 M25,5 L15,5',
               stroke: 'white',
