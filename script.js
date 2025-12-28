@@ -1562,11 +1562,21 @@ function drawStackedChart(scores) {
         var t = i / (scores.length - 1);
         var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
         
-        // Stack the scores on top of each other
-        var tempHeight = s.tempScore * maxHeight;
-        var waterHeight = s.waterScore * maxHeight;
-        var windHeight = s.windScore * maxHeight;
-        var cloudHeight = s.cloudCoverNormalized * maxHeight;
+        // Normalize stacked values by dividing by the number of datasets
+        // This ensures the total stacked value never exceeds 1.0
+        // Count: temperature, water, wind, cloud = 4 datasets
+        var datasets = [s.tempScore, s.waterScore, s.windScore, s.cloudCoverNormalized];
+        var datasetCount = datasets.length;
+        var normalizedTempScore = s.tempScore / datasetCount;
+        var normalizedWaterScore = s.waterScore / datasetCount;
+        var normalizedWindScore = s.windScore / datasetCount;
+        var normalizedCloudScore = s.cloudCoverNormalized / datasetCount;
+        
+        // Stack the normalized scores on top of each other
+        var tempHeight = normalizedTempScore * maxHeight;
+        var waterHeight = normalizedWaterScore * maxHeight;
+        var windHeight = normalizedWindScore * maxHeight;
+        var cloudHeight = normalizedCloudScore * maxHeight;
         
         // Inner boundary
         innerPoints.push({ angle: angle, radius: innerRadius });
@@ -2104,31 +2114,57 @@ function updateRangeSlider(sliderId, valueId, rangeKey, subKey, unit) {
 }
 
 function initializeRangeSliders() {
-    // Temperature sliders
+    // Temperature sliders (original ones in Hourly Rating)
     updateRangeSlider('tempMinRange', 'tempMinValue', 'temperature', 'min', '°C');
     updateRangeSlider('tempIdealMinRange', 'tempIdealMinValue', 'temperature', 'idealMin', '°C');
     updateRangeSlider('tempIdealMaxRange', 'tempIdealMaxValue', 'temperature', 'idealMax', '°C');
     updateRangeSlider('tempMaxRange', 'tempMaxValue', 'temperature', 'max', '°C');
     
-    // Water temperature sliders
+    // Temperature sliders (shared ones in other charts)
+    updateRangeSlider('tempMinRangeShared', 'tempMinValueShared', 'temperature', 'min', '°C');
+    updateRangeSlider('tempIdealMinRangeShared', 'tempIdealMinValueShared', 'temperature', 'idealMin', '°C');
+    updateRangeSlider('tempIdealMaxRangeShared', 'tempIdealMaxValueShared', 'temperature', 'idealMax', '°C');
+    updateRangeSlider('tempMaxRangeShared', 'tempMaxValueShared', 'temperature', 'max', '°C');
+    
+    // Water temperature sliders (original)
     updateRangeSlider('waterMinRange', 'waterMinValue', 'water', 'min', '°C');
     updateRangeSlider('waterIdealMinRange', 'waterIdealMinValue', 'water', 'idealMin', '°C');
     updateRangeSlider('waterIdealMaxRange', 'waterIdealMaxValue', 'water', 'idealMax', '°C');
     updateRangeSlider('waterMaxRange', 'waterMaxValue', 'water', 'max', '°C');
     
-    // Wind speed sliders
+    // Water temperature sliders (shared)
+    updateRangeSlider('waterMinRangeShared', 'waterMinValueShared', 'water', 'min', '°C');
+    updateRangeSlider('waterIdealMinRangeShared', 'waterIdealMinValueShared', 'water', 'idealMin', '°C');
+    updateRangeSlider('waterIdealMaxRangeShared', 'waterIdealMaxValueShared', 'water', 'idealMax', '°C');
+    updateRangeSlider('waterMaxRangeShared', 'waterMaxValueShared', 'water', 'max', '°C');
+    
+    // Wind speed sliders (original)
     updateRangeSlider('windMinRange', 'windMinValue', 'wind', 'min', ' km/h');
     updateRangeSlider('windIdealMinRange', 'windIdealMinValue', 'wind', 'idealMin', ' km/h');
     updateRangeSlider('windIdealMaxRange', 'windIdealMaxValue', 'wind', 'idealMax', ' km/h');
     updateRangeSlider('windMaxRange', 'windMaxValue', 'wind', 'max', ' km/h');
     
-    // Cloud cover sliders
+    // Wind speed sliders (shared)
+    updateRangeSlider('windMinRangeShared', 'windMinValueShared', 'wind', 'min', ' km/h');
+    updateRangeSlider('windIdealMinRangeShared', 'windIdealMinValueShared', 'wind', 'idealMin', ' km/h');
+    updateRangeSlider('windIdealMaxRangeShared', 'windIdealMaxValueShared', 'wind', 'idealMax', ' km/h');
+    updateRangeSlider('windMaxRangeShared', 'windMaxValueShared', 'wind', 'max', ' km/h');
+    
+    // Cloud cover sliders (original)
     updateRangeSlider('cloudMinRange', 'cloudMinValue', 'cloud', 'min', '%');
     updateRangeSlider('cloudMaxRange', 'cloudMaxValue', 'cloud', 'max', '%');
     
-    // Precipitation sliders
+    // Cloud cover sliders (shared)
+    updateRangeSlider('cloudMinRangeShared', 'cloudMinValueShared', 'cloud', 'min', '%');
+    updateRangeSlider('cloudMaxRangeShared', 'cloudMaxValueShared', 'cloud', 'max', '%');
+    
+    // Precipitation sliders (original)
     updateRangeSlider('precipMinRange', 'precipMinValue', 'precipitation', 'min', '%');
     updateRangeSlider('precipMaxRange', 'precipMaxValue', 'precipitation', 'max', '%');
+    
+    // Precipitation sliders (shared)
+    updateRangeSlider('precipMinRangeShared', 'precipMinValueShared', 'precipitation', 'min', '%');
+    updateRangeSlider('precipMaxRangeShared', 'precipMaxValueShared', 'precipitation', 'max', '%');
     
     // Load saved ranges from localStorage if available
     loadRangesFromStorage();
