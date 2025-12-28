@@ -2182,7 +2182,6 @@ if (tabMenu) {
     }
     });
 }
-}
 
 // Weight slider functionality
 function updateWeightDisplay(sliderId, valueId, weightKey) {
