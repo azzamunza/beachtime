@@ -522,6 +522,32 @@ function processFishingWeatherData(data, marineData) {
     fishingWeatherData.sort(function(a, b) {
         return new Date(a.date) - new Date(b.date);
     });
+    
+    // Map fishing data to the format expected by script.js
+    // For fishing: rain -> precipitation, estimate water temp from air temp
+    weatherData = fishingWeatherData.map(function(day) {
+        return {
+            date: day.date,
+            hours: day.hours,
+            temp: day.temp,
+            wind: day.wind,
+            water: day.temp.map(function(t) { return Math.round((t - 2.5) * 10) / 10; }), // Estimate water temp
+            precipitation: day.rain,
+            cloudCover: day.cloudCover
+        };
+    });
+    
+    // Trigger chart rendering
+    if (typeof updateChart === 'function') {
+        currentDay = 0; // Reset to first day
+        updateChart();
+        if (typeof updateDateDisplay === 'function') {
+            updateDateDisplay();
+        }
+        if (typeof updateDayButtons === 'function') {
+            updateDayButtons();
+        }
+    }
 }
 
 // Initialise fishing page when DOM is ready

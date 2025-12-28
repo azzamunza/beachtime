@@ -573,9 +573,15 @@ function updateDateDisplay() {
         var dateObj = new Date(dateStr + 'T00:00:00');
         var options = { month: 'short', day: 'numeric', year: 'numeric' };
         var formattedDate = dateObj.toLocaleDateString('en-US', options);
-        document.getElementById('currentDate').textContent = formattedDate;
+        
+        // Update currentDate elements
+        var currentDateElement = document.getElementById('currentDate');
+        if (!currentDateElement) currentDateElement = document.getElementById('currentDateFishing');
+        if (currentDateElement) currentDateElement.textContent = formattedDate;
+        
         // Also update the chart subtitle with the date
         var chartDateElement = document.getElementById('chartDate');
+        if (!chartDateElement) chartDateElement = document.getElementById('chartDateFishing');
         if (chartDateElement) {
             chartDateElement.textContent = formattedDate;
         }
@@ -585,6 +591,7 @@ function updateDateDisplay() {
             currentDate2Element.textContent = formattedDate;
         }
         var chartDate2Element = document.getElementById('chartDate2');
+        if (!chartDate2Element) chartDate2Element = document.getElementById('chartDateFishing2');
         if (chartDate2Element) {
             chartDate2Element.textContent = formattedDate;
         }
@@ -594,6 +601,7 @@ function updateDateDisplay() {
             currentDate3Element.textContent = formattedDate;
         }
         var chartDate3Element = document.getElementById('chartDate3');
+        if (!chartDate3Element) chartDate3Element = document.getElementById('chartDateFishing3');
         if (chartDate3Element) {
             chartDate3Element.textContent = formattedDate;
         }
@@ -603,6 +611,7 @@ function updateDateDisplay() {
             currentDate4Element.textContent = formattedDate;
         }
         var chartDate4Element = document.getElementById('chartDate4');
+        if (!chartDate4Element) chartDate4Element = document.getElementById('chartDateFishing4');
         if (chartDate4Element) {
             chartDate4Element.textContent = formattedDate;
         }
@@ -611,6 +620,11 @@ function updateDateDisplay() {
 
 function updateDayButtons() {
     var daySelector = document.getElementById('globalDaySelector');
+    if (!daySelector) {
+        daySelector = document.getElementById('globalDaySelectorFishing');
+    }
+    if (!daySelector) return;
+    
     daySelector.innerHTML = '';
     
     // Get today's date at midnight for comparison
@@ -922,6 +936,9 @@ function renderTimeline(scores, timelineId) {
 
 function drawRadialSpline(scores) {
     var canvas = document.getElementById('mainCanvas');
+    if (!canvas) {
+        canvas = document.getElementById('mainCanvasFishing');
+    }
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     
@@ -1291,11 +1308,18 @@ function drawRadialSpline(scores) {
     }
     
     // Render the timeline below the chart
-    renderTimeline(scores, 'timeline1');
+    var timelineElement = document.getElementById('timeline1');
+    if (!timelineElement) timelineElement = document.getElementById('timelineFishing1');
+    if (timelineElement) {
+        renderTimeline(scores, timelineElement.id);
+    }
 }
 
 function drawOverlaidChart(scores) {
     var canvas = document.getElementById('overlayCanvas');
+    if (!canvas) {
+        canvas = document.getElementById('overlayCanvasFishing');
+    }
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     
@@ -1532,11 +1556,18 @@ function drawOverlaidChart(scores) {
     }
     
     // Render the timeline below the chart
-    renderTimeline(scores, 'timeline2');
+    var timelineElement = document.getElementById('timeline2');
+    if (!timelineElement) timelineElement = document.getElementById('timelineFishing1');
+    if (timelineElement) {
+        renderTimeline(scores, timelineElement.id);
+    }
 }
 
 function drawStackedChart(scores) {
     var canvas = document.getElementById('stackedCanvas');
+    if (!canvas) {
+        canvas = document.getElementById('stackedCanvasFishing');
+    }
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     
@@ -1790,11 +1821,18 @@ function drawStackedChart(scores) {
     }
     
     // Render the timeline below the chart
-    renderTimeline(scores, 'timeline3');
+    var timelineElement = document.getElementById('timeline3');
+    if (!timelineElement) timelineElement = document.getElementById('timelineFishing1');
+    if (timelineElement) {
+        renderTimeline(scores, timelineElement.id);
+    }
 }
 
 function drawHourlyRatingChart(scores) {
     var canvas = document.getElementById('hourlyRatingCanvas');
+    if (!canvas) {
+        canvas = document.getElementById('hourlyRatingCanvasFishing');
+    }
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     
@@ -1918,6 +1956,9 @@ function drawHourlyRatingChart(scores) {
 
 function drawWeeklyOverviewChart() {
     var canvas = document.getElementById('weeklyOverviewCanvas');
+    if (!canvas) {
+        canvas = document.getElementById('weeklyOverviewCanvasFishing');
+    }
     if (!canvas) return;
     var ctx = canvas.getContext('2d');
     
@@ -2004,12 +2045,16 @@ function updateChart() {
 }
 
 var globalDaySelector = document.getElementById('globalDaySelector');
+if (!globalDaySelector) {
+    globalDaySelector = document.getElementById('globalDaySelectorFishing');
+}
 if (globalDaySelector) {
     globalDaySelector.addEventListener('click', function(e) {
         // Use closest() to handle clicks on button or any child elements
         var button = e.target.closest('.day-btn');
         if (button && button.hasAttribute('data-day')) { // Only handle day selector buttons
-            var buttons = document.querySelectorAll('#globalDaySelector .day-btn[data-day]');
+            var selectorId = this.id;
+            var buttons = document.querySelectorAll('#' + selectorId + ' .day-btn[data-day]');
             for (var i = 0; i < buttons.length; i++) {
                 buttons[i].classList.remove('active');
             }
@@ -2027,6 +2072,9 @@ if (globalDaySelector) {
 
 // Weekly overview button handler
 var weeklyOverviewBtn = document.getElementById('weeklyOverviewBtn');
+if (!weeklyOverviewBtn) {
+    weeklyOverviewBtn = document.getElementById('weeklyOverviewBtnFishing');
+}
 if (weeklyOverviewBtn) {
     weeklyOverviewBtn.addEventListener('click', function() {
         switchToWeeklyView();
@@ -2035,29 +2083,40 @@ if (weeklyOverviewBtn) {
 
 function switchToDailyView() {
     viewMode = 'daily';
-    document.getElementById('chartTabMenu').style.display = 'flex';
-    document.getElementById('weeklyOverviewChart').classList.remove('active');
-    document.getElementById('weeklyOverviewBtn').classList.remove('active');
+    var chartTabMenu = document.getElementById('chartTabMenu') || document.getElementById('chartTabMenuFishing');
+    var weeklyOverviewChart = document.getElementById('weeklyOverviewChart') || document.getElementById('weeklyOverviewChartFishing');
+    var weeklyBtn = document.getElementById('weeklyOverviewBtn') || document.getElementById('weeklyOverviewBtnFishing');
+    
+    if (chartTabMenu) chartTabMenu.style.display = 'flex';
+    if (weeklyOverviewChart) weeklyOverviewChart.classList.remove('active');
+    if (weeklyBtn) weeklyBtn.classList.remove('active');
     
     // Show the currently selected chart tab
     var activeTabBtn = document.querySelector('.tab-btn.active');
     if (activeTabBtn) {
         var chartType = activeTabBtn.getAttribute('data-chart');
+        var chartId;
         if (chartType === 'separated') {
-            document.getElementById('separatedChart').classList.add('active');
+            chartId = 'separatedChart';
         } else if (chartType === 'overlaid') {
-            document.getElementById('overlaidChart').classList.add('active');
+            chartId = 'overlaidChart';
         } else if (chartType === 'stacked') {
-            document.getElementById('stackedChart').classList.add('active');
+            chartId = 'stackedChart';
         } else if (chartType === 'hourlyRating') {
-            document.getElementById('hourlyRatingChart').classList.add('active');
+            chartId = 'hourlyRatingChart';
+        }
+        
+        if (chartId) {
+            var chart = document.getElementById(chartId) || document.getElementById(chartId + 'Fishing');
+            if (chart) chart.classList.add('active');
         }
     }
 }
 
 function switchToWeeklyView() {
     viewMode = 'weekly';
-    document.getElementById('chartTabMenu').style.display = 'none';
+    var chartTabMenu = document.getElementById('chartTabMenu') || document.getElementById('chartTabMenuFishing');
+    if (chartTabMenu) chartTabMenu.style.display = 'none';
     
     // Hide all daily charts
     var chartContainers = document.querySelectorAll('.chart-container');
@@ -2066,13 +2125,19 @@ function switchToWeeklyView() {
     }
     
     // Show weekly overview chart
-    document.getElementById('weeklyOverviewChart').classList.add('active');
-    document.getElementById('weeklyOverviewBtn').classList.add('active');
+    var weeklyOverviewChart = document.getElementById('weeklyOverviewChart') || document.getElementById('weeklyOverviewChartFishing');
+    var weeklyBtn = document.getElementById('weeklyOverviewBtn') || document.getElementById('weeklyOverviewBtnFishing');
+    
+    if (weeklyOverviewChart) weeklyOverviewChart.classList.add('active');
+    if (weeklyBtn) weeklyBtn.classList.add('active');
     
     // Remove active state from day selector buttons
-    var dayButtons = document.querySelectorAll('#globalDaySelector .day-btn');
-    for (var i = 0; i < dayButtons.length; i++) {
-        dayButtons[i].classList.remove('active');
+    var globalDaySelector = document.getElementById('globalDaySelector') || document.getElementById('globalDaySelectorFishing');
+    if (globalDaySelector) {
+        var dayButtons = globalDaySelector.querySelectorAll('.day-btn');
+        for (var i = 0; i < dayButtons.length; i++) {
+            dayButtons[i].classList.remove('active');
+        }
     }
     
     drawWeeklyOverviewChart();
@@ -2098,18 +2163,25 @@ if (tabMenu) {
             chartContainers[i].classList.remove('active');
         }
         
-        // Show the selected chart
+        // Show the selected chart (check for both beach and fishing IDs)
+        var chartId;
         if (chartType === 'separated') {
-            document.getElementById('separatedChart').classList.add('active');
+            chartId = 'separatedChart';
         } else if (chartType === 'overlaid') {
-            document.getElementById('overlaidChart').classList.add('active');
+            chartId = 'overlaidChart';
         } else if (chartType === 'stacked') {
-            document.getElementById('stackedChart').classList.add('active');
+            chartId = 'stackedChart';
         } else if (chartType === 'hourlyRating') {
-            document.getElementById('hourlyRatingChart').classList.add('active');
+            chartId = 'hourlyRatingChart';
+        }
+        
+        if (chartId) {
+            var chart = document.getElementById(chartId) || document.getElementById(chartId + 'Fishing');
+            if (chart) chart.classList.add('active');
         }
     }
     });
+}
 }
 
 // Weight slider functionality
