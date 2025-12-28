@@ -39,6 +39,9 @@
     <div class="container">
         <h1>🎣 Fishing Conditions</h1>
         
+        <!-- Fishing Animation -->
+        <div id="fishing-animation-root" style="height: 400px; margin-bottom: 2rem;"></div>
+        
         <!-- Hidden inputs to store coordinates and timezone -->
         <input type="hidden" id="latitude-fishing" value="-31.9688" />
         <input type="hidden" id="longitude-fishing" value="115.7673" />
@@ -82,216 +85,6 @@
                             <div class="canvas-container">
                                 <canvas id="mainCanvasFishing"></canvas>
                             </div>
-                            
-                            <div class="data-timeline">
-                                <div class="timeline-title">Hourly Data</div>
-                                <div class="timeline-container" id="timelineFishing1"></div>
-                            </div>
-                            
-                            <div class="location-label">
-                                <div class="location-name">Fishing Location</div>
-                                <div class="location-date" id="currentDateFishing">Loading...</div>
-                            </div>
-                            
-                            <div class="legend">
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: #667eea;"></div>
-                                    <span><strong>Pressure</strong> (ideal: 1010-1020 hPa)</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: #F28C28;"></div>
-                                    <span><strong>Temperature</strong> (ideal: 15-25°C)</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: #32dbae;"></div>
-                                    <span><strong>Wind Speed</strong> (ideal: 0-15 km/h)</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: #c1cad9;"></div>
-                                    <span><strong>Cloud Cover</strong> (less is better)</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: #7993e8;"></div>
-                                    <span><strong>Rain</strong> (background)</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background: #1F5FA8;"></div>
-                                    <span><strong>Wave Height</strong> (ideal: 0-1.5m)</span>
-                                </div>
-                            </div>
-                            
-                            <div class="info-box">
-                                <div class="info-title">How to Read This Chart</div>
-                                <div class="info-text">
-                                    The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
-                                    Each colored ring represents a different metric in its own range. Pressure (innermost), Temperature, Wind Speed, Cloud Cover (inverted), and Wave Height (outermost).
-                                    Rain probability is shown as a water droplet pattern in the background of each hour segment.
-                                    Higher values within each ring indicate better scores (closer to ideal conditions). 
-                                    Time labels and detailed readings appear around the outside of the chart.
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="right-side-controls">
-                            <div class="controls-section-title">📊 Dataset Controls</div>
-                            
-                            <div class="slider-section">
-                                <div class="slider-section-header">📊 Ideal Ranges</div>
-                                
-                                <div class="range-slider-item">
-                                    <div class="range-slider-label">
-                                        <span>🌡️ Pressure (hPa)</span>
-                                    </div>
-                                    <div class="range-inputs-vertical">
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Min</span>
-                                            <input type="range" class="range-slider-small" id="pressureMinRangeFishing" min="950" max="1050" step="5" value="980">
-                                            <span class="range-value-display" id="pressureMinValueFishing">980 hPa</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Ideal Min</span>
-                                            <input type="range" class="range-slider-small" id="pressureIdealMinRangeFishing" min="950" max="1050" step="5" value="1010">
-                                            <span class="range-value-display" id="pressureIdealMinValueFishing">1010 hPa</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Ideal Max</span>
-                                            <input type="range" class="range-slider-small" id="pressureIdealMaxRangeFishing" min="950" max="1050" step="5" value="1020">
-                                            <span class="range-value-display" id="pressureIdealMaxValueFishing">1020 hPa</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Max</span>
-                                            <input type="range" class="range-slider-small" id="pressureMaxRangeFishing" min="950" max="1050" step="5" value="1040">
-                                            <span class="range-value-display" id="pressureMaxValueFishing">1040 hPa</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="range-slider-item">
-                                    <div class="range-slider-label">
-                                        <span>🌡️ Temperature (°C)</span>
-                                    </div>
-                                    <div class="range-inputs-vertical">
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Min</span>
-                                            <input type="range" class="range-slider-small" id="tempMinRangeFishing" min="0" max="50" step="1" value="10">
-                                            <span class="range-value-display" id="tempMinValueFishing">10°C</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Ideal Min</span>
-                                            <input type="range" class="range-slider-small" id="tempIdealMinRangeFishing" min="0" max="50" step="1" value="15">
-                                            <span class="range-value-display" id="tempIdealMinValueFishing">15°C</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Ideal Max</span>
-                                            <input type="range" class="range-slider-small" id="tempIdealMaxRangeFishing" min="0" max="50" step="1" value="25">
-                                            <span class="range-value-display" id="tempIdealMaxValueFishing">25°C</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Max</span>
-                                            <input type="range" class="range-slider-small" id="tempMaxRangeFishing" min="0" max="50" step="1" value="35">
-                                            <span class="range-value-display" id="tempMaxValueFishing">35°C</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="range-slider-item">
-                                    <div class="range-slider-label">
-                                        <span>💨 Wind Speed (km/h)</span>
-                                    </div>
-                                    <div class="range-inputs-vertical">
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Min</span>
-                                            <input type="range" class="range-slider-small" id="windMinRangeFishing" min="0" max="50" step="1" value="0">
-                                            <span class="range-value-display" id="windMinValueFishing">0 km/h</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Ideal Min</span>
-                                            <input type="range" class="range-slider-small" id="windIdealMinRangeFishing" min="0" max="50" step="1" value="0">
-                                            <span class="range-value-display" id="windIdealMinValueFishing">0 km/h</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Ideal Max</span>
-                                            <input type="range" class="range-slider-small" id="windIdealMaxRangeFishing" min="0" max="50" step="1" value="15">
-                                            <span class="range-value-display" id="windIdealMaxValueFishing">15 km/h</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Max</span>
-                                            <input type="range" class="range-slider-small" id="windMaxRangeFishing" min="0" max="50" step="1" value="40">
-                                            <span class="range-value-display" id="windMaxValueFishing">40 km/h</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="range-slider-item">
-                                    <div class="range-slider-label">
-                                        <span>☁️ Cloud Cover (%)</span>
-                                    </div>
-                                    <div class="range-inputs-vertical">
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Min (Best)</span>
-                                            <input type="range" class="range-slider-small" id="cloudMinRangeFishing" min="0" max="100" step="5" value="0">
-                                            <span class="range-value-display" id="cloudMinValueFishing">0%</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Max (Worst)</span>
-                                            <input type="range" class="range-slider-small" id="cloudMaxRangeFishing" min="0" max="100" step="5" value="100">
-                                            <span class="range-value-display" id="cloudMaxValueFishing">100%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="range-slider-item">
-                                    <div class="range-slider-label">
-                                        <span>💧 Rain (%)</span>
-                                    </div>
-                                    <div class="range-inputs-vertical">
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Min (Best)</span>
-                                            <input type="range" class="range-slider-small" id="rainMinRangeFishing" min="0" max="100" step="5" value="0">
-                                            <span class="range-value-display" id="rainMinValueFishing">0%</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Max (Worst)</span>
-                                            <input type="range" class="range-slider-small" id="rainMaxRangeFishing" min="0" max="100" step="5" value="100">
-                                            <span class="range-value-display" id="rainMaxValueFishing">100%</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="range-slider-item">
-                                    <div class="range-slider-label">
-                                        <span>🌊 Wave Height (m)</span>
-                                    </div>
-                                    <div class="range-inputs-vertical">
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Min</span>
-                                            <input type="range" class="range-slider-small" id="waveMinRangeFishing" min="0" max="10" step="0.5" value="0">
-                                            <span class="range-value-display" id="waveMinValueFishing">0 m</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Ideal Min</span>
-                                            <input type="range" class="range-slider-small" id="waveIdealMinRangeFishing" min="0" max="10" step="0.5" value="0">
-                                            <span class="range-value-display" id="waveIdealMinValueFishing">0 m</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Ideal Max</span>
-                                            <input type="range" class="range-slider-small" id="waveIdealMaxRangeFishing" min="0" max="10" step="0.5" value="1.5">
-                                            <span class="range-value-display" id="waveIdealMaxValueFishing">1.5 m</span>
-                                        </div>
-                                        <div class="range-input-group">
-                                            <span class="range-input-label">Max</span>
-                                            <input type="range" class="range-slider-small" id="waveMaxRangeFishing" min="0" max="10" step="0.5" value="5">
-                                            <span class="range-value-display" id="waveMaxValueFishing">5 m</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="weight-buttons">
-                                <button class="weight-btn" id="saveWeightsBtnFishing">💾 Save Settings</button>
-                                <button class="weight-btn secondary" id="loadWeightsBtnFishing">📂 Load Settings</button>
-                                <button class="weight-btn tertiary" id="resetWeightsBtnFishing">↺ Reset to Default</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -332,14 +125,41 @@
             </div>
         </div>
         
-        <!-- Location Animation and Fish Species Section -->
-        <div class="location-animation-section" id="locationAnimationSection">
-            <div class="wave-animation">
-                <svg class="wave-svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-                    <path d="M0,50 Q300,10 600,50 T1200,50 L1200,120 L0,120 Z" fill="rgba(102, 126, 234, 0.3)" class="wave-path wave-1"/>
-                    <path d="M0,60 Q300,20 600,60 T1200,60 L1200,120 L0,120 Z" fill="rgba(102, 126, 234, 0.2)" class="wave-path wave-2"/>
-                    <path d="M0,70 Q300,30 600,70 T1200,70 L1200,120 L0,120 Z" fill="rgba(102, 126, 234, 0.1)" class="wave-path wave-3"/>
-                </svg>
+        <!-- Full-width sections after the split layout -->
+        <div class="data-timeline">
+            <div class="timeline-title">Hourly Data</div>
+            <div class="timeline-container" id="timelineFishing1"></div>
+        </div>
+        
+        <div class="location-label">
+            <div class="location-name">Fishing Location</div>
+            <div class="location-date" id="currentDateFishing">Loading...</div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #667eea;"></div>
+                <span><strong>Pressure</strong> (ideal: 1010-1020 hPa)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #F28C28;"></div>
+                <span><strong>Temperature</strong> (ideal: 15-25°C)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #32dbae;"></div>
+                <span><strong>Wind Speed</strong> (ideal: 0-15 km/h)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #c1cad9;"></div>
+                <span><strong>Cloud Cover</strong> (less is better)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #7993e8;"></div>
+                <span><strong>Rain</strong> (background)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #1F5FA8;"></div>
+                <span><strong>Wave Height</strong> (ideal: 0-1.5m)</span>
             </div>
         </div>
         
@@ -351,10 +171,34 @@
                 <p>Select a location on the map to view local fish species...</p>
             </div>
         </div>
+        
+        <!-- How to Read Chart Info Box -->
+        <div class="info-box">
+            <div class="info-title">How to Read This Chart</div>
+            <div class="info-text">
+                The chart flows clockwise from 7am (left) through 12pm-1pm (top) to 7pm (right) in a semi-circle arc. 
+                Each colored ring represents a different metric in its own range. Pressure (innermost), Temperature, Wind Speed, Cloud Cover (inverted), and Wave Height (outermost).
+                Rain probability is shown as a water droplet pattern in the background of each hour segment.
+                Higher values within each ring indicate better scores (closer to ideal conditions). 
+                Time labels and detailed readings appear around the outside of the chart.
+            </div>
+        </div>
     </div>
     
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="fishing-animation.js"></script>
     <script src="script.js"></script>
     <script src="fishing-script.js"></script>
+    <script>
+        // Initialize fishing animation after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof initFishingAnimation === 'function') {
+                // Delay animation initialization to ensure all dependencies are loaded
+                setTimeout(initFishingAnimation, 500);
+            }
+        });
+    </script>
 </body>
 </html>

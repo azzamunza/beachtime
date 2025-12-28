@@ -137,31 +137,42 @@ function selectLocation(location) {
     fetchWeatherData();
 }
 
-// Modal controls
-document.getElementById('locationSearchBtn').addEventListener('click', function() {
-    document.getElementById('locationModal').classList.add('active');
-    displayRecentLocations();
-});
+// Modal controls - only if elements exist (for index.html)
+var locationSearchBtn = document.getElementById('locationSearchBtn');
+if (locationSearchBtn) {
+    locationSearchBtn.addEventListener('click', function() {
+        document.getElementById('locationModal').classList.add('active');
+        displayRecentLocations();
+    });
+}
 
-document.getElementById('closeModal').addEventListener('click', function() {
-    document.getElementById('locationModal').classList.remove('active');
-});
+var closeModal = document.getElementById('closeModal');
+if (closeModal) {
+    closeModal.addEventListener('click', function() {
+        document.getElementById('locationModal').classList.remove('active');
+    });
+}
 
-document.getElementById('locationModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        this.classList.remove('active');
-    }
-});
+var locationModal = document.getElementById('locationModal');
+if (locationModal) {
+    locationModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+        }
+    });
+}
 
 // Location search functionality
-document.getElementById('locationSearchInput').addEventListener('input', function() {
-    var query = this.value.trim();
-    var searchResults = document.getElementById('searchResults');
-    
-    searchResults.innerHTML = '';
-    searchResults.style.display = 'none';
-    
-    if (query.length < 3) return;
+var locationSearchInput = document.getElementById('locationSearchInput');
+if (locationSearchInput) {
+    locationSearchInput.addEventListener('input', function() {
+        var query = this.value.trim();
+        var searchResults = document.getElementById('searchResults');
+        
+        searchResults.innerHTML = '';
+        searchResults.style.display = 'none';
+        
+        if (query.length < 3) return;
     
     // Cancel previous request if still running
     if (searchController) searchController.abort();
@@ -208,11 +219,15 @@ document.getElementById('locationSearchInput').addEventListener('input', functio
             }
         });
 });
+}
 
 // Timezone change handler
-document.getElementById('timezoneSelect').addEventListener('change', function() {
-    fetchWeatherData();
-});
+var timezoneSelect = document.getElementById('timezoneSelect');
+if (timezoneSelect) {
+    timezoneSelect.addEventListener('change', function() {
+        fetchWeatherData();
+    });
+}
 
 // Latitude/Longitude change handlers with debouncing
 var coordinateChangeTimeout;
@@ -231,8 +246,14 @@ function handleCoordinateChange() {
     }, 500); // Wait 500ms after user stops typing
 }
 
-document.getElementById('latitude').addEventListener('input', handleCoordinateChange);
-document.getElementById('longitude').addEventListener('input', handleCoordinateChange);
+var latitudeInput = document.getElementById('latitude');
+var longitudeInput = document.getElementById('longitude');
+if (latitudeInput) {
+    latitudeInput.addEventListener('input', handleCoordinateChange);
+}
+if (longitudeInput) {
+    longitudeInput.addEventListener('input', handleCoordinateChange);
+}
 
 // Generate mock weather data for testing
 function generateMockData() {
@@ -1974,29 +1995,35 @@ function updateChart() {
     }
 }
 
-document.getElementById('globalDaySelector').addEventListener('click', function(e) {
-    // Use closest() to handle clicks on button or any child elements
-    var button = e.target.closest('.day-btn');
-    if (button && button.hasAttribute('data-day')) { // Only handle day selector buttons
-        var buttons = document.querySelectorAll('#globalDaySelector .day-btn[data-day]');
-        for (var i = 0; i < buttons.length; i++) {
-            buttons[i].classList.remove('active');
+var globalDaySelector = document.getElementById('globalDaySelector');
+if (globalDaySelector) {
+    globalDaySelector.addEventListener('click', function(e) {
+        // Use closest() to handle clicks on button or any child elements
+        var button = e.target.closest('.day-btn');
+        if (button && button.hasAttribute('data-day')) { // Only handle day selector buttons
+            var buttons = document.querySelectorAll('#globalDaySelector .day-btn[data-day]');
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove('active');
+            }
+            button.classList.add('active');
+            currentDay = parseInt(button.getAttribute('data-day'));
+            
+            // Switch to daily view if coming from weekly view
+            if (viewMode === 'weekly') {
+                switchToDailyView();
+            }
+            updateChart();
         }
-        button.classList.add('active');
-        currentDay = parseInt(button.getAttribute('data-day'));
-        
-        // Switch to daily view if coming from weekly view
-        if (viewMode === 'weekly') {
-            switchToDailyView();
-        }
-        updateChart();
-    }
-});
+    });
+}
 
 // Weekly overview button handler
-document.getElementById('weeklyOverviewBtn').addEventListener('click', function() {
-    switchToWeeklyView();
-});
+var weeklyOverviewBtn = document.getElementById('weeklyOverviewBtn');
+if (weeklyOverviewBtn) {
+    weeklyOverviewBtn.addEventListener('click', function() {
+        switchToWeeklyView();
+    });
+}
 
 function switchToDailyView() {
     viewMode = 'daily';
@@ -2044,8 +2071,10 @@ function switchToWeeklyView() {
 }
 
 // Tab menu event listener
-document.querySelector('.tab-menu').addEventListener('click', function(e) {
-    var button = e.target.closest('.tab-btn');
+var tabMenu = document.querySelector('.tab-menu');
+if (tabMenu) {
+    tabMenu.addEventListener('click', function(e) {
+        var button = e.target.closest('.tab-btn');
     if (button) {
         // Update tab buttons
         var tabButtons = document.querySelectorAll('.tab-btn');
@@ -2072,12 +2101,15 @@ document.querySelector('.tab-menu').addEventListener('click', function(e) {
             document.getElementById('hourlyRatingChart').classList.add('active');
         }
     }
-});
+    });
+}
 
 // Weight slider functionality
 function updateWeightDisplay(sliderId, valueId, weightKey) {
     var slider = document.getElementById(sliderId);
     var valueDisplay = document.getElementById(valueId);
+    
+    if (!slider || !valueDisplay) return;
     
     slider.addEventListener('input', function() {
         var value = parseFloat(this.value);
@@ -2581,10 +2613,21 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeWeightSliders();
     initializeRangeSliders();
     
-    // Attach event listeners to buttons
-    document.getElementById('saveWeightsBtn').addEventListener('click', saveWeightsToJSON);
-    document.getElementById('loadWeightsBtn').addEventListener('click', loadWeightsFromJSON);
-    document.getElementById('resetWeightsBtn').addEventListener('click', resetWeights);
+    // Attach event listeners to buttons (only if they exist)
+    var saveWeightsBtn = document.getElementById('saveWeightsBtn');
+    if (saveWeightsBtn) {
+        saveWeightsBtn.addEventListener('click', saveWeightsToJSON);
+    }
+    
+    var loadWeightsBtn = document.getElementById('loadWeightsBtn');
+    if (loadWeightsBtn) {
+        loadWeightsBtn.addEventListener('click', loadWeightsFromJSON);
+    }
+    
+    var resetWeightsBtn = document.getElementById('resetWeightsBtn');
+    if (resetWeightsBtn) {
+        resetWeightsBtn.addEventListener('click', resetWeights);
+    }
 });
 
 // Load default settings from JSON file
