@@ -217,7 +217,32 @@ h1 {
     color: white;
     margin-bottom: 20px;
     font-size: 2.5em;
+    font-weight: 700;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    letter-spacing: -0.5px;
+}
+
+h2 {
+    font-weight: 600;
+    letter-spacing: -0.3px;
+}
+
+.section-title {
+    font-size: 1.8em;
+    color: #333;
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.section-subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    font-style: italic;
+    font-weight: 400;
 }
 
 .day-selector {
@@ -236,27 +261,35 @@ h1 {
     color: white;
     cursor: pointer;
     font-size: 1.1em;
-    font-weight: bold;
-    transition: all 0.3s;
+    font-weight: 600;
+    transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    letter-spacing: 0.3px;
 }
 
 .day-btn:hover {
-    background: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.35);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .day-btn.active {
     background: white;
     color: #667eea;
     transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .viz-card {
     background: white;
     border-radius: 20px;
     padding: 40px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    transition: box-shadow 0.3s ease;
+}
+
+.viz-card:hover {
+    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
 }
 
 .viz-title {
@@ -264,13 +297,16 @@ h1 {
     margin-bottom: 10px;
     color: #333;
     text-align: center;
+    font-weight: 600;
+    letter-spacing: -0.5px;
 }
 
 .viz-subtitle {
     text-align: center;
     color: #666;
     margin-bottom: 30px;
-    font-size:  1em;
+    font-size: 1em;
+    font-weight: 400;
 }
 
 .canvas-container {
@@ -433,61 +469,80 @@ canvas {
     display: flex;
     justify-content: center;
     gap: 30px;
-    margin-top:  30px;
+    margin-top: 30px;
     flex-wrap: wrap;
+    padding: 20px;
+    background: #f8f9ff;
+    border-radius: 12px;
 }
 
 .legend-item {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 1em;
+    font-size: 0.95em;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.legend-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .legend-color {
     width: 30px;
     height: 30px;
-    border-radius:  6px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .info-box {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
     border-radius: 12px;
-    padding: 20px;
-    margin-top:  25px;
+    padding: 25px;
+    margin-top: 25px;
     text-align: center;
+    border: 1px solid #e0e7f0;
 }
 
 .info-title {
-    font-weight: bold;
+    font-weight: 600;
     color: #333;
-    margin-bottom: 10px;
-    font-size: 1.1em;
+    margin-bottom: 12px;
+    font-size: 1.15em;
+    letter-spacing: -0.3px;
 }
 
 .info-text {
     color: #555;
     font-size: 0.95em;
-    line-height:  1.6;
+    line-height: 1.7;
+    font-weight: 400;
 }
 
 .location-label {
     text-align: center;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 2px solid #e0e0e0;
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 2px solid #e8eef5;
 }
 
 .location-name {
-    font-size: 1.3em;
-    font-weight: bold;
+    font-size: 1.35em;
+    font-weight: 600;
     color: #333;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    letter-spacing: -0.3px;
 }
 
 .location-date {
     font-size: 1em;
     color: #666;
+    font-weight: 400;
 }
 
 .warning-box {
@@ -528,20 +583,23 @@ canvas {
     color: white;
     cursor: pointer;
     font-size: 1.1em;
-    font-weight: bold;
-    transition: all 0.3s;
+    font-weight: 600;
+    transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+    letter-spacing: 0.3px;
 }
 
 .tab-btn:hover {
-    background: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.35);
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .tab-btn.active {
     background: white;
     color: #667eea;
     transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
 }
 
 .chart-container {
@@ -861,20 +919,22 @@ canvas {
 }
 
 .weight-btn {
-    padding: 10px 20px;
+    padding: 12px 24px;
     border: none;
     border-radius: 8px;
     background: #667eea;
     color: white;
     cursor: pointer;
     font-size: 1em;
-    font-weight: bold;
-    transition: all 0.3s;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    letter-spacing: 0.3px;
 }
 
 .weight-btn:hover {
     background: #5568d3;
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .weight-btn.secondary {
@@ -883,30 +943,34 @@ canvas {
 
 .weight-btn.secondary:hover {
     background: #28c9a0;
+    box-shadow: 0 4px 12px rgba(50, 219, 174, 0.4);
 }
 
 .weight-btn.tertiary {
-    background: #999;
+    background: #9ca3af;
 }
 
 .weight-btn.tertiary:hover {
-    background: #777;
+    background: #6b7280;
+    box-shadow: 0 4px 12px rgba(107, 114, 128, 0.4);
 }
 
 .data-timeline {
     margin-top: 40px;
     padding: 25px;
-    background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+    background: linear-gradient(135deg, #f8f9ff 0%, #e8eef5 100%);
     border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border: 1px solid #e0e7f0;
 }
 
 .timeline-title {
     text-align: center;
-    font-weight: bold;
+    font-weight: 600;
     color: #333;
     margin-bottom: 20px;
     font-size: 1.2em;
+    letter-spacing: -0.3px;
 }
 
 .timeline-container {
@@ -925,25 +989,27 @@ canvas {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 10px 5px;
+    padding: 12px 6px;
     background: white;
     border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-    transition: transform 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #e0e7f0;
 }
 
 .timeline-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+    border-color: #667eea;
 }
 
 .timeline-time {
-    font-weight: bold;
+    font-weight: 600;
     color: #333;
     margin-bottom: 15px;
-    font-size: 1.1em;
+    font-size: 1.05em;
     padding-bottom: 8px;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid #e8eef5;
     width: 100%;
 }
 
@@ -1004,37 +1070,57 @@ canvas {
 .location-info-banner {
     background: white;
     border-radius: 12px;
-    padding: 15px 20px;
+    padding: 18px 24px;
     margin-bottom: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
+    transition: all 0.3s ease;
+}
+
+.location-info-banner:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
 }
 
 .location-info-text {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-weight: 600;
     color: #333;
     font-size: 1.1em;
 }
 
 .location-icon {
-    font-size: 1.3em;
+    font-size: 1.4em;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
 }
 
 .location-name-display {
     color: #667eea;
+    font-weight: 600;
 }
 
 .location-coords {
     color: #666;
     font-size: 0.9em;
     font-family: 'Courier New', monospace;
+    background: #f5f7fa;
+    padding: 6px 12px;
+    border-radius: 6px;
 }
 
 /* Wave Animation Section */
@@ -1098,7 +1184,15 @@ canvas {
 
 #fishingMap {
     border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    overflow: hidden;
+    border: 2px solid #e0e7f0;
+    transition: all 0.3s ease;
+}
+
+#fishingMap:hover {
+    box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+    border-color: #667eea;
 }
 
 .chart-with-dataset-controls {
@@ -1114,20 +1208,18 @@ canvas {
     gap: 10px;
 }
 
-/* Fish Species Table */
+/* Enhanced Fish Table */
 .fish-table-container {
     background: white;
     border-radius: 20px;
     padding: 40px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
     margin-top: 30px;
+    transition: box-shadow 0.3s ease;
 }
 
-.section-title {
-    font-size: 1.8em;
-    color: #333;
-    text-align: center;
-    margin-bottom: 20px;
+.fish-table-container:hover {
+    box-shadow: 0 15px 50px rgba(0,0,0,0.2);
 }
 
 .fish-species-table {
@@ -1142,23 +1234,36 @@ canvas {
 
 .fish-species-table th,
 .fish-species-table td {
-    padding: 12px;
+    padding: 16px;
     text-align: left;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #e0e0e0;
 }
 
 .fish-species-table th {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 1em;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
 }
 
-.fish-species-table tr:hover {
-    background: #f5f5f5;
+.fish-species-table tr {
+    transition: background-color 0.2s ease;
+}
+
+.fish-species-table tbody tr:hover {
+    background: #f8f9ff;
 }
 
 .fish-species-table td {
     color: #555;
+    font-size: 0.95em;
+}
+
+.fish-species-table td strong {
+    color: #333;
+    font-weight: 600;
 }
 
 /* Responsive adjustments for fishing layout */

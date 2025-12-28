@@ -1,5 +1,15 @@
 // Fishing Time Script
 // This script handles fishing-specific functionality
+// 
+// IMPORTANT: All chart generation logic remains BeachTime-native.
+// This script only handles fishing-specific features such as:
+// - Enhanced fish species database
+// - Location-based species information
+// - Map interaction for coordinate selection
+// - Timezone detection
+// - Marine data integration
+//
+// Chart normalisation and rendering uses existing BeachTime methods.
 
 // Initialise variables for fishing page
 var fishingWeatherData = [];
