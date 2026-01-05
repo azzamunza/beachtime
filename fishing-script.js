@@ -73,6 +73,159 @@ var fishingLocations = [
             { name: "Skipjack Trevally", season: "Summer", size: "30-40cm" },
             { name: "Spanish Mackerel", season: "Summer", size: "80-120cm" }
         ]
+    },
+    { 
+        name: "Trigg Beach, WA", 
+        lat: -31.8689, 
+        lng: 115.7598,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Tailor", season: "Spring-Autumn", size: "30-50cm" },
+            { name: "Australian Salmon", season: "Autumn-Winter", size: "40-70cm" },
+            { name: "Pink Snapper", season: "Year-round", size: "41cm+" }
+        ]
+    },
+    { 
+        name: "Hillarys Boat Harbour, WA", 
+        lat: -31.8258, 
+        lng: 115.7399,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Pink Snapper", season: "Year-round", size: "41cm+" },
+            { name: "Skipjack Trevally", season: "Summer", size: "30-40cm" },
+            { name: "Squid", season: "Year-round", size: "Variable" }
+        ]
+    },
+    { 
+        name: "Fremantle Fishing Boat Harbour, WA", 
+        lat: -32.0567, 
+        lng: 115.7442,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Black Bream", season: "Year-round", size: "25cm+" },
+            { name: "Tailor", season: "Spring-Autumn", size: "30-50cm" },
+            { name: "Australian Herring", season: "Summer-Autumn", size: "20-30cm" },
+            { name: "Squid", season: "Year-round", size: "Variable" }
+        ]
+    },
+    { 
+        name: "Woodman Point, WA", 
+        lat: -32.1216, 
+        lng: 115.7566,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Pink Snapper", season: "Year-round", size: "41cm+" },
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Tailor", season: "Spring-Autumn", size: "30-50cm" }
+        ]
+    },
+    { 
+        name: "Rockingham Beach, WA", 
+        lat: -32.2771, 
+        lng: 115.7330,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Pink Snapper", season: "Year-round", size: "41cm+" },
+            { name: "Flathead", season: "Year-round", size: "30-50cm" },
+            { name: "Squid", season: "Year-round", size: "Variable" }
+        ]
+    },
+    { 
+        name: "Mandurah Ocean Marina, WA", 
+        lat: -32.5414, 
+        lng: 115.7238,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Black Bream", season: "Year-round", size: "25cm+" },
+            { name: "Flathead", season: "Year-round", size: "30-50cm" },
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Blue Manna Crab", season: "Year-round", size: "127mm+" }
+        ]
+    },
+    { 
+        name: "Busselton Jetty, WA", 
+        lat: -33.6505, 
+        lng: 115.3472,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Australian Herring", season: "Summer-Autumn", size: "20-30cm" },
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Skipjack Trevally", season: "Summer", size: "30-40cm" },
+            { name: "Squid", season: "Year-round", size: "Variable" }
+        ]
+    },
+    { 
+        name: "Augusta Boat Harbour, WA", 
+        lat: -34.3153, 
+        lng: 115.1569,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Australian Salmon", season: "Autumn-Winter", size: "40-70cm" },
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Southern Bluefin Tuna", season: "Autumn-Winter", size: "Variable" }
+        ]
+    },
+    { 
+        name: "Albany Marina, WA", 
+        lat: -35.0239, 
+        lng: 117.8926,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Australian Salmon", season: "Autumn-Winter", size: "40-70cm" },
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Pink Snapper", season: "Year-round", size: "41cm+" },
+            { name: "Southern Rock Lobster", season: "November-June", size: "Variable" }
+        ]
+    },
+    { 
+        name: "Esperance Tanker Jetty, WA", 
+        lat: -33.8686, 
+        lng: 121.8978,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Australian Salmon", season: "Autumn-Winter", size: "40-70cm" },
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Pink Snapper", season: "Year-round", size: "41cm+" },
+            { name: "Squid", season: "Year-round", size: "Variable" }
+        ]
+    },
+    { 
+        name: "Geraldton Port, WA", 
+        lat: -28.7717, 
+        lng: 114.6086,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Pink Snapper", season: "Year-round", size: "41cm+" },
+            { name: "Spanish Mackerel", season: "Summer", size: "80-120cm" },
+            { name: "King George Whiting", season: "Year-round", size: "25-35cm" },
+            { name: "Western Rock Lobster", season: "November-June", size: "Variable" }
+        ]
+    },
+    { 
+        name: "Exmouth Marina, WA", 
+        lat: -21.9372, 
+        lng: 114.1274,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Spanish Mackerel", season: "Year-round", size: "80-120cm" },
+            { name: "Giant Trevally", season: "Year-round", size: "50cm+" },
+            { name: "Red Emperor", season: "Year-round", size: "41cm+" },
+            { name: "Coral Trout", season: "Year-round", size: "38cm+" }
+        ]
+    },
+    { 
+        name: "Broome Port, WA", 
+        lat: -17.9614, 
+        lng: 122.2359,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Barramundi", season: "Year-round", size: "55cm+" },
+            { name: "Spanish Mackerel", season: "Year-round", size: "80-120cm" },
+            { name: "Giant Trevally", season: "Year-round", size: "50cm+" },
+            { name: "Threadfin Salmon", season: "Year-round", size: "45cm+" }
+        ]
     }
 ];
 
@@ -242,6 +395,12 @@ function updateLocationDisplay() {
     if (locationCoordsEl) {
         locationCoordsEl.textContent = 'Lat: ' + currentFishingLocation.lat.toFixed(4) + ', Lng: ' + currentFishingLocation.lng.toFixed(4);
     }
+    
+    // Update all chart titles with the current location name
+    var vizTitles = document.querySelectorAll('.viz-title');
+    vizTitles.forEach(function(element) {
+        element.textContent = currentFishingLocation.name;
+    });
 }
 
 // Update fish species table with enhanced accordion display
@@ -528,6 +687,7 @@ function processFishingWeatherData(data, marineData) {
     
     // Map fishing data to the format expected by script.js
     // For fishing: rain -> precipitation, estimate water temp from air temp
+    // Also include fishing-specific data: pressure, waveHeight, and tideHeight
     weatherData = fishingWeatherData.map(function(day) {
         return {
             date: day.date,
@@ -536,7 +696,11 @@ function processFishingWeatherData(data, marineData) {
             wind: day.wind,
             water: day.temp.map(function(t) { return Math.round((t - WATER_TEMP_OFFSET) * 10) / 10; }), // Estimate water temp
             precipitation: day.rain,
-            cloudCover: day.cloudCover
+            cloudCover: day.cloudCover,
+            pressure: day.pressure,
+            waveHeight: day.waveHeight,
+            // Tide data will be added later from tide harmonics
+            tideHeight: day.hours.map(function() { return 50; }) // Default 50% tide for now
         };
     });
     
@@ -833,4 +997,98 @@ if (typeof window !== 'undefined') {
     window.initTimeSlider = initTimeSlider;
     window.initDatasetCheckboxes = initDatasetCheckboxes;
     window.activeDatasets = activeDatasets;
+}
+
+// Data table modal functionality
+function initDataTableModal() {
+    var showDataTableBtn = document.getElementById('showDataTableBtn');
+    var dataTableModal = document.getElementById('dataTableModal');
+    var closeDataTableModal = document.getElementById('closeDataTableModal');
+    
+    if (!showDataTableBtn || !dataTableModal) return;
+    
+    showDataTableBtn.addEventListener('click', function() {
+        generateDataTable();
+        dataTableModal.style.display = 'flex';
+    });
+    
+    if (closeDataTableModal) {
+        closeDataTableModal.addEventListener('click', function() {
+            dataTableModal.style.display = 'none';
+        });
+    }
+    
+    dataTableModal.addEventListener('click', function(e) {
+        if (e.target === dataTableModal) {
+            dataTableModal.style.display = 'none';
+        }
+    });
+}
+
+// Generate the data table from weatherData
+function generateDataTable() {
+    var tableContent = document.getElementById('dataTableContent');
+    if (!tableContent || !weatherData || weatherData.length === 0) {
+        if (tableContent) {
+            tableContent.innerHTML = '<p>No data available. Please select a location first.</p>';
+        }
+        return;
+    }
+    
+    var html = '<table style="width: 100%; border-collapse: collapse; background: white;">';
+    html += '<thead><tr style="background: #667eea; color: white;">';
+    html += '<th style="padding: 12px; border: 1px solid #ddd;">Date</th>';
+    html += '<th style="padding: 12px; border: 1px solid #ddd;">Hour</th>';
+    
+    // Add headers based on active datasets
+    if (activeDatasets.pressure) html += '<th style="padding: 12px; border: 1px solid #ddd;">Pressure (hPa)</th>';
+    if (activeDatasets.temperature) html += '<th style="padding: 12px; border: 1px solid #ddd;">Temperature (°C)</th>';
+    if (activeDatasets.windSpeed) html += '<th style="padding: 12px; border: 1px solid #ddd;">Wind Speed (km/h)</th>';
+    if (activeDatasets.cloudCover) html += '<th style="padding: 12px; border: 1px solid #ddd;">Cloud Cover (%)</th>';
+    if (activeDatasets.rain) html += '<th style="padding: 12px; border: 1px solid #ddd;">Rain (%)</th>';
+    if (activeDatasets.waveHeight) html += '<th style="padding: 12px; border: 1px solid #ddd;">Wave Height (m)</th>';
+    if (activeDatasets.tide) html += '<th style="padding: 12px; border: 1px solid #ddd;">Tide (%)</th>';
+    
+    html += '</tr></thead><tbody>';
+    
+    // Add data rows
+    for (var d = 0; d < weatherData.length; d++) {
+        var day = weatherData[d];
+        var dateObj = new Date(day.date + 'T00:00:00');
+        var dateFormatted = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        
+        for (var h = 0; h < day.hours.length; h++) {
+            var rowStyle = d % 2 === 0 ? 'background: #f8f9fa;' : 'background: white;';
+            html += '<tr style="' + rowStyle + '">';
+            html += '<td style="padding: 10px; border: 1px solid #ddd;">' + dateFormatted + '</td>';
+            html += '<td style="padding: 10px; border: 1px solid #ddd;">' + day.hours[h] + ':00</td>';
+            
+            if (activeDatasets.pressure && day.pressure) 
+                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.pressure[h] || 'N/A') + '</td>';
+            if (activeDatasets.temperature) 
+                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.temp[h] || 'N/A') + '</td>';
+            if (activeDatasets.windSpeed) 
+                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.wind[h] || 'N/A') + '</td>';
+            if (activeDatasets.cloudCover) 
+                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.cloudCover[h] || 'N/A') + '</td>';
+            if (activeDatasets.rain) 
+                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.precipitation[h] || 'N/A') + '</td>';
+            if (activeDatasets.waveHeight && day.waveHeight) 
+                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.waveHeight[h] || 'N/A') + '</td>';
+            if (activeDatasets.tide && day.tideHeight) 
+                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.tideHeight[h] || 'N/A') + '</td>';
+            
+            html += '</tr>';
+        }
+    }
+    
+    html += '</tbody></table>';
+    tableContent.innerHTML = html;
+}
+
+// Initialize data table modal on page load
+if (document.getElementById('fishingMap')) {
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(initDataTableModal, 100);
+    });
 }

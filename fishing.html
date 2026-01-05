@@ -14,6 +14,7 @@
             <ul class="nav-menu">
                 <li class="nav-item"><a href="index.html" class="nav-link">Beach Time</a></li>
                 <li class="nav-item"><a href="fishing.html" class="nav-link active">Fishing Time</a></li>
+                <li class="nav-item"><button class="nav-button" id="showDataTableBtn">📊 View Data</button></li>
             </ul>
         </nav>
     </header>
@@ -203,11 +204,39 @@
         </div>
         
         <!-- Dataset Controls (hidden by default, cloned to slide-out panel) -->
-        <div class="right-side-controls" style="display: none;">
+        <div class="right-side-controls" style="display: block;">
             <div class="controls-section-title">⚙️ Fishing Dataset Controls</div>
             
             <div class="slider-section">
                 <div class="slider-section-header">🎣 Fishing Ideal Ranges</div>
+                
+                <div class="range-slider-item">
+                    <div class="range-slider-label">
+                        <span>🔵 Pressure (hPa)</span>
+                    </div>
+                    <div class="range-inputs-vertical">
+                        <div class="range-input-group">
+                            <span class="range-input-label">Min</span>
+                            <input type="range" class="range-slider-small" id="fishPressureMinRange" min="900" max="1050" step="1" value="980">
+                            <span class="range-value-display" id="fishPressureMinValue">980 hPa</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Min</span>
+                            <input type="range" class="range-slider-small" id="fishPressureIdealMinRange" min="900" max="1050" step="1" value="1010">
+                            <span class="range-value-display" id="fishPressureIdealMinValue">1010 hPa</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Max</span>
+                            <input type="range" class="range-slider-small" id="fishPressureIdealMaxRange" min="900" max="1050" step="1" value="1020">
+                            <span class="range-value-display" id="fishPressureIdealMaxValue">1020 hPa</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Max</span>
+                            <input type="range" class="range-slider-small" id="fishPressureMaxRange" min="900" max="1050" step="1" value="1040">
+                            <span class="range-value-display" id="fishPressureMaxValue">1040 hPa</span>
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="range-slider-item">
                     <div class="range-slider-label">
@@ -267,6 +296,24 @@
                 
                 <div class="range-slider-item">
                     <div class="range-slider-label">
+                        <span>☁️ Cloud Cover (%)</span>
+                    </div>
+                    <div class="range-inputs-vertical">
+                        <div class="range-input-group">
+                            <span class="range-input-label">Min (Best)</span>
+                            <input type="range" class="range-slider-small" id="fishCloudMinRange" min="0" max="100" step="5" value="0">
+                            <span class="range-value-display" id="fishCloudMinValue">0%</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Max (Worst)</span>
+                            <input type="range" class="range-slider-small" id="fishCloudMaxRange" min="0" max="100" step="5" value="100">
+                            <span class="range-value-display" id="fishCloudMaxValue">100%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="range-slider-item">
+                    <div class="range-slider-label">
                         <span>🌊 Wave Height (m)</span>
                     </div>
                     <div class="range-inputs-vertical">
@@ -289,6 +336,34 @@
                             <span class="range-input-label">Max</span>
                             <input type="range" class="range-slider-small" id="fishWaveMaxRange" min="0" max="10" step="0.5" value="5">
                             <span class="range-value-display" id="fishWaveMaxValue">5m</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="range-slider-item">
+                    <div class="range-slider-label">
+                        <span>🌊 Tide Height (%)</span>
+                    </div>
+                    <div class="range-inputs-vertical">
+                        <div class="range-input-group">
+                            <span class="range-input-label">Min</span>
+                            <input type="range" class="range-slider-small" id="fishTideMinRange" min="0" max="100" step="5" value="0">
+                            <span class="range-value-display" id="fishTideMinValue">0%</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Min</span>
+                            <input type="range" class="range-slider-small" id="fishTideIdealMinRange" min="0" max="100" step="5" value="30">
+                            <span class="range-value-display" id="fishTideIdealMinValue">30%</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Ideal Max</span>
+                            <input type="range" class="range-slider-small" id="fishTideIdealMaxRange" min="0" max="100" step="5" value="70">
+                            <span class="range-value-display" id="fishTideIdealMaxValue">70%</span>
+                        </div>
+                        <div class="range-input-group">
+                            <span class="range-input-label">Max</span>
+                            <input type="range" class="range-slider-small" id="fishTideMaxRange" min="0" max="100" step="5" value="100">
+                            <span class="range-value-display" id="fishTideMaxValue">100%</span>
                         </div>
                     </div>
                 </div>
@@ -339,6 +414,19 @@
             <p class="section-subtitle">Fish species commonly found at this location</p>
             <div id="fishSpeciesTable" class="fish-species-table">
                 <p>Select a location on the map to view local fish species...</p>
+            </div>
+        </div>
+        
+        <!-- Data Table Modal -->
+        <div class="modal-overlay" id="dataTableModal" style="display: none;">
+            <div class="modal-content" style="max-width: 90%; max-height: 90vh; overflow: auto;">
+                <div class="modal-header">
+                    <h2 class="modal-title">📊 Weather Data Table</h2>
+                    <button class="close-btn" id="closeDataTableModal">&times;</button>
+                </div>
+                <div id="dataTableContent" style="overflow-x: auto; padding: 20px;">
+                    <!-- Data table will be inserted here -->
+                </div>
             </div>
         </div>
         

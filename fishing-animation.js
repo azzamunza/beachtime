@@ -33,25 +33,48 @@ const SkyGradient = ({ timeOfDay, cloudCover, isStormy }) => {
 };
 
 const Moon = ({ phase, timeOfDay, cloudCover }) => {
-  const opacity = (timeOfDay > 6 && timeOfDay < 18) ? 0.2 : 1;
-  const cloudOpacityMod = Math.max(0, 1 - (cloudCover / 100));
-  const cx = 1800;
-  const cy = 60;
+  // Moon visibility: visible at night, semi-visible during twilight
+  const isDaytime = timeOfDay >= 6 && timeOfDay < 18;
+  const isTwilight = (timeOfDay >= 5 && timeOfDay < 7) || (timeOfDay >= 18 && timeOfDay < 20);
+  const baseOpacity = isDaytime ? 0.15 : (isTwilight ? 0.6 : 1);
+  const cloudOpacityMod = Math.max(0.3, 1 - (cloudCover / 150)); // Clouds reduce visibility
+  const finalOpacity = baseOpacity * cloudOpacityMod;
+  
+  // Moon moves across the sky from right to left during night
+  // At sunset (18:00): right side, low
+  // At midnight (00:00/24:00): center, high
+  // At sunrise (06:00): left side, low
+  const nightProgress = timeOfDay < 6 ? (timeOfDay + 6) / 12 : (timeOfDay - 18) / 12; // 0 to 1 across night
+  const moonX = 1800 - (nightProgress * 800); // Move from right (1800) to left (1000)
+  const moonY = 80 - (Math.sin(nightProgress * Math.PI) * 40); // Arc up and down
+  
   const r = 35;
 
+  // Calculate moon phase shadow path
   const getMoonPath = (phase) => {
+    // Phase: 0 = new moon (dark), 0.25 = first quarter, 0.5 = full moon, 0.75 = last quarter, 1 = new moon
     const isLeftShadow = phase < 0.5; 
     const termX = r * Math.cos(phase * 2 * Math.PI);
-    return `M ${cx}, ${cy - r} 
-            A ${r}, ${r} 0 0,${isLeftShadow ? 0 : 1} ${cx}, ${cy + r} 
-            A ${Math.abs(termX)}, ${r} 0 0,${phase < 0.25 || phase > 0.75 ? (isLeftShadow?1:0) : (isLeftShadow?0:1)} ${cx}, ${cy - r}`;
+    return `M ${moonX}, ${moonY - r} 
+            A ${r}, ${r} 0 0,${isLeftShadow ? 0 : 1} ${moonX}, ${moonY + r} 
+            A ${Math.abs(termX)}, ${r} 0 0,${phase < 0.25 || phase > 0.75 ? (isLeftShadow?1:0) : (isLeftShadow?0:1)} ${moonX}, ${moonY - r}`;
   };
 
-  return React.createElement('g', { style: { opacity: opacity * cloudOpacityMod, transition: 'opacity 1s' } },
-    React.createElement('circle', { cx: cx, cy: cy, r: r * 1.5, fill: 'white', opacity: '0.1' }),
-    React.createElement('circle', { cx: cx, cy: cy, r: r, fill: '#fdfdff' }),
+  return React.createElement('g', { 
+    className: 'moon-group',
+    style: { 
+      opacity: finalOpacity, 
+      transition: 'opacity 2s ease-in-out'
+    }
+  },
+    // Moon glow
+    React.createElement('circle', { cx: moonX, cy: moonY, r: r * 1.5, fill: 'white', opacity: '0.1' }),
+    // Moon body
+    React.createElement('circle', { cx: moonX, cy: moonY, r: r, fill: '#fdfdff' }),
+    // Moon phase shadow
     React.createElement('path', { d: getMoonPath(phase), fill: 'rgba(20,24,30,0.95)' }),
-    React.createElement('circle', { cx: cx - 8, cy: cy - 4, r: 4, fill: 'rgba(200,200,200,0.1)' })
+    // Moon crater
+    React.createElement('circle', { cx: moonX - 8, cy: moonY - 4, r: 4, fill: 'rgba(200,200,200,0.1)' })
   );
 };
 
@@ -209,17 +232,31 @@ const WindIndicator = ({ speed, direction }) => {
   const lift = 80 - (Math.min(speed, 100) * 0.8);
   const rotation = isBlowingRight ? -lift : lift; 
   const scaleX = isBlowingRight ? 1 : -1;
+  
+  // Position on right side but within visible area (viewBox is 0 0 2000 400)
+  const posX = 1750; // Changed from 1850 to keep it within view
+  const posY = 180; // Changed from 300 to position it better in the scene
 
-  return React.createElement('g', { transform: 'translate(1850, 300)' },
+  return React.createElement('g', { className: 'wind-indicator', transform: `translate(${posX}, ${posY})` },
+    // Wind sock pole
     React.createElement('rect', { x: '-2', y: '0', width: '4', height: '100', fill: '#5d4037' }),
+    // Pole top cap
     React.createElement('circle', { cx: '0', cy: '0', r: '3', fill: '#3e2723' }),
-    React.createElement('g', { transform: `scale(${scaleX}, 1) rotate(${rotation})` },
+    // Wind sock flag with animation based on wind speed and direction
+    React.createElement('g', { 
+      className: 'wind-sock',
+      transform: `scale(${scaleX}, 1) rotate(${rotation})`,
+      style: { transformOrigin: '0 0', transition: 'transform 0.5s ease-out' }
+    },
+      // Wind sock segments (orange and white stripes)
       React.createElement('path', { d: 'M0,-8 L0,8 L12,6 L12,-6 Z', fill: '#e67e22' }),
       React.createElement('path', { d: 'M12,-6 L12,6 L24,5 L24,-5 Z', fill: '#ecf0f1' }),
       React.createElement('path', { d: 'M24,-5 L24,5 L36,4 L36,-4 Z', fill: '#e67e22' }),
       React.createElement('path', { d: 'M36,-4 L36,4 L48,3 L48,-3 Z', fill: '#ecf0f1' }),
       React.createElement('path', { d: 'M48,-3 L48,3 L72,1 L72,-1 Z', fill: '#e67e22' }),
+      // Extra flutter segment for high winds
       speed > 20 && React.createElement('path', { 
+        className: 'wind-flutter',
         d: 'M72,-1 L72,1 L80,0 Z', 
         fill: '#e67e22', 
         opacity: '0.8'
@@ -232,6 +269,7 @@ const WindIndicator = ({ speed, direction }) => {
         })
       )
     ),
+    // Wind speed and direction label
     React.createElement('text', { 
       x: '0', 
       y: '115', 
@@ -318,37 +356,119 @@ const TackleBox = ({ onJettyX, onJettyY }) => {
 
 const Fisherman = ({ onJettyX, onJettyY }) => {
   const [state, setState] = useState('idle');
+  const [catchingFish, setCatchingFish] = useState(false);
+  const [fishCaught, setFishCaught] = useState(false);
 
   useEffect(() => {
     const loop = setInterval(() => {
+      // Random chance to start catching a fish
       const roll = Math.random();
-      if (roll > 0.85) setState('fishing_jerk');
-      else if (roll > 0.65) setState('drinking');
-      else if (roll > 0.55) setState('smoking');
-      else setState('idle');
+      if (roll > 0.92 && !catchingFish) {
+        // Start catching sequence
+        setCatchingFish(true);
+        setState('fishing_bite');
+        
+        // Sequence: bite (2s) -> reel (3s) -> fling (1s) -> back to idle
+        setTimeout(() => setState('fishing_reel'), 2000);
+        setTimeout(() => setState('fishing_fling'), 5000);
+        setTimeout(() => {
+          setFishCaught(true);
+          setState('idle');
+          setCatchingFish(false);
+          // Reset fish caught after animation
+          setTimeout(() => setFishCaught(false), 1000);
+        }, 6000);
+      } else if (roll > 0.85 && !catchingFish) {
+        setState('fishing_jerk');
+      } else if (roll > 0.65 && !catchingFish) {
+        setState('drinking');
+      } else if (roll > 0.55 && !catchingFish) {
+        setState('smoking');
+      } else if (!catchingFish) {
+        setState('idle');
+      }
     }, 4000);
     return () => clearInterval(loop);
-  }, []);
+  }, [catchingFish]);
 
   useEffect(() => {
-    if (state !== 'idle') {
+    if (state !== 'idle' && !catchingFish) {
       const timer = setTimeout(() => setState('idle'), 2500); 
       return () => clearTimeout(timer);
     }
-  }, [state]);
+  }, [state, catchingFish]);
 
+  const isBite = state === 'fishing_bite';
+  const isReel = state === 'fishing_reel';
+  const isFling = state === 'fishing_fling';
   const isJerk = state === 'fishing_jerk';
   const isDrinking = state === 'drinking';
   const isSmoking = state === 'smoking';
+  
+  // Calculate rod rotation based on state
+  const getRodRotation = () => {
+    if (isFling) return -45; // Fling up high
+    if (isReel) return -20; // Reel in with slight lift
+    if (isBite || isJerk) return -10; // Small jerk
+    return 0; // Idle position
+  };
+  
+  // Calculate fish position for catching animation
+  const getFishPosition = () => {
+    if (isFling) return { x: -30, y: -80 }; // Flying through air
+    if (isReel) return { x: -50, y: -20 }; // Being reeled in
+    if (isBite) return { x: -65, y: 30 }; // At hook in water
+    return null; // No fish visible
+  };
+  
+  const fishPos = getFishPosition();
 
-  return React.createElement('g', { transform: `translate(${onJettyX + 15}, ${onJettyY}) scale(3.0)` },
-    isJerk && React.createElement('g', { transform: 'translate(-65, 35) scale(1.2, 0.3)' },
+  return React.createElement('g', { className: 'fisherman', transform: `translate(${onJettyX + 15}, ${onJettyY}) scale(3.0)` },
+    // Ripple effect when fish bites
+    (isBite || isJerk) && React.createElement('g', { className: 'water-ripple', transform: 'translate(-65, 35) scale(1.2, 0.3)' },
       React.createElement('circle', { r: '10', stroke: 'white', strokeWidth: '0.5', fill: 'none', opacity: '0.8' },
         React.createElement('animate', { attributeName: 'r', values: '5;30', dur: '1s', repeatCount: 'indefinite' }),
         React.createElement('animate', { attributeName: 'opacity', values: '0.8;0', dur: '1s', repeatCount: 'indefinite' })
       )
     ),
-    React.createElement('g', null,
+    
+    // Caught fish flying through air (during fling)
+    fishPos && React.createElement('g', { 
+      className: 'caught-fish',
+      transform: `translate(${fishPos.x}, ${fishPos.y}) rotate(${isFling ? -45 : 0})`,
+      style: { transition: 'all 0.5s ease-out' }
+    },
+      React.createElement('ellipse', { cx: 0, cy: 0, rx: 8, ry: 5, fill: '#34495e', opacity: 0.9 }),
+      React.createElement('path', { d: 'M-8,0 L-12,-4 L-12,4 Z', fill: '#34495e', opacity: 0.9 }),
+      React.createElement('circle', { cx: 4, cy: -1, r: 1.5, fill: 'white' })
+    ),
+    
+    // Splash effect when fish lands in bucket
+    fishCaught && React.createElement('g', { className: 'splash', transform: 'translate(85, 20)' },
+      [...Array(6)].map((_, i) => 
+        React.createElement('line', {
+          key: i,
+          x1: 0,
+          y1: 0,
+          x2: Math.cos(i * Math.PI / 3) * 15,
+          y2: Math.sin(i * Math.PI / 3) * 15,
+          stroke: '#3498db',
+          strokeWidth: 2,
+          opacity: 0
+        },
+          React.createElement('animate', {
+            attributeName: 'opacity',
+            values: '0;0.8;0',
+            dur: '0.5s',
+            begin: '0s'
+          })
+        )
+      )
+    ),
+    
+    // Fisherman body
+    React.createElement('g', { className: 'fisherman-body' },
+      // Legs
       React.createElement('g', { transform: 'translate(1, -1)' },
         React.createElement('path', { d: 'M0,0 L-14,0', stroke: '#263238', strokeWidth: '7', strokeLinecap: 'round' }),
         React.createElement('g', { className: 'leg-swing-offset' },
@@ -363,9 +483,14 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
           React.createElement('path', { d: 'M0,16 L-4,18', stroke: '#333', strokeWidth: '5', strokeLinecap: 'round' })
         )
       ),
+      
+      // Torso
       React.createElement('path', { d: 'M2,0 L5,-22', stroke: '#d35400', strokeWidth: '9', strokeLinecap: 'round' }),
+      
+      // Head
       React.createElement('g', { 
-        transform: isJerk ? 'translate(5, -24) rotate(-10)' : 'translate(5, -24)',
+        className: 'fisherman-head',
+        transform: (isBite || isJerk) ? 'translate(5, -24) rotate(-10)' : 'translate(5, -24)',
         style: { transition: 'transform 0.2s' }
       },
         React.createElement('circle', { cx: '0', cy: '-4', r: '7', fill: '#ffccbc' }),
@@ -373,7 +498,9 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
         React.createElement('path', { d: 'M-8,-8 L8,-8', stroke: '#455a64', strokeWidth: '1.5' }),
         React.createElement('circle', { cx: '-5', cy: '-4', r: '0.5', fill: '#333' }),
         React.createElement('path', { d: 'M-7,-2 L-5,-2', stroke: '#333', strokeWidth: '0.5' }),
-        isSmoking && React.createElement('g', { transform: 'translate(-7, -1)' },
+        
+        // Cigarette when smoking
+        isSmoking && React.createElement('g', { className: 'cigarette', transform: 'translate(-7, -1)' },
           React.createElement('line', { x1: '0', y1: '0', x2: '-6', y2: '1', stroke: 'white', strokeWidth: '1' }),
           React.createElement('circle', { cx: '-6.5', cy: '1.1', r: '0.8', fill: 'red' },
             React.createElement('animate', { attributeName: 'opacity', values: '0.5;1;0.5', dur: '0.5s', repeatCount: 'indefinite' })
@@ -384,18 +511,25 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
           )
         )
       ),
-      React.createElement('g', { transform: 'translate(4, -15)' },
+      
+      // Fishing rod arm
+      React.createElement('g', { className: 'fishing-arm', transform: 'translate(4, -15)' },
         React.createElement('g', { 
-          transform: isJerk ? 'rotate(-10)' : 'rotate(0)',
-          style: { transition: 'transform 0.1s' }
+          className: 'rod-group',
+          transform: `rotate(${getRodRotation()})`,
+          style: { transformOrigin: '0 0', transition: 'transform 0.3s ease-out' }
         },
           React.createElement('path', { d: 'M0,0 L-8,5', stroke: '#d35400', strokeWidth: '5', strokeLinecap: 'round' }),
           React.createElement('path', { d: 'M-8,5 L-15,2', stroke: '#d35400', strokeWidth: '5', strokeLinecap: 'round' }),
+          // Fishing rod
           React.createElement('line', { x1: '-12', y1: '2', x2: '-18', y2: '0', stroke: '#3e2723', strokeWidth: '2' }),
           React.createElement('line', { x1: '-18', y1: '0', x2: '-65', y2: '-15', stroke: '#5d4037', strokeWidth: '1.5' }),
+          // Reel
           React.createElement('circle', { cx: '-22', cy: '-2', r: '1.5', fill: '#9e9e9e' }),
+          // Fishing line with animation
           React.createElement('path', { 
-            d: isJerk ? 'M-65,-15 L-65,35' : 'M-65,-15 Q-65,15 -60,30',
+            className: 'fishing-line',
+            d: isBite || isJerk || isReel ? 'M-65,-15 L-65,35' : 'M-65,-15 Q-65,15 -60,30',
             stroke: 'white',
             strokeWidth: '0.3',
             fill: 'none',
@@ -403,7 +537,9 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
           })
         )
       ),
-      React.createElement('g', { transform: 'translate(5, -15)' },
+      
+      // Other arm (drinking or idle)
+      React.createElement('g', { className: 'other-arm', transform: 'translate(5, -15)' },
         isDrinking ? React.createElement('g', { className: 'arm-drink' },
           React.createElement('path', { d: 'M0,0 L2,4', stroke: '#e67e22', strokeWidth: '4.5', strokeLinecap: 'round' }),
           React.createElement('path', { d: 'M2,4 L-4,-6', stroke: '#e67e22', strokeWidth: '4.5', strokeLinecap: 'round' }),
@@ -416,6 +552,8 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
         )
       )
     ),
+    
+    // Animation styles
     React.createElement('style', null, `
       .leg-swing { animation: swing 3s ease-in-out infinite; transform-origin: 0 0; }
       .leg-swing-offset { animation: swing 3s ease-in-out infinite; animation-delay: 0.5s; transform-origin: -14px 0; }
@@ -488,37 +626,42 @@ const TideHeightMarkers = ({ tideLevel, waterY }) => {
   );
 };
 
-// Marine Life Component
+// Marine Life Component - Fish swimming above water
 const MarineLife = ({ tideLevel, timeOfDay, waterY }) => {
   const { useState, useEffect, useMemo } = React;
   
   // Determine which species to show based on conditions
+  // Fish should remain visible based on time and tide, not disappear
   const getActiveSpecies = () => {
     const species = [];
     
+    // Show different species based on time of day, but always show some fish
     // Tailor - active during incoming/high tide, dawn/dusk
-    if (tideLevel > 40 && (timeOfDay < 8 || timeOfDay > 17)) {
+    if (tideLevel > 40 || (timeOfDay < 8 || timeOfDay > 17)) {
       species.push({ type: 'tailor', count: 3 });
     }
     
     // Squid - active at night during high tide
-    if (tideLevel > 50 && (timeOfDay < 6 || timeOfDay > 20)) {
+    if (tideLevel > 50 || (timeOfDay < 6 || timeOfDay > 20)) {
       species.push({ type: 'squid', count: 2 });
     }
     
     // Whiting - active during incoming tide, daytime
-    if (tideLevel > 30 && tideLevel < 70 && timeOfDay > 6 && timeOfDay < 18) {
+    if (tideLevel > 30 || (timeOfDay > 6 && timeOfDay < 18)) {
       species.push({ type: 'whiting', count: 4 });
     }
     
-    // Bream - active year-round, any tide
-    if (timeOfDay > 5 && timeOfDay < 20) {
-      species.push({ type: 'bream', count: 2 });
-    }
+    // Bream - active year-round, any tide (always visible)
+    species.push({ type: 'bream', count: 3 });
     
     // Flathead - active on outgoing tide
-    if (tideLevel < 60 && timeOfDay > 7 && timeOfDay < 19) {
+    if (tideLevel < 60 || (timeOfDay > 7 && timeOfDay < 19)) {
       species.push({ type: 'flathead', count: 2 });
+    }
+    
+    // Always ensure at least one species is shown
+    if (species.length === 0) {
+      species.push({ type: 'bream', count: 2 });
     }
     
     return species;
@@ -526,19 +669,22 @@ const MarineLife = ({ tideLevel, timeOfDay, waterY }) => {
   
   const activeSpecies = useMemo(getActiveSpecies, [tideLevel, timeOfDay]);
   
-  // Generate fish positions
+  // Generate fish positions - fish now jump/breach above water surface
   const generateFish = (species, count, index) => {
-    const baseY = waterY + 30 + (index * 25);
+    // Position fish near water surface or just above it
+    const baseY = waterY - 10 - (index * 25); // Slightly above or at water level
     const fishes = [];
     
     for (let i = 0; i < count; i++) {
-      const x = 300 + (i * 200) + (index * 50);
+      const x = 300 + (i * 250) + (index * 80);
+      const jumpHeight = Math.sin((i * 2 + index) * 0.5) * 20; // Some fish jump higher
       fishes.push({
         id: `${species}-${i}`,
         type: species,
         x: x,
-        y: baseY + (Math.sin(i) * 15),
-        size: species === 'squid' ? 20 : (species === 'flathead' ? 25 : 15)
+        y: baseY - jumpHeight,
+        size: species === 'squid' ? 20 : (species === 'flathead' ? 28 : 18),
+        swimDelay: i * 0.7 + index * 0.3
       });
     }
     
@@ -550,46 +696,66 @@ const MarineLife = ({ tideLevel, timeOfDay, waterY }) => {
     allFish.push(...generateFish(spec.type, spec.count, idx));
   });
   
-  return React.createElement('g', { opacity: 0.8 },
+  return React.createElement('g', { className: 'marine-life-group', opacity: 0.9 },
     allFish.map(fish => 
       React.createElement('g', { 
         key: fish.id,
+        className: `fish fish-${fish.type}`,
         transform: `translate(${fish.x}, ${fish.y})`,
         style: { 
-          animation: `swim 4s ease-in-out infinite`,
-          animationDelay: `${Math.random() * 2}s`
+          animation: `swimHorizontal 8s ease-in-out infinite, swimVertical 3s ease-in-out infinite`,
+          animationDelay: `${fish.swimDelay}s`
         }
       },
-        // Fish silhouette
+        // Fish body silhouette
         React.createElement('ellipse', {
           cx: 0,
           cy: 0,
           rx: fish.size,
           ry: fish.size * 0.6,
           fill: fish.type === 'squid' ? '#8e44ad' : (fish.type === 'tailor' ? '#2c3e50' : '#34495e'),
-          opacity: 0.7
+          opacity: 0.85,
+          stroke: 'rgba(255,255,255,0.3)',
+          strokeWidth: '1'
         }),
-        // Tail
+        // Tail fin
         React.createElement('path', {
           d: `M ${-fish.size},0 L ${-fish.size - 8},-6 L ${-fish.size - 8},6 Z`,
           fill: fish.type === 'squid' ? '#8e44ad' : '#34495e',
+          opacity: 0.85
+        }),
+        // Dorsal fin (top)
+        React.createElement('path', {
+          d: `M ${-fish.size * 0.3},${-fish.size * 0.6} L ${-fish.size * 0.3 + 5},${-fish.size * 0.9} L ${fish.size * 0.2},${-fish.size * 0.6} Z`,
+          fill: fish.type === 'squid' ? '#9b59b6' : '#45566e',
           opacity: 0.7
         }),
         // Eye
         React.createElement('circle', {
-          cx: fish.size * 0.4,
-          cy: -2,
-          r: 2,
+          cx: fish.size * 0.5,
+          cy: -fish.size * 0.2,
+          r: 2.5,
           fill: 'white'
+        }),
+        React.createElement('circle', {
+          cx: fish.size * 0.5 + 0.5,
+          cy: -fish.size * 0.2,
+          r: 1,
+          fill: '#222'
         })
       )
     ),
+    // Swimming animation keyframes
     React.createElement('style', null, `
-      @keyframes swim {
-        0%, 100% { transform: translateX(0) translateY(0); }
-        25% { transform: translateX(30px) translateY(-10px); }
-        50% { transform: translateX(60px) translateY(0); }
-        75% { transform: translateX(30px) translateY(10px); }
+      @keyframes swimHorizontal {
+        0%, 100% { transform: translateX(0) scaleX(1); }
+        25% { transform: translateX(50px) scaleX(1); }
+        50% { transform: translateX(100px) scaleX(-1); }
+        75% { transform: translateX(50px) scaleX(-1); }
+      }
+      @keyframes swimVertical {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
       }
     `)
   );
@@ -733,32 +899,46 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
     preserveAspectRatio: 'xMidYMid slice',
     style: { width: '100%', height: '100%' }
   },
+    // Sky gradient definition
     React.createElement(SkyGradient, { timeOfDay: time, cloudCover: clouds, isStormy: isStormy }),
+    
+    // Sky background
     React.createElement('rect', { width: '100%', height: '100%', fill: 'url(#skyGradient)' }),
+    
+    // Celestial objects (Sun and Moon)
     React.createElement(Sun, { timeOfDay: time, cloudCover: clouds }),
     React.createElement(Moon, { phase: moonPhase, timeOfDay: time, cloudCover: clouds }),
+    
+    // Landscape background (hills, shore, etc.)
     React.createElement(LandscapeBackground, { landscapeType: landscapeType, waterY: waterY }),
+    
+    // Atmospheric effects
     React.createElement(Clouds, { cover: clouds, windSpeed: windSpeed, windDir: windDir }),
     React.createElement(Birds, { landscapeType: landscapeType, timeOfDay: time }),
     
-    // Underwater environment and marine life
+    // Underwater environment and gradient
     React.createElement(UnderwaterView, { waterY: waterY, tideLevel: tide }),
-    React.createElement(MarineLife, { tideLevel: tide, timeOfDay: time, waterY: waterY }),
     
-    // Water surface
+    // Water surface (must render before fish so fish can appear above water)
     React.createElement(Water, { tideLevel: tide, windSpeed: windSpeed, landscapeType: landscapeType }),
     
-    // Tide height markers (left side)
+    // Marine life (fish) - now rendered AFTER water so they appear on top
+    React.createElement(MarineLife, { tideLevel: tide, timeOfDay: time, waterY: waterY }),
+    
+    // Tide height markers (left side of scene)
     React.createElement(TideHeightMarkers, { tideLevel: tide, waterY: waterY }),
     
-    // Jetty and fisherman
-    React.createElement('g', { transform: 'translate(0, 5)' },
+    // Jetty structure and fisherman
+    React.createElement('g', { className: 'jetty-group', transform: 'translate(0, 5)' },
+      // Left jetty support pillar
       React.createElement('rect', { x: '1450', y: '280', width: '10', height: '140', fill: '#5d4037' }),
+      // Right jetty support pillar
       React.createElement('rect', { x: '1750', y: '280', width: '10', height: '140', fill: '#5d4037' }),
-      React.createElement('g', { transform: 'translate(1600, 280)' },
+      // Center jetty pole with tide indicators
+      React.createElement('g', { className: 'center-pole', transform: 'translate(1600, 280)' },
         React.createElement('rect', { x: '0', y: '0', width: '12', height: '140', fill: '#4e342e' }),
         [...Array(8)].map((_, i) => React.createElement('rect', { key: i, x: '2', y: 15 + (i * 15), width: '8', height: '2', fill: 'white', opacity: '0.5' })),
-        React.createElement('g', { transform: `translate(0, ${Math.max(0, waterY - 280)})` },
+        React.createElement('g', { className: 'tide-flow-indicator', transform: `translate(0, ${Math.max(0, waterY - 280)})` },
           tideStats.flow !== 0 && React.createElement('g', null,
             React.createElement('path', { 
               d: tideStats.flow > 0 ? 'M-15,5 L-5,5 M15,5 L25,5' : 'M-5,5 L-15,5 M25,5 L15,5',
@@ -778,13 +958,38 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
           )
         )
       ),
-      React.createElement('rect', { x: '1400', y: '288', width: '400', height: '18', fill: '#795548' }),
-      React.createElement('rect', { x: '1400', y: '280', width: '400', height: '8', fill: '#8d6e63' }),
-      React.createElement(TackleBox, { onJettyX: 1400, onJettyY: 288 }),
+      // Jetty deck planking (base layer)
+      React.createElement('rect', { className: 'jetty-deck-base', x: '1400', y: '288', width: '400', height: '18', fill: '#795548' }),
+      // Jetty deck top layer
+      React.createElement('rect', { className: 'jetty-deck-top', x: '1400', y: '280', width: '400', height: '8', fill: '#8d6e63' }),
+      // Tackle box on jetty
+      React.createElement(TackleBox, { onJettyX: 1600, onJettyY: 288 }),
+      // White bucket for caught fish (positioned behind fisherman)
+      React.createElement('g', { className: 'fish-bucket', transform: 'translate(1700, 288)' },
+        // Bucket body
+        React.createElement('ellipse', { cx: '0', cy: '15', rx: '15', ry: '8', fill: '#f0f0f0', stroke: '#ddd', strokeWidth: '2' }),
+        React.createElement('rect', { x: '-15', y: '15', width: '30', height: '20', fill: '#f8f8f8' }),
+        React.createElement('rect', { x: '-15', y: '15', width: '30', height: '20', fill: 'url(#bucketGradient)' }),
+        // Bucket rim
+        React.createElement('ellipse', { cx: '0', cy: '35', rx: '16', ry: '8', fill: '#e0e0e0' }),
+        // Bucket handle
+        React.createElement('path', { d: 'M-12,15 Q0,0 12,15', stroke: '#aaa', strokeWidth: '3', fill: 'none' }),
+        // Gradient definition for bucket
+        React.createElement('defs', null,
+          React.createElement('linearGradient', { id: 'bucketGradient', x1: '0%', y1: '0%', x2: '0%', y2: '100%' },
+            React.createElement('stop', { offset: '0%', stopColor: '#ffffff', stopOpacity: '0' }),
+            React.createElement('stop', { offset: '100%', stopColor: '#cccccc', stopOpacity: '0.3' })
+          )
+        )
+      ),
+      // Fisherman on jetty
       React.createElement(Fisherman, { onJettyX: 1400, onJettyY: 288 })
     ),
+    // Wind indicator (repositioned to be visible on screen)
     React.createElement(WindIndicator, { speed: windSpeed, direction: windDir }),
+    // Rain effect
     React.createElement(Rain, { intensity: rain, windSpeed: windSpeed, windDir: windDir }),
+    // Lightning flash effect during storms
     isStormy && rain > 80 && React.createElement('rect', { width: '100%', height: '100%', fill: 'white', opacity: '0' },
       React.createElement('animate', { 
         attributeName: 'opacity', 
