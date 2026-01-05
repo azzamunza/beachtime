@@ -1416,6 +1416,14 @@ function drawOverlaidChart(scores) {
     var maxRadiusHorizontal = cx - sidePadding;
     var maxAllowedRadius = Math.min(maxRadiusVertical, maxRadiusHorizontal);
     
+    // Check which datasets are enabled (for fishing page dataset controls)
+    var activeDatasets = window.activeDatasets || {
+        temperature: true,
+        windSpeed: true,
+        cloudCover: true,
+        rain: true
+    };
+    
     // Calculate inner radius and layer height
     var innerRadius = maxAllowedRadius * 0.25; // Inner radius is 25% of max radius
     var maxHeight = maxAllowedRadius - innerRadius; // All data uses the same 0-1 range
@@ -1450,24 +1458,39 @@ function drawOverlaidChart(scores) {
         // All metrics share the same inner boundary
         innerPoints.push({ angle: angle, radius: innerRadius });
         
-        // Each metric has its own outer boundary based on its score
-        tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
-        waterPoints.push({ angle: angle, radius: innerRadius + waterLayerHeight });
-        windPoints.push({ angle: angle, radius: innerRadius + windLayerHeight });
-        cloudPoints.push({ angle: angle, radius: innerRadius + cloudLayerHeight });
+        // Each metric has its own outer boundary based on its score (only if enabled)
+        if (activeDatasets.temperature) {
+            tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
+            waterPoints.push({ angle: angle, radius: innerRadius + waterLayerHeight });
+        }
+        if (activeDatasets.windSpeed || activeDatasets.wind) {
+            windPoints.push({ angle: angle, radius: innerRadius + windLayerHeight });
+        }
+        if (activeDatasets.cloudCover) {
+            cloudPoints.push({ angle: angle, radius: innerRadius + cloudLayerHeight });
+        }
     }
     
-    // Create smooth curves for all boundaries
-    var smoothTemp = createSmoothPath(tempPoints, 10);
-    var smoothWater = createSmoothPath(waterPoints, 10);
-    var smoothWind = createSmoothPath(windPoints, 10);
-    var smoothCloud = createSmoothPath(cloudPoints, 10);
+    // Create smooth curves for all boundaries (only for enabled datasets)
+    var smoothTemp, smoothWater, smoothWind, smoothCloud;
     var smoothInner = createSmoothPath(innerPoints, 10);
     
-    // Draw precipitation droplets in background (for each hour segment)
-    for (var i = 0; i < scores.length - 1; i++) {
-        var s = scores[i];
-        var precipIntensity = s.precipitation / 100;
+    if (activeDatasets.temperature && tempPoints.length > 0) {
+        smoothTemp = createSmoothPath(tempPoints, 10);
+        smoothWater = createSmoothPath(waterPoints, 10);
+    }
+    if ((activeDatasets.windSpeed || activeDatasets.wind) && windPoints.length > 0) {
+        smoothWind = createSmoothPath(windPoints, 10);
+    }
+    if (activeDatasets.cloudCover && cloudPoints.length > 0) {
+        smoothCloud = createSmoothPath(cloudPoints, 10);
+    }
+    
+    // Draw precipitation droplets in background (for each hour segment) - only if enabled
+    if (activeDatasets.rain) {
+        for (var i = 0; i < scores.length - 1; i++) {
+            var s = scores[i];
+            var precipIntensity = s.precipitation / 100;
         
         if (precipIntensity > 0) {
             var t1 = i / (scores.length - 1);
@@ -1501,86 +1524,100 @@ function drawOverlaidChart(scores) {
             }
         }
     }
+    }
     
-    // Draw cloud cover ring (bottom layer) - #c1cad9
-    ctx.fillStyle = 'rgba(193, 202, 217, 0.3)';
-    ctx.beginPath();
-    for (var i = 0; i < smoothCloud.length; i++) {
-        var x = cx + Math.cos(smoothCloud[i].angle) * smoothCloud[i].radius;
-        var y = cy + Math.sin(smoothCloud[i].angle) * smoothCloud[i].radius;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+    // Draw cloud cover ring (bottom layer) - #c1cad9 - only if enabled
+    if (activeDatasets.cloudCover && smoothCloud) {
+        ctx.fillStyle = 'rgba(193, 202, 217, 0.3)';
+        ctx.beginPath();
+        for (var i = 0; i < smoothCloud.length; i++) {
+            var x = cx + Math.cos(smoothCloud[i].angle) * smoothCloud[i].radius;
+            var y = cy + Math.sin(smoothCloud[i].angle) * smoothCloud[i].radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        for (var i = smoothInner.length - 1; i >= 0; i--) {
+            var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+            var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(140, 150, 170, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
-    for (var i = smoothInner.length - 1; i >= 0; i--) {
-        var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
-        var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
-        ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(140, 150, 170, 0.8)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
     
-    // Draw water temp ring - #1F5FA8
-    ctx.fillStyle = 'rgba(31, 95, 168, 0.3)';
-    ctx.beginPath();
-    for (var i = 0; i < smoothWater.length; i++) {
-        var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
-        var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+    // Draw water temp ring - #1F5FA8 - only if temperature is enabled
+    if (activeDatasets.temperature && smoothWater) {
+        ctx.fillStyle = 'rgba(31, 95, 168, 0.3)';
+        ctx.beginPath();
+        for (var i = 0; i < smoothWater.length; i++) {
+            var x = cx + Math.cos(smoothWater[i].angle) * smoothWater[i].radius;
+            var y = cy + Math.sin(smoothWater[i].angle) * smoothWater[i].radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        for (var i = smoothInner.length - 1; i >= 0; i--) {
+            var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+            var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(15, 50, 120, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
-    for (var i = smoothInner.length - 1; i >= 0; i--) {
-        var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
-        var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
-        ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(15, 50, 120, 0.8)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
     
-    // Draw wind ring - #32dbae
-    ctx.fillStyle = 'rgba(50, 219, 174, 0.3)';
-    ctx.beginPath();
-    for (var i = 0; i < smoothWind.length; i++) {
-        var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
-        var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+    // Draw wind ring - #32dbae - only if enabled
+    if ((activeDatasets.windSpeed || activeDatasets.wind) && smoothWind) {
+        ctx.fillStyle = 'rgba(50, 219, 174, 0.3)';
+        ctx.beginPath();
+        for (var i = 0; i < smoothWind.length; i++) {
+            var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
+            var y = cy + Math.sin(smoothWind[i].angle) * smoothWind[i].radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        for (var i = smoothInner.length - 1; i >= 0; i--) {
+            var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+            var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(20, 150, 120, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
-    for (var i = smoothInner.length - 1; i >= 0; i--) {
-        var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
-        var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
-        ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(20, 150, 120, 0.8)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
     
-    // Draw temperature ring (top layer) - #F28C28
-    ctx.fillStyle = 'rgba(242, 140, 40, 0.3)';
-    ctx.beginPath();
-    for (var i = 0; i < smoothTemp.length; i++) {
-        var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
-        var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+    // Draw temperature ring (top layer) - #F28C28 - only if enabled
+    if (activeDatasets.temperature && smoothTemp) {
+        ctx.fillStyle = 'rgba(242, 140, 40, 0.3)';
+        ctx.beginPath();
+        for (var i = 0; i < smoothTemp.length; i++) {
+            var x = cx + Math.cos(smoothTemp[i].angle) * smoothTemp[i].radius;
+            var y = cy + Math.sin(smoothTemp[i].angle) * smoothTemp[i].radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        for (var i = smoothInner.length - 1; i >= 0; i--) {
+            var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+            var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+            ctx.lineTo(x, y);
+        }
+        for (var i = smoothInner.length - 1; i >= 0; i--) {
+            var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
+            var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(200, 100, 20, 0.8)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
     }
-    for (var i = smoothInner.length - 1; i >= 0; i--) {
-        var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
-        var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
-        ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(200, 100, 20, 0.8)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
     
     // Draw the inner boundary circle
     ctx.strokeStyle = 'rgba(200, 200, 200, 0.5)';
@@ -1600,8 +1637,12 @@ function drawOverlaidChart(scores) {
         var t = i / (scores.length - 1);
         var angle = startAngle + t * angleRange;
         
-        // Find the outermost radius for this angle (maximum of all metrics)
-        var maxRadius = Math.max(tempPoints[i].radius, windPoints[i].radius, waterPoints[i].radius, cloudPoints[i].radius);
+        // Find the outermost radius for this angle (maximum of all enabled metrics)
+        var maxRadius = innerRadius;
+        if (activeDatasets.temperature && tempPoints[i]) maxRadius = Math.max(maxRadius, tempPoints[i].radius);
+        if ((activeDatasets.windSpeed || activeDatasets.wind) && windPoints[i]) maxRadius = Math.max(maxRadius, windPoints[i].radius);
+        if (activeDatasets.temperature && waterPoints[i]) maxRadius = Math.max(maxRadius, waterPoints[i].radius);
+        if (activeDatasets.cloudCover && cloudPoints[i]) maxRadius = Math.max(maxRadius, cloudPoints[i].radius);
         
         // Draw radial line from inner to outer
         ctx.strokeStyle = 'rgba(200,200,200,0.3)';
