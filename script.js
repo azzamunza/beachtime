@@ -994,7 +994,10 @@ function drawRadialSpline(scores) {
     var availableSpace = maxAllowedRadius - innerRadius;
     var cloudMargin = availableSpace * 0.1; // 10% margin before cloud layer
     var cloudLayerHeight = availableSpace * 0.2; // 20% for cloud layer
-    var maxHeight = (availableSpace - cloudMargin - cloudLayerHeight) / (dataLayers + 1); // +1 for water temp
+    // Water temp is included in dataLayers count if temperature is enabled
+    var totalDataLayers = dataLayers;
+    if (activeDatasets.temperature) totalDataLayers++; // Add 1 for water temp layer
+    var maxHeight = (availableSpace - cloudMargin - cloudLayerHeight) / totalDataLayers;
     
     ctx.clearRect(0, 0, width, height);
     
@@ -1314,7 +1317,9 @@ function drawRadialSpline(scores) {
     
     // Wind label (at appropriate offset) - only if enabled
     if (activeDatasets.windSpeed || activeDatasets.wind) {
-        var windOffset = activeDatasets.temperature ? 2 : 0;
+        // Wind offset: 2 layers if temperature is enabled (temp + water), 0 otherwise
+        var tempLayerCount = 2; // temperature + water
+        var windOffset = activeDatasets.temperature ? tempLayerCount : 0;
         ctx.save();
         var windLabelAngle = startAngle + 0.1;
         var windLabelRadius = innerRadius + windOffset * maxHeight;
