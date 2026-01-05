@@ -741,7 +741,12 @@ function calculateDayScores(dayData) {
     for (var i = 0; i < dayData.hours.length; i++) {
         var tempScore = calculateRating(dayData.temp[i], [idealRanges.temperature.idealMin, idealRanges.temperature.idealMax], idealRanges.temperature.min, idealRanges.temperature.max);
         var windScore = calculateRating(dayData.wind[i], [idealRanges.wind.idealMin, idealRanges.wind.idealMax], idealRanges.wind.min, idealRanges.wind.max);
-        var waterScore = calculateRating(dayData.water[i], [idealRanges.water.idealMin, idealRanges.water.idealMax], idealRanges.water.min, idealRanges.water.max);
+        
+        // Water score - only if water data exists (beach page)
+        var waterScore = 0;
+        if (dayData.water && dayData.water[i] !== undefined) {
+            waterScore = calculateRating(dayData.water[i], [idealRanges.water.idealMin, idealRanges.water.idealMax], idealRanges.water.min, idealRanges.water.max);
+        }
         
         // Precipitation: lower is better (0% = 1.0 score, 100% = 0.0 score)
         var precipScore = 1 - (dayData.precipitation[i] / 100);
@@ -756,7 +761,7 @@ function calculateDayScores(dayData) {
         // Multiply all factors together - if any factor is 0, rating approaches 0
         // Apply weights by raising each score to the power of its weight
         var weightedTempScore = Math.pow(tempScore, ratingWeights.temperature);
-        var weightedWaterScore = Math.pow(waterScore, ratingWeights.water);
+        var weightedWaterScore = waterScore > 0 ? Math.pow(waterScore, ratingWeights.water) : 1; // Skip if no water data
         var weightedWindScore = Math.pow(windScore, ratingWeights.wind);
         var weightedCloudScore = Math.pow(cloudScore, ratingWeights.cloud);
         var weightedPrecipScore = Math.pow(precipScore, ratingWeights.precipitation);
@@ -764,21 +769,38 @@ function calculateDayScores(dayData) {
         var normalizedRating = weightedTempScore * weightedWaterScore * weightedWindScore * weightedCloudScore * weightedPrecipScore;
         normalizedRating = Math.max(0, Math.min(1, normalizedRating)); // Clamp to [0, 1]
         
-        scores.push({
+        var scoreData = {
             hour: dayData.hours[i],
             temp: dayData.temp[i],
             wind: dayData.wind[i],
-            water: dayData.water[i],
             precipitation: dayData.precipitation[i],
             cloudCover: cloudCoverValue,
             tempScore: tempScore,
             windScore: windScore,
-            waterScore: waterScore,
             precipScore: precipScore,
             cloudCoverNormalized: cloudCoverValue / 100,
             cloudScore: cloudScore,
             normalizedRating: normalizedRating
-        });
+        };
+        
+        // Add water data if it exists (beach page)
+        if (dayData.water && dayData.water[i] !== undefined) {
+            scoreData.water = dayData.water[i];
+            scoreData.waterScore = waterScore;
+        }
+        
+        // Add fishing-specific data if it exists
+        if (dayData.pressure && dayData.pressure[i] !== undefined) {
+            scoreData.pressure = dayData.pressure[i];
+        }
+        if (dayData.waveHeight && dayData.waveHeight[i] !== undefined) {
+            scoreData.waveHeight = dayData.waveHeight[i];
+        }
+        if (dayData.tideHeight && dayData.tideHeight[i] !== undefined) {
+            scoreData.tideHeight = dayData.tideHeight[i];
+        }
+        
+        scores.push(scoreData);
     }
     // Sort scores by hour to ensure chronological order (7am to 7pm)
     scores.sort(function(a, b) { return a.hour - b.hour; });
@@ -869,6 +891,10 @@ function renderTimeline(scores, timelineId) {
     
     timeline.innerHTML = '';
     
+    // Check if we have active datasets for fishing page
+    var activeDatasets = window.activeDatasets || {};
+    var isFishingPage = timelineId && timelineId.includes('Fishing');
+    
     for (var i = 0; i < scores.length; i++) {
         var s = scores[i];
         
@@ -880,55 +906,101 @@ function renderTimeline(scores, timelineId) {
         timeDiv.textContent = formatTime(s.hour);
         item.appendChild(timeDiv);
         
-        // Precipitation
-        var precipDiv = document.createElement('div');
-        precipDiv.className = 'timeline-data-item precip';
-        var precipIcon = document.createElement('span');
-        precipIcon.className = 'icon';
-        precipIcon.textContent = '💧';
-        precipDiv.appendChild(precipIcon);
-        precipDiv.appendChild(document.createTextNode(' ' + s.precipitation + '%'));
-        item.appendChild(precipDiv);
+        // Pressure (fishing only)
+        if (isFishingPage && activeDatasets.pressure !== false && s.pressure !== undefined) {
+            var pressureDiv = document.createElement('div');
+            pressureDiv.className = 'timeline-data-item pressure';
+            var pressureIcon = document.createElement('span');
+            pressureIcon.className = 'icon';
+            pressureIcon.textContent = '🔵';
+            pressureDiv.appendChild(pressureIcon);
+            pressureDiv.appendChild(document.createTextNode(' ' + (s.pressure || 'N/A') + ' hPa'));
+            item.appendChild(pressureDiv);
+        }
+        
+        // Precipitation / Rain
+        if (!isFishingPage || activeDatasets.rain !== false) {
+            var precipDiv = document.createElement('div');
+            precipDiv.className = 'timeline-data-item precip';
+            var precipIcon = document.createElement('span');
+            precipIcon.className = 'icon';
+            precipIcon.textContent = '💧';
+            precipDiv.appendChild(precipIcon);
+            precipDiv.appendChild(document.createTextNode(' ' + s.precipitation + '%'));
+            item.appendChild(precipDiv);
+        }
         
         // Cloud Cover
-        var cloudDiv = document.createElement('div');
-        cloudDiv.className = 'timeline-data-item cloud';
-        var cloudIcon = document.createElement('span');
-        cloudIcon.className = 'icon';
-        cloudIcon.textContent = '☁️';
-        cloudDiv.appendChild(cloudIcon);
-        cloudDiv.appendChild(document.createTextNode(' ' + s.cloudCover + '%'));
-        item.appendChild(cloudDiv);
+        if (!isFishingPage || activeDatasets.cloudCover !== false) {
+            var cloudDiv = document.createElement('div');
+            cloudDiv.className = 'timeline-data-item cloud';
+            var cloudIcon = document.createElement('span');
+            cloudIcon.className = 'icon';
+            cloudIcon.textContent = '☁️';
+            cloudDiv.appendChild(cloudIcon);
+            cloudDiv.appendChild(document.createTextNode(' ' + s.cloudCover + '%'));
+            item.appendChild(cloudDiv);
+        }
         
         // Wind Speed
-        var windDiv = document.createElement('div');
-        windDiv.className = 'timeline-data-item wind';
-        var windIcon = document.createElement('span');
-        windIcon.className = 'icon';
-        windIcon.textContent = '💨';
-        windDiv.appendChild(windIcon);
-        windDiv.appendChild(document.createTextNode(' ' + s.wind + ' km/h'));
-        item.appendChild(windDiv);
+        if (!isFishingPage || activeDatasets.windSpeed !== false) {
+            var windDiv = document.createElement('div');
+            windDiv.className = 'timeline-data-item wind';
+            var windIcon = document.createElement('span');
+            windIcon.className = 'icon';
+            windIcon.textContent = '💨';
+            windDiv.appendChild(windIcon);
+            windDiv.appendChild(document.createTextNode(' ' + s.wind + ' km/h'));
+            item.appendChild(windDiv);
+        }
         
-        // Water Temperature
-        var waterDiv = document.createElement('div');
-        waterDiv.className = 'timeline-data-item water';
-        var waterIcon = document.createElement('span');
-        waterIcon.className = 'icon';
-        waterIcon.textContent = '🌊';
-        waterDiv.appendChild(waterIcon);
-        waterDiv.appendChild(document.createTextNode(' ' + s.water + '°C'));
-        item.appendChild(waterDiv);
+        // Wave Height (fishing only)
+        if (isFishingPage && activeDatasets.waveHeight !== false && s.waveHeight !== undefined) {
+            var waveDiv = document.createElement('div');
+            waveDiv.className = 'timeline-data-item wave';
+            var waveIcon = document.createElement('span');
+            waveIcon.className = 'icon';
+            waveIcon.textContent = '🌊';
+            waveDiv.appendChild(waveIcon);
+            waveDiv.appendChild(document.createTextNode(' ' + (s.waveHeight || 'N/A') + ' m'));
+            item.appendChild(waveDiv);
+        }
+        
+        // Tide (fishing only)
+        if (isFishingPage && activeDatasets.tide !== false && s.tideHeight !== undefined) {
+            var tideDiv = document.createElement('div');
+            tideDiv.className = 'timeline-data-item tide';
+            var tideIcon = document.createElement('span');
+            tideIcon.className = 'icon';
+            tideIcon.textContent = '🌊';
+            tideDiv.appendChild(tideIcon);
+            tideDiv.appendChild(document.createTextNode(' ' + (s.tideHeight || 'N/A') + '%'));
+            item.appendChild(tideDiv);
+        }
+        
+        // Water Temperature (beach page)
+        if (!isFishingPage) {
+            var waterDiv = document.createElement('div');
+            waterDiv.className = 'timeline-data-item water';
+            var waterIcon = document.createElement('span');
+            waterIcon.className = 'icon';
+            waterIcon.textContent = '🌊';
+            waterDiv.appendChild(waterIcon);
+            waterDiv.appendChild(document.createTextNode(' ' + s.water + '°C'));
+            item.appendChild(waterDiv);
+        }
         
         // Air Temperature
-        var tempDiv = document.createElement('div');
-        tempDiv.className = 'timeline-data-item temp';
-        var tempIcon = document.createElement('span');
-        tempIcon.className = 'icon';
-        tempIcon.textContent = '☀️';
-        tempDiv.appendChild(tempIcon);
-        tempDiv.appendChild(document.createTextNode(' ' + s.temp + '°C'));
-        item.appendChild(tempDiv);
+        if (!isFishingPage || activeDatasets.temperature !== false) {
+            var tempDiv = document.createElement('div');
+            tempDiv.className = 'timeline-data-item temp';
+            var tempIcon = document.createElement('span');
+            tempIcon.className = 'icon';
+            tempIcon.textContent = '☀️';
+            tempDiv.appendChild(tempIcon);
+            tempDiv.appendChild(document.createTextNode(' ' + s.temp + '°C'));
+            item.appendChild(tempDiv);
+        }
         
         timeline.appendChild(item);
     }
