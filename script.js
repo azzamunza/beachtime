@@ -1607,11 +1607,6 @@ function drawOverlaidChart(scores) {
             var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
             ctx.lineTo(x, y);
         }
-        for (var i = smoothInner.length - 1; i >= 0; i--) {
-            var x = cx + Math.cos(smoothInner[i].angle) * smoothInner[i].radius;
-            var y = cy + Math.sin(smoothInner[i].angle) * smoothInner[i].radius;
-            ctx.lineTo(x, y);
-        }
         ctx.closePath();
         ctx.fill();
         ctx.strokeStyle = 'rgba(200, 100, 20, 0.8)';
