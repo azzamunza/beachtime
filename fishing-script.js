@@ -933,7 +933,19 @@ function calculateTideHeightForTime(timeOfDay) {
     targetDate.setMinutes((timeOfDay % 1) * 60);
     
     try {
-        // Use tide harmonic prediction if available
+        // Try to use CSV tide data first if available
+        if (typeof getTideHeightAtTime === 'function' && typeof tideCSVData !== 'undefined' && tideCSVData.length > 0) {
+            var locationName = currentFishingLocation.name || 'FREMANTLE';
+            var heightMeters = getTideHeightAtTime(locationName, targetDate);
+            
+            if (heightMeters !== null) {
+                // Convert to percentage using the tideHeightToPercentage function
+                var heightPercent = tideHeightToPercentage(heightMeters);
+                return heightPercent;
+            }
+        }
+        
+        // Use tide harmonic prediction if CSV not available
         if (typeof predictTideHeight === 'function') {
             var heightMeters = predictTideHeight(currentTideStation, targetDate);
             // Convert to percentage (assuming 0-2m range, normalized to 0-100%)

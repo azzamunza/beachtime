@@ -1,5 +1,62 @@
 # Data Directory
 
+## tides.csv
+
+⚠️ **IMPORTANT UPDATE: The current CSV was generated using harmonic predictions, NOT extracted from the PNG files.**
+
+The PNG files in the `../tides` directory contain the actual Bureau of Meteorology tide predictions with the correct times and heights. The structure of these PNG files is documented in [TIDE_PNG_STRUCTURE.md](../TIDE_PNG_STRUCTURE.md).
+
+**Current Status**:
+- ✅ CSV structure and format are correct
+- ❌ Data values are from harmonic predictions (phase errors)
+- ❌ NOT extracted from BOM PNG images
+
+**To Get Accurate Data**:
+1. Extract data manually from PNG images using [MANUAL_TIDE_EXTRACTION.md](../MANUAL_TIDE_EXTRACTION.md)
+2. Use OCR with the structure guide in [TIDE_PNG_STRUCTURE.md](../TIDE_PNG_STRUCTURE.md)
+3. Use official BOM sources or validated online tide services
+
+**For Accurate Tides**: Use the PNG images in `../tides/` directory or official BOM sources listed in [ONLINE_TIDE_COMPARISON.md](../ONLINE_TIDE_COMPARISON.md).
+
+### Format
+
+Each row contains:
+- `location`: Location name (e.g., "FREMANTLE HARBOUR", "HILLARYS BOAT HARBOUR")
+- `latitude`: Latitude in decimal degrees (negative for South)
+- `longitude`: Longitude in decimal degrees (positive for East)
+- `date`: Date in YYYY-MM-DD format
+- `time`: Time in HH:MM:SS format (24-hour)
+- `height`: Tide height in meters relative to datum
+
+### Locations Included
+
+- Fremantle Harbour
+- Hillarys Boat Harbour
+- Perth (Swan River)
+- Bunbury
+- Geraldton
+- Esperance
+- Albany
+- Broome
+- Port Hedland
+- Exmouth
+
+### Usage
+
+Load and use tide data in JavaScript:
+
+```javascript
+// Fetch tide data
+fetch('data/tides.csv')
+  .then(response => response.text())
+  .then(csvText => {
+    // Parse CSV and use tide data
+    const tides = parseCSV(csvText);
+    // Filter for specific location
+    const fremantleTides = tides.filter(t => t.location === 'FREMANTLE HARBOUR');
+  });
+```
+
 ## tide-stations.json
 
 Tidal harmonic constituents for Australian coastal locations.
