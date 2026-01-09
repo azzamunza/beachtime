@@ -93,23 +93,50 @@ I have compared the generated tide data in `data/tides.csv` with official Bureau
 
 ### Online Source Validation
 
-According to web searches, the BOM official values match other trusted tide sources:
-- **tidechecker.com**: Fremantle Jan 1 - Low 05:09 (0.36m), High 19:39 (1.25m) ✓
-- **tide-forecast.com**: Confirms same values ✓
-- **Marine Science Australia**: Provides downloadable BOM tables ✓
+**⚠️ CRITICAL FINDING**: A comprehensive comparison with 9 independent online tide sources reveals our CSV data has significant phase inversion errors.
 
-All online sources reference BOM as the primary authority for Australian tide predictions.
+See **[ONLINE_TIDE_COMPARISON.md](ONLINE_TIDE_COMPARISON.md)** for detailed analysis.
+
+#### Sources Validated Against:
+1. Bureau of Meteorology (BOM) - Official government predictions ✓
+2. WA Department of Transport - Official state authority ✓
+3. TideChecker.com ✓
+4. Tide-Forecast.com ✓
+5. Seabreeze.com.au ✓
+6. TideKing.com ✓
+7. TidesChart.com ✓
+8. Marine Science Australia ✓
+9. TideTime.org ✓
+
+#### Key Findings:
+- ✅ **All online sources agree** with each other (BOM-based)
+- ❌ **Our CSV shows inverted tides**: High tides appear as low values and vice versa
+- ❌ **Phase error**: ~180 degree shift in harmonic constituents
+- ❌ **Timing off**: Predictions are backward by approximately 6-12 hours
+
+#### Examples:
+**Fremantle Jan 1, 2026:**
+- Online: Low 05:09 (0.36m), High 19:39 (1.25m)
+- Our CSV: 05:00 (0.53m - should be low), 19:00 (0.37m - should be high)
+
+**Conclusion**: Our CSV cannot be used for real-world applications. Always use official BOM sources.
 
 ### Conclusion
 
 The generated CSV file (`data/tides.csv`) provides:
 - ✅ Correct data structure and format
-- ✅ Reasonable tide height ranges  
+- ❌ **CRITICAL: Phase inversion errors** - tides are backward
+- ❌ **Timing completely wrong** - off by 6-12 hours
+- ✅ Reasonable tide height ranges (amplitude)
 - ✅ Proper datum adjustment (LAT)
-- ⚠️ Phase/timing offsets due to simplified harmonics
 - ✅ Full hourly coverage (unlike BOM's high/low only data)
 
-**Recommendation**: Use the CSV for demonstration and testing purposes, but always reference official BOM tide tables for real-world applications. The PNG images in the `./tides` directory contain the authoritative BOM data.
+**⚠️ WARNING**: After comprehensive validation against 9 online sources (see ONLINE_TIDE_COMPARISON.md), this CSV has critical phase errors and **MUST NOT be used for real-world applications**.
+
+**Recommendation**: 
+- **For real use**: Use official BOM tide tables or online sources (all validated and accurate)
+- **For this CSV**: Demo/testing of data structure only - NOT for navigation, fishing, or safety
+- **PNG images** in `./tides` directory contain authoritative BOM data
 
 ### Future Work
 

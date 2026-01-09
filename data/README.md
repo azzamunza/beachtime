@@ -2,7 +2,13 @@
 
 ## tides.csv
 
+⚠️ **WARNING: This file contains phase inversion errors and should NOT be used for real-world applications.**
+
 Comprehensive tide prediction data for Western Australian coastal locations throughout 2026. This CSV file contains hourly tide height predictions generated using harmonic constituents.
+
+**Validation Status**: After comparison with 9 independent online sources, this data has critical timing/phase errors. See [ONLINE_TIDE_COMPARISON.md](../ONLINE_TIDE_COMPARISON.md) for details.
+
+**For Accurate Tides**: Use official Bureau of Meteorology sources or the PNG images in the `../tides` directory.
 
 ### Format
 
