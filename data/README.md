@@ -1,5 +1,48 @@
 # Data Directory
 
+## tides.csv
+
+Comprehensive tide prediction data for Western Australian coastal locations throughout 2026. This CSV file contains hourly tide height predictions generated using harmonic constituents.
+
+### Format
+
+Each row contains:
+- `location`: Location name (e.g., "FREMANTLE HARBOUR", "HILLARYS BOAT HARBOUR")
+- `latitude`: Latitude in decimal degrees (negative for South)
+- `longitude`: Longitude in decimal degrees (positive for East)
+- `date`: Date in YYYY-MM-DD format
+- `time`: Time in HH:MM:SS format (24-hour)
+- `height`: Tide height in meters relative to datum
+
+### Locations Included
+
+- Fremantle Harbour
+- Hillarys Boat Harbour
+- Perth (Swan River)
+- Bunbury
+- Geraldton
+- Esperance
+- Albany
+- Broome
+- Port Hedland
+- Exmouth
+
+### Usage
+
+Load and use tide data in JavaScript:
+
+```javascript
+// Fetch tide data
+fetch('data/tides.csv')
+  .then(response => response.text())
+  .then(csvText => {
+    // Parse CSV and use tide data
+    const tides = parseCSV(csvText);
+    // Filter for specific location
+    const fremantleTides = tides.filter(t => t.location === 'FREMANTLE HARBOUR');
+  });
+```
+
 ## tide-stations.json
 
 Tidal harmonic constituents for Australian coastal locations.
