@@ -1154,12 +1154,12 @@ function drawRadialSpline(scores) {
         // Scores are 0-1, calculate layer thicknesses for each separate ring
         // Order from center out: Pressure, Temperature, Water Temp, Wind, Wave Height, Tide, Cloud Cover
         
-        var pressureLayerHeight = s.pressureScore ? s.pressureScore * maxHeight : 0;
+        var pressureLayerHeight = (s.pressureScore !== undefined && s.pressureScore !== null) ? s.pressureScore * maxHeight : 0;
         var tempLayerHeight = s.tempScore * maxHeight;
         var waterLayerHeight = s.waterScore * maxHeight;
         var windLayerHeight = s.windScore * maxHeight;
-        var waveHeightLayerHeight = s.waveHeightScore ? s.waveHeightScore * maxHeight : 0;
-        var tideLayerHeight = s.tideScore ? s.tideScore * maxHeight : 0;
+        var waveHeightLayerHeight = (s.waveHeightScore !== undefined && s.waveHeightScore !== null) ? s.waveHeightScore * maxHeight : 0;
+        var tideLayerHeight = (s.tideScore !== undefined && s.tideScore !== null) ? s.tideScore * maxHeight : 0;
         
         // Calculate cloud outer radius based on active layers
         var cloudOuterRadius = innerRadius + totalActiveLayers * maxHeight + cloudMargin + cloudLayerHeight;
@@ -1169,7 +1169,7 @@ function drawRadialSpline(scores) {
         currentLayerOffset = 0;
         
         // Pressure ring: offset 0 (if enabled)
-        if (activeDatasets.pressure && s.pressureScore) {
+        if (activeDatasets.pressure && s.pressureScore !== undefined && s.pressureScore !== null) {
             pressureInnerPoints.push({ angle: angle, radius: innerRadius });
             pressurePoints.push({ angle: angle, radius: innerRadius + pressureLayerHeight });
             currentLayerOffset++;
@@ -1195,14 +1195,14 @@ function drawRadialSpline(scores) {
         }
         
         // Wave height ring: offset based on previous layers (if enabled)
-        if (activeDatasets.waveHeight && s.waveHeightScore) {
+        if (activeDatasets.waveHeight && s.waveHeightScore !== undefined && s.waveHeightScore !== null) {
             waveHeightInnerPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight });
             waveHeightPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight + waveHeightLayerHeight });
             currentLayerOffset++;
         }
         
         // Tide ring: offset based on previous layers (if enabled)
-        if (activeDatasets.tide && s.tideScore) {
+        if (activeDatasets.tide && s.tideScore !== undefined && s.tideScore !== null) {
             tideInnerPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight });
             tidePoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight + tideLayerHeight });
             currentLayerOffset++;

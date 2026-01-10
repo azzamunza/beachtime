@@ -502,7 +502,18 @@ function getAvailableFish(species, currentDate) {
         for (var key in fish) {
             result[key] = fish[key];
         }
-        result.note = fish.restrictions || 'Min ' + fish.minSize + 'cm, Bag limit ' + fish.bagLimit;
+        // Create note from restrictions or construct from minSize and bagLimit if available
+        if (fish.restrictions) {
+            result.note = fish.restrictions;
+        } else if (fish.minSize && fish.bagLimit) {
+            result.note = 'Min ' + fish.minSize + 'cm, Bag limit ' + fish.bagLimit;
+        } else if (fish.minSize) {
+            result.note = 'Min ' + fish.minSize + 'cm';
+        } else if (fish.bagLimit) {
+            result.note = 'Bag limit ' + fish.bagLimit;
+        } else {
+            result.note = 'Check local regulations';
+        }
         return result;
     });
 }
