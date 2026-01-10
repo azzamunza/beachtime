@@ -1002,36 +1002,76 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
     preserveAspectRatio: 'xMidYMid meet',
     style: { width: '100%', height: '100%' }
   },
+    // ==============================================
+    // SECTION 1: SKY AND ATMOSPHERE
+    // ==============================================
+    
     // Sky gradient definition
     React.createElement(SkyGradient, { timeOfDay: time, cloudCover: clouds, isStormy: isStormy }),
     
     // Sky background
     React.createElement('rect', { width: '100%', height: '100%', fill: 'url(#skyGradient)' }),
     
-    // Celestial objects (Sun and Moon)
+    // ==============================================
+    // SECTION 2: CELESTIAL BODIES (Sun, Moon, Stars)
+    // ==============================================
+    
+    // Sun (visible during daytime)
     React.createElement(Sun, { timeOfDay: time, cloudCover: clouds }),
+    
+    // Moon (visible at night, with accurate phase rendering)
     React.createElement(Moon, { phase: moonPhase, timeOfDay: time, cloudCover: clouds }),
     
-    // Landscape background (hills, shore, etc.)
+    // ==============================================
+    // SECTION 3: LANDSCAPE AND BACKGROUND
+    // ==============================================
+    
+    // Landscape background (hills, shore, vegetation) - varies by landscape type
     React.createElement(LandscapeBackground, { landscapeType: landscapeType, waterY: waterY }),
     
-    // Atmospheric effects
+    // ==============================================
+    // SECTION 4: ATMOSPHERIC EFFECTS
+    // ==============================================
+    
+    // Cloud coverage and movement (affected by wind speed and direction)
     React.createElement(Clouds, { cover: clouds, windSpeed: windSpeed, windDir: windDir }),
+    
+    // Birds flying (daytime only, varies by landscape type)
     React.createElement(Birds, { landscapeType: landscapeType, timeOfDay: time }),
     
-    // Underwater environment and gradient
+    // ==============================================
+    // SECTION 5: UNDERWATER ENVIRONMENT
+    // ==============================================
+    
+    // Underwater zone with gradient and kelp/seaweed
     React.createElement(UnderwaterView, { waterY: waterY, tideLevel: tide }),
     
-    // Water surface (must render before fish so fish can appear above water)
+    // ==============================================
+    // SECTION 6: WATER SURFACE
+    // ==============================================
+    
+    // Water surface animation (must render before marine life for proper layering)
     React.createElement(Water, { tideLevel: tide, windSpeed: windSpeed, landscapeType: landscapeType }),
     
-    // Marine life (fish) - now rendered AFTER water so they appear on top
+    // ==============================================
+    // SECTION 7: MARINE LIFE (Fish)
+    // ==============================================
+    
+    // Fish swimming (rendered after water for proper z-index, controlled by time and tide)
     React.createElement(MarineLife, { tideLevel: tide, timeOfDay: time, waterY: waterY }),
+    
+    // ==============================================
+    // SECTION 8: TIDE INDICATORS
+    // ==============================================
     
     // Tide height markers (left side of scene)
     React.createElement(TideHeightMarkers, { tideLevel: tide, waterY: waterY }),
     
-    // Jetty structure and fisherman
+    // ==============================================
+    // SECTION 9: JETTY AND FISHERMAN
+    // ==============================================
+    
+    // Jetty structure with fisherman and fishing equipment
     React.createElement('g', { className: 'jetty-group', transform: 'translate(0, 5)' },
       // Left jetty support pillar
       React.createElement('rect', { x: '870', y: '280', width: '10', height: '140', fill: '#5d4037' }),
@@ -1085,13 +1125,20 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
           )
         )
       ),
-      // Fisherman on jetty
+      // Fisherman on jetty (includes fishing rod, line, lure, and animations)
       React.createElement(Fisherman, { onJettyX: 840, onJettyY: 288 })
     ),
+    
+    // ==============================================
+    // SECTION 10: WEATHER INDICATORS
+    // ==============================================
+    
     // Wind indicator (repositioned to be visible on screen)
     React.createElement(WindIndicator, { speed: windSpeed, direction: windDir }),
-    // Rain effect
+    
+    // Rain effect (visible when precipitation is high)
     React.createElement(Rain, { intensity: rain, windSpeed: windSpeed, windDir: windDir }),
+    
     // Lightning flash effect during storms
     isStormy && rain > 80 && React.createElement('rect', { width: '100%', height: '100%', fill: 'white', opacity: '0' },
       React.createElement('animate', { 
@@ -1102,6 +1149,12 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
         begin: `${Math.random()}s`
       })
     ),
+    
+    // ==============================================
+    // SECTION 11: INFO OVERLAYS
+    // ==============================================
+    
+    // Information display (time, wind, landscape type)
     React.createElement('g', null,
       React.createElement('text', { 
         x: '20', 
@@ -1110,7 +1163,7 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
         fontFamily: 'monospace', 
         fontSize: '13',
         style: { textShadow: '1px 1px 2px black' }
-      }, `TIME: ${Math.floor(time)}:00 | WIND: ${windSpeed}km/h | ${landscapeType.toUpperCase()}`),
+      }, `TIME: ${Math.floor(time)}:${String(Math.round((time % 1) * 60)).padStart(2, '0')} | WIND: ${windSpeed}km/h | ${landscapeType.toUpperCase()}`),
       React.createElement('text', { 
         x: '20', 
         y: '50', 
@@ -1133,6 +1186,14 @@ function initFishingAnimation() {
   const rootElement = document.getElementById('fishing-animation-root');
   if (!rootElement) return;
 
+  // Get current location from hidden inputs
+  const lat = parseFloat(document.getElementById('latitude-fishing')?.value || -31.9688);
+  const lng = parseFloat(document.getElementById('longitude-fishing')?.value || 115.7673);
+  const now = new Date();
+  
+  // Calculate moon phase and position
+  const moonData = getMoonPhaseAndPosition(lat, lng, now);
+
   // Sample data - this should be replaced with actual weather data
   currentAnimationData = {
     tide: 50,
@@ -1140,8 +1201,8 @@ function initFishingAnimation() {
     windDir: 90,
     rain: 0,
     clouds: 30,
-    moonPhase: 0.5,
-    time: new Date().getHours()
+    moonPhase: moonData.phase,
+    time: now.getHours() + now.getMinutes() / 60
   };
 
   const tideStats = {
@@ -1163,11 +1224,25 @@ function initFishingAnimation() {
 function updateFishingAnimationTime(timeOfDay, tideHeight) {
   if (!animationRoot || !currentAnimationData) return;
   
-  // Update time and tide in animation data
+  // Get current location
+  const lat = parseFloat(document.getElementById('latitude-fishing')?.value || -31.9688);
+  const lng = parseFloat(document.getElementById('longitude-fishing')?.value || 115.7673);
+  
+  // Create a date object for the selected time
+  const now = new Date();
+  const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  targetDate.setHours(Math.floor(timeOfDay));
+  targetDate.setMinutes((timeOfDay % 1) * 60);
+  
+  // Calculate moon phase for this time
+  const moonData = getMoonPhaseAndPosition(lat, lng, targetDate);
+  
+  // Update time, tide, and moon phase in animation data
   const updatedData = {
     ...currentAnimationData,
     time: timeOfDay,
-    tide: tideHeight || 50
+    tide: tideHeight || 50,
+    moonPhase: moonData.phase
   };
   
   currentAnimationData = updatedData;
@@ -1217,14 +1292,28 @@ function calculateTideStats(tideHeight, timeOfDay) {
 function updateFishingAnimationData(weatherData, tideData) {
   if (!animationRoot) return;
   
+  // Get current location
+  const lat = parseFloat(document.getElementById('latitude-fishing')?.value || -31.9688);
+  const lng = parseFloat(document.getElementById('longitude-fishing')?.value || 115.7673);
+  
+  // Get current or default time
+  const currentTime = currentAnimationData?.time || new Date().getHours();
+  const now = new Date();
+  const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  targetDate.setHours(Math.floor(currentTime));
+  targetDate.setMinutes((currentTime % 1) * 60);
+  
+  // Calculate moon phase
+  const moonData = getMoonPhaseAndPosition(lat, lng, targetDate);
+  
   currentAnimationData = {
     tide: tideData?.heightPercent || 50,
     windSpeed: weatherData?.windSpeed || 15,
     windDir: weatherData?.windDir || 90,
     rain: weatherData?.rain || 0,
     clouds: weatherData?.clouds || 30,
-    moonPhase: calculateMoonPhase(),
-    time: currentAnimationData?.time || new Date().getHours()
+    moonPhase: moonData.phase,
+    time: currentTime
   };
   
   const tideStats = {
@@ -1241,20 +1330,43 @@ function updateFishingAnimationData(weatherData, tideData) {
   }));
 }
 
-// Calculate current moon phase (0-1)
-function calculateMoonPhase() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
-  const day = now.getDate();
+// Calculate current moon phase (0-1) using accurate astronomical calculations
+function calculateMoonPhase(date = new Date()) {
+  // Use the date provided or current date
+  const targetDate = date instanceof Date ? date : new Date(date);
   
-  // Simplified moon phase calculation
-  const c = Math.floor(365.25 * year);
-  const e = Math.floor(30.6 * month);
-  const jd = c + e + day - 694039.09;
-  const daysSinceNew = jd % 29.53;
+  // Known new moon: January 6, 2000, 18:14 UTC
+  const knownNewMoon = new Date('2000-01-06T18:14:00Z');
+  const synodicMonth = 29.530588853; // Average length of lunar month in days
   
-  return daysSinceNew / 29.53;
+  // Calculate days since known new moon
+  const daysSinceKnownNewMoon = (targetDate.getTime() - knownNewMoon.getTime()) / (1000 * 60 * 60 * 24);
+  
+  // Calculate current phase (0-1, where 0 = new moon, 0.5 = full moon)
+  const phase = (daysSinceKnownNewMoon % synodicMonth) / synodicMonth;
+  
+  return phase;
+}
+
+// Get moon phase and position for a specific location and time
+function getMoonPhaseAndPosition(latitude, longitude, dateTime) {
+  const phase = calculateMoonPhase(dateTime);
+  
+  // Calculate moon position in sky (simplified calculation)
+  // Moon rises ~50 minutes later each day
+  const date = dateTime instanceof Date ? dateTime : new Date(dateTime);
+  const hour = date.getHours() + date.getMinutes() / 60;
+  
+  // Moon visibility calculation
+  const isDaytime = hour >= 6 && hour < 18;
+  const isTwilight = (hour >= 5 && hour < 7) || (hour >= 18 && hour < 20);
+  
+  return {
+    phase: phase,
+    illumination: phase < 0.5 ? phase * 2 : (1 - phase) * 2, // 0 to 1
+    isVisible: !isDaytime || isTwilight,
+    timeOfDay: hour
+  };
 }
 
 // Export for use in main app
