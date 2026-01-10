@@ -4,6 +4,11 @@ var isLoading = true;
 var searchController;
 var viewMode = 'daily'; // 'daily' or 'weekly'
 
+// Chart color scheme (for future refactoring: consider extracting to config object)
+// Pressure: #667eea (blue-purple), Temperature: #F28C28 (orange), Water: #1F5FA8 (dark blue)
+// Wind: #7FB3D5 (light blue), Wave Height: #1F5FA8 (dark blue), Tide: #32dbae (teal)
+// Cloud: #c1cad9 (light gray), Rain: #7993e8 (blue)
+
 // Weight factors for normalized rating calculation
 var ratingWeights = {
     temperature: 1.5,
@@ -1154,10 +1159,13 @@ function drawRadialSpline(scores) {
         // Scores are 0-1, calculate layer thicknesses for each separate ring
         // Order from center out: Pressure, Temperature, Water Temp, Wind, Wave Height, Tide, Cloud Cover
         
+        // Fishing-specific scores (pressure, waveHeight, tide) may be undefined - use explicit null checks
         var pressureLayerHeight = (s.pressureScore !== undefined && s.pressureScore !== null) ? s.pressureScore * maxHeight : 0;
+        // Core scores (temp, water, wind) are always present from weather data
         var tempLayerHeight = s.tempScore * maxHeight;
         var waterLayerHeight = s.waterScore * maxHeight;
         var windLayerHeight = s.windScore * maxHeight;
+        // Fishing-specific scores (continued)
         var waveHeightLayerHeight = (s.waveHeightScore !== undefined && s.waveHeightScore !== null) ? s.waveHeightScore * maxHeight : 0;
         var tideLayerHeight = (s.tideScore !== undefined && s.tideScore !== null) ? s.tideScore * maxHeight : 0;
         
