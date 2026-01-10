@@ -4,6 +4,11 @@ var isLoading = true;
 var searchController;
 var viewMode = 'daily'; // 'daily' or 'weekly'
 
+// Chart color scheme (for future refactoring: consider extracting to config object)
+// Pressure: #667eea (blue-purple), Temperature: #F28C28 (orange), Water: #1F5FA8 (dark blue)
+// Wind: #7FB3D5 (light blue), Wave Height: #1F5FA8 (dark blue), Tide: #32dbae (teal)
+// Cloud: #c1cad9 (light gray), Rain: #7993e8 (blue)
+
 // Weight factors for normalized rating calculation
 var ratingWeights = {
     temperature: 1.5,
@@ -40,6 +45,24 @@ var idealRanges = {
     precipitation: {
         min: 0,  // best (0% precipitation)
         max: 100 // worst (100% precipitation)
+    },
+    pressure: {
+        min: 980,
+        idealMin: 1010,
+        idealMax: 1020,
+        max: 1040
+    },
+    waveHeight: {
+        min: 0,
+        idealMin: 0,
+        idealMax: 1.5,
+        max: 5
+    },
+    tide: {
+        min: 0,
+        idealMin: 30,
+        idealMax: 70,
+        max: 100
     }
 };
 
@@ -792,12 +815,30 @@ function calculateDayScores(dayData) {
         // Add fishing-specific data if it exists
         if (dayData.pressure && dayData.pressure[i] !== undefined) {
             scoreData.pressure = dayData.pressure[i];
+            scoreData.pressureScore = calculateRating(
+                dayData.pressure[i],
+                [idealRanges.pressure.idealMin, idealRanges.pressure.idealMax],
+                idealRanges.pressure.min,
+                idealRanges.pressure.max
+            );
         }
         if (dayData.waveHeight && dayData.waveHeight[i] !== undefined) {
             scoreData.waveHeight = dayData.waveHeight[i];
+            scoreData.waveHeightScore = calculateRating(
+                dayData.waveHeight[i],
+                [idealRanges.waveHeight.idealMin, idealRanges.waveHeight.idealMax],
+                idealRanges.waveHeight.min,
+                idealRanges.waveHeight.max
+            );
         }
         if (dayData.tideHeight && dayData.tideHeight[i] !== undefined) {
             scoreData.tideHeight = dayData.tideHeight[i];
+            scoreData.tideScore = calculateRating(
+                dayData.tideHeight[i],
+                [idealRanges.tide.idealMin, idealRanges.tide.idealMax],
+                idealRanges.tide.min,
+                idealRanges.tide.max
+            );
         }
         
         scores.push(scoreData);
@@ -1052,8 +1093,11 @@ function drawRadialSpline(scores) {
     
     // Count active data layers (excluding cloud cover which is rendered separately)
     var dataLayers = 0;
+    if (activeDatasets.pressure) dataLayers++;
     if (activeDatasets.temperature) dataLayers++;
     if (activeDatasets.windSpeed || activeDatasets.wind) dataLayers++;  // Support both names
+    if (activeDatasets.waveHeight) dataLayers++;
+    if (activeDatasets.tide) dataLayers++;
     // Water temp is always included if temperature is included
     
     // Ensure at least one layer
@@ -1080,19 +1124,28 @@ function drawRadialSpline(scores) {
     
     // Calculate total active layers for proper spacing
     var totalActiveLayers = 0;
+    if (activeDatasets.pressure) totalActiveLayers++;
     if (activeDatasets.temperature) totalActiveLayers += 2;  // temp + water
     if (activeDatasets.windSpeed || activeDatasets.wind) totalActiveLayers++;
+    if (activeDatasets.waveHeight) totalActiveLayers++;
+    if (activeDatasets.tide) totalActiveLayers++;
     
     // Create point arrays for each metric
+    var pressurePoints = [];
     var tempPoints = [];
     var waterPoints = [];
     var windPoints = [];
+    var waveHeightPoints = [];
+    var tidePoints = [];
     var cloudPoints = [];
     
     // Inner and outer boundaries for each ring section
+    var pressureInnerPoints = [];
     var tempInnerPoints = [];
     var waterInnerPoints = [];
     var windInnerPoints = [];
+    var waveHeightInnerPoints = [];
+    var tideInnerPoints = [];
     var cloudOuterPoints = []; // Cloud layer outer boundary (inverted from here)
     
     // Track current layer offset
@@ -1104,11 +1157,17 @@ function drawRadialSpline(scores) {
         var angle = startAngle + t * angleRange; // add to go clockwise (left to right via top)
         
         // Scores are 0-1, calculate layer thicknesses for each separate ring
-        // Order from center out: Temperature, Water Temp, Wind, Cloud Cover
+        // Order from center out: Pressure, Temperature, Water Temp, Wind, Wave Height, Tide, Cloud Cover
         
+        // Fishing-specific scores (pressure, waveHeight, tide) may be undefined - use explicit null checks
+        var pressureLayerHeight = (s.pressureScore !== undefined && s.pressureScore !== null) ? s.pressureScore * maxHeight : 0;
+        // Core scores (temp, water, wind) are always present from weather data
         var tempLayerHeight = s.tempScore * maxHeight;
         var waterLayerHeight = s.waterScore * maxHeight;
         var windLayerHeight = s.windScore * maxHeight;
+        // Fishing-specific scores (continued)
+        var waveHeightLayerHeight = (s.waveHeightScore !== undefined && s.waveHeightScore !== null) ? s.waveHeightScore * maxHeight : 0;
+        var tideLayerHeight = (s.tideScore !== undefined && s.tideScore !== null) ? s.tideScore * maxHeight : 0;
         
         // Calculate cloud outer radius based on active layers
         var cloudOuterRadius = innerRadius + totalActiveLayers * maxHeight + cloudMargin + cloudLayerHeight;
@@ -1117,21 +1176,44 @@ function drawRadialSpline(scores) {
         // Reset layer offset for each point
         currentLayerOffset = 0;
         
-        // Temperature ring: offset 0 (if enabled)
+        // Pressure ring: offset 0 (if enabled)
+        if (activeDatasets.pressure && s.pressureScore !== undefined && s.pressureScore !== null) {
+            pressureInnerPoints.push({ angle: angle, radius: innerRadius });
+            pressurePoints.push({ angle: angle, radius: innerRadius + pressureLayerHeight });
+            currentLayerOffset++;
+        }
+        
+        // Temperature ring: offset based on previous layers (if enabled)
         if (activeDatasets.temperature) {
-            tempInnerPoints.push({ angle: angle, radius: innerRadius });
-            tempPoints.push({ angle: angle, radius: innerRadius + tempLayerHeight });
+            tempInnerPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight });
+            tempPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight + tempLayerHeight });
+            currentLayerOffset++;
             
-            // Water ring: offset 1*maxHeight (always with temperature)
-            waterInnerPoints.push({ angle: angle, radius: innerRadius + maxHeight });
-            waterPoints.push({ angle: angle, radius: innerRadius + maxHeight + waterLayerHeight });
-            currentLayerOffset = 2;
+            // Water ring: next layer (always with temperature)
+            waterInnerPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight });
+            waterPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight + waterLayerHeight });
+            currentLayerOffset++;
         }
         
         // Wind ring: offset based on previous layers
         if (activeDatasets.windSpeed || activeDatasets.wind) {
             windInnerPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight });
             windPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight + windLayerHeight });
+            currentLayerOffset++;
+        }
+        
+        // Wave height ring: offset based on previous layers (if enabled)
+        if (activeDatasets.waveHeight && s.waveHeightScore !== undefined && s.waveHeightScore !== null) {
+            waveHeightInnerPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight });
+            waveHeightPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight + waveHeightLayerHeight });
+            currentLayerOffset++;
+        }
+        
+        // Tide ring: offset based on previous layers (if enabled)
+        if (activeDatasets.tide && s.tideScore !== undefined && s.tideScore !== null) {
+            tideInnerPoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight });
+            tidePoints.push({ angle: angle, radius: innerRadius + currentLayerOffset * maxHeight + tideLayerHeight });
+            currentLayerOffset++;
         }
         
         // Cloud ring: inverted from outer edge (if enabled)
@@ -1142,8 +1224,13 @@ function drawRadialSpline(scores) {
     }
     
     // Create smooth curves for outer boundaries (only for enabled datasets)
-    var smoothTemp, smoothWater, smoothWind, smoothCloud;
-    var smoothTempInner, smoothWaterInner, smoothWindInner, smoothCloudOuter;
+    var smoothPressure, smoothTemp, smoothWater, smoothWind, smoothWaveHeight, smoothTide, smoothCloud;
+    var smoothPressureInner, smoothTempInner, smoothWaterInner, smoothWindInner, smoothWaveHeightInner, smoothTideInner, smoothCloudOuter;
+    
+    if (activeDatasets.pressure && pressurePoints.length > 0) {
+        smoothPressure = createSmoothPath(pressurePoints, 10);
+        smoothPressureInner = createSmoothPath(pressureInnerPoints, 10);
+    }
     
     if (activeDatasets.temperature && tempPoints.length > 0) {
         smoothTemp = createSmoothPath(tempPoints, 10);
@@ -1155,6 +1242,16 @@ function drawRadialSpline(scores) {
     if ((activeDatasets.windSpeed || activeDatasets.wind) && windPoints.length > 0) {
         smoothWind = createSmoothPath(windPoints, 10);
         smoothWindInner = createSmoothPath(windInnerPoints, 10);
+    }
+    
+    if (activeDatasets.waveHeight && waveHeightPoints.length > 0) {
+        smoothWaveHeight = createSmoothPath(waveHeightPoints, 10);
+        smoothWaveHeightInner = createSmoothPath(waveHeightInnerPoints, 10);
+    }
+    
+    if (activeDatasets.tide && tidePoints.length > 0) {
+        smoothTide = createSmoothPath(tidePoints, 10);
+        smoothTideInner = createSmoothPath(tideInnerPoints, 10);
     }
     
     if (activeDatasets.cloudCover && cloudPoints.length > 0) {
@@ -1211,7 +1308,29 @@ function drawRadialSpline(scores) {
         }
     }
     
-    // Draw temperature ring (innermost) - #F28C28 - only if enabled
+    // Draw pressure ring (innermost) - #667eea (blue-purple) - only if enabled
+    if (activeDatasets.pressure && smoothPressure && smoothPressureInner) {
+        ctx.fillStyle = 'rgba(102, 126, 234, 0.5)';
+        ctx.beginPath();
+        for (var i = 0; i < smoothPressure.length; i++) {
+            var x = cx + Math.cos(smoothPressure[i].angle) * smoothPressure[i].radius;
+            var y = cy + Math.sin(smoothPressure[i].angle) * smoothPressure[i].radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        for (var i = smoothPressureInner.length - 1; i >= 0; i--) {
+            var x = cx + Math.cos(smoothPressureInner[i].angle) * smoothPressureInner[i].radius;
+            var y = cy + Math.sin(smoothPressureInner[i].angle) * smoothPressureInner[i].radius;
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(80, 100, 200, 0.8)'; // Darker stroke
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+    
+    // Draw temperature ring - #F28C28 - only if enabled
     if (activeDatasets.temperature && smoothTemp && smoothTempInner) {
         ctx.fillStyle = 'rgba(242, 140, 40, 0.5)';
         ctx.beginPath();
@@ -1255,9 +1374,9 @@ function drawRadialSpline(scores) {
         ctx.stroke();
     }
     
-    // Draw wind ring (third layer) - #32dbae - only if enabled
+    // Draw wind ring - #7FB3D5 (light blue) - only if enabled
     if ((activeDatasets.windSpeed || activeDatasets.wind) && smoothWind && smoothWindInner) {
-        ctx.fillStyle = 'rgba(50, 219, 174, 0.5)';
+        ctx.fillStyle = 'rgba(127, 179, 213, 0.5)';
         ctx.beginPath();
         for (var i = 0; i < smoothWind.length; i++) {
             var x = cx + Math.cos(smoothWind[i].angle) * smoothWind[i].radius;
@@ -1272,7 +1391,51 @@ function drawRadialSpline(scores) {
         }
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = 'rgba(20, 150, 120, 0.8)'; // Darker stroke
+        ctx.strokeStyle = 'rgba(90, 140, 170, 0.8)'; // Darker stroke
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+    
+    // Draw wave height ring - #1F5FA8 (dark blue) - only if enabled
+    if (activeDatasets.waveHeight && smoothWaveHeight && smoothWaveHeightInner) {
+        ctx.fillStyle = 'rgba(31, 95, 168, 0.5)';
+        ctx.beginPath();
+        for (var i = 0; i < smoothWaveHeight.length; i++) {
+            var x = cx + Math.cos(smoothWaveHeight[i].angle) * smoothWaveHeight[i].radius;
+            var y = cy + Math.sin(smoothWaveHeight[i].angle) * smoothWaveHeight[i].radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        for (var i = smoothWaveHeightInner.length - 1; i >= 0; i--) {
+            var x = cx + Math.cos(smoothWaveHeightInner[i].angle) * smoothWaveHeightInner[i].radius;
+            var y = cy + Math.sin(smoothWaveHeightInner[i].angle) * smoothWaveHeightInner[i].radius;
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(15, 60, 120, 0.8)'; // Darker stroke
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+    
+    // Draw tide ring - #32dbae (teal) - only if enabled
+    if (activeDatasets.tide && smoothTide && smoothTideInner) {
+        ctx.fillStyle = 'rgba(50, 219, 174, 0.5)';
+        ctx.beginPath();
+        for (var i = 0; i < smoothTide.length; i++) {
+            var x = cx + Math.cos(smoothTide[i].angle) * smoothTide[i].radius;
+            var y = cy + Math.sin(smoothTide[i].angle) * smoothTide[i].radius;
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        for (var i = smoothTideInner.length - 1; i >= 0; i--) {
+            var x = cx + Math.cos(smoothTideInner[i].angle) * smoothTideInner[i].radius;
+            var y = cy + Math.sin(smoothTideInner[i].angle) * smoothTideInner[i].radius;
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(30, 180, 140, 0.8)'; // Darker stroke
         ctx.lineWidth = 2;
         ctx.stroke();
     }

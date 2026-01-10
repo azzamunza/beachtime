@@ -1053,6 +1053,12 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
     // Water surface animation (must render before marine life for proper layering)
     React.createElement(Water, { tideLevel: tide, windSpeed: windSpeed, landscapeType: landscapeType }),
     
+    // TODO: ALGAL BLOOM OVERLAY
+    // Future implementation: Add algal bloom overlay here based on water quality data
+    // When algal bloom data is available, render a semi-transparent green overlay
+    // over the water surface with an indicator showing bloom level (low/medium/high)
+    // Example: algalBloomLevel && React.createElement('rect', { x: 0, y: waterY, width: 1200, height: 400 - waterY, fill: 'rgba(139, 195, 74, 0.4)' })
+    
     // ==============================================
     // SECTION 7: MARINE LIFE (Fish)
     // ==============================================

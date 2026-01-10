@@ -145,6 +145,38 @@ var fishingLocations = [
         ]
     },
     { 
+        name: "Swan River - Perth CBD", 
+        lat: -31.9614, 
+        lng: 115.8601,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Black Bream", season: "Year-round", size: "25cm+" },
+            { name: "Yellow-eye Mullet", season: "Year-round", size: "30cm" },
+            { name: "Estuary Cobbler", season: "Year-round", size: "45cm+" }
+        ]
+    },
+    { 
+        name: "Swan River - Blackwall Reach", 
+        lat: -32.0098, 
+        lng: 115.8171,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Black Bream", season: "Year-round", size: "25cm+" },
+            { name: "Flathead", season: "Year-round", size: "30-50cm" },
+            { name: "Mulloway", season: "Autumn-Winter", size: "45cm+" }
+        ]
+    },
+    { 
+        name: "Swan River - Pelican Point", 
+        lat: -32.0025, 
+        lng: 115.7847,
+        timezone: 'Australia/Perth',
+        species: [
+            { name: "Black Bream", season: "Year-round", size: "25cm+" },
+            { name: "Tailor", season: "Spring-Autumn", size: "30-50cm" }
+        ]
+    },
+    { 
         name: "Busselton Jetty, WA", 
         lat: -33.6505, 
         lng: 115.3472,

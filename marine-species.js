@@ -9,6 +9,11 @@ var marineSpeciesDatabase = [
         category: 'fish',
         image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzM0NDk1ZSIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfkJ88L3RleHQ+PC9zdmc+',
         basicInfo: 'Common estuarine species, highly regarded table fish. Size limit: 25cm. Bag limit: 4.',
+        minSize: 25,
+        bagLimit: 4,
+        season: 'Year-round',
+        restrictions: 'Min 25cm, max 4 per person',
+        closedSeasons: [],
         locations: ['Swan River', 'Canning River', 'Estuary'],
         bestTime: 'Early morning & dusk',
         bestTide: 'Incoming tide',
@@ -37,6 +42,11 @@ var marineSpeciesDatabase = [
         category: 'fish',
         image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzJjM2U1MCIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfjZg8L3RleHQ+PC9zdmc+',
         basicInfo: 'Aggressive predator with sharp teeth. Size limit: 25cm. Bag limit: 8.',
+        minSize: 25,
+        bagLimit: 8,
+        season: 'Year-round',
+        restrictions: 'Min 25cm, max 8 per person',
+        closedSeasons: [],
         locations: ['Beach', 'Perth Coast', 'Breakwater'],
         bestTime: 'Dawn & dusk',
         bestTide: 'Incoming tide',
@@ -65,6 +75,11 @@ var marineSpeciesDatabase = [
         category: 'fish',
         image: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2VjNzA2MyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1zaXplPSI0MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPvCfkJ88L3RleHQ+PC9zdmc+',
         basicInfo: 'Prized table fish. Size limit: 41cm. Bag limit: 4.',
+        minSize: 41,
+        bagLimit: 4,
+        season: 'Year-round',
+        restrictions: 'Min 41cm, max 4 per person',
+        closedSeasons: [],
         locations: ['Perth Coast', 'Breakwater', 'Reef'],
         bestTime: 'Dawn, dusk & night',
         bestTide: 'High tide at dusk',
@@ -441,4 +456,64 @@ function getSpeciesForLocation(locationType) {
     return marineSpeciesDatabase.filter(species => 
         species.locations.some(loc => loc === locationType || locationTypes[locationType]?.type === loc)
     );
+}
+
+// Helper function to check if a date is within a closed season range
+function isDateInRange(date, startMMDD, endMMDD) {
+    var month = date.getMonth() + 1; // 0-indexed to 1-indexed
+    var day = date.getDate();
+    
+    var startParts = startMMDD.split('-');
+    var endParts = endMMDD.split('-');
+    var startMonth = parseInt(startParts[0]);
+    var startDay = parseInt(startParts[1]);
+    var endMonth = parseInt(endParts[0]);
+    var endDay = parseInt(endParts[1]);
+    
+    var currentDate = month * 100 + day;
+    var startDate = startMonth * 100 + startDay;
+    var endDate = endMonth * 100 + endDay;
+    
+    // Handle ranges that cross year boundary
+    if (startDate <= endDate) {
+        return currentDate >= startDate && currentDate <= endDate;
+    } else {
+        return currentDate >= startDate || currentDate <= endDate;
+    }
+}
+
+// Filter available fish based on current date and closed seasons
+function getAvailableFish(species, currentDate) {
+    currentDate = currentDate || new Date();
+    
+    return species.filter(function(fish) {
+        // Check if in closed season
+        if (fish.closedSeasons && fish.closedSeasons.length > 0) {
+            for (var i = 0; i < fish.closedSeasons.length; i++) {
+                var closure = fish.closedSeasons[i];
+                if (isDateInRange(currentDate, closure.start, closure.end)) {
+                    return false; // Don't show during closed season
+                }
+            }
+        }
+        return true;
+    }).map(function(fish) {
+        var result = {};
+        for (var key in fish) {
+            result[key] = fish[key];
+        }
+        // Create note from restrictions or construct from minSize and bagLimit if available
+        if (fish.restrictions) {
+            result.note = fish.restrictions;
+        } else if (fish.minSize && fish.bagLimit) {
+            result.note = 'Min ' + fish.minSize + 'cm, Bag limit ' + fish.bagLimit;
+        } else if (fish.minSize) {
+            result.note = 'Min ' + fish.minSize + 'cm';
+        } else if (fish.bagLimit) {
+            result.note = 'Bag limit ' + fish.bagLimit;
+        } else {
+            result.note = 'Check local regulations';
+        }
+        return result;
+    });
 }
