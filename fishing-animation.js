@@ -40,12 +40,12 @@ const Moon = ({ phase, timeOfDay, cloudCover }) => {
   const cloudOpacityMod = Math.max(0.3, 1 - (cloudCover / 150)); // Clouds reduce visibility
   const finalOpacity = baseOpacity * cloudOpacityMod;
   
-  // Moon moves across the sky from right to left during night
+  // Moon moves across the sky from right to left during night (Western Australia, looking north)
   // At sunset (18:00): right side, low
   // At midnight (00:00/24:00): center, high
   // At sunrise (06:00): left side, low
   const nightProgress = timeOfDay < 6 ? (timeOfDay + 6) / 12 : (timeOfDay - 18) / 12; // 0 to 1 across night
-  const moonX = 1800 - (nightProgress * 800); // Move from right (1800) to left (1000)
+  const moonX = 1100 - (nightProgress * 900); // Move from right (1100) to left (200) - adjusted for 1200px viewBox
   const moonY = 80 - (Math.sin(nightProgress * Math.PI) * 40); // Arc up and down
   
   const r = 35;
@@ -83,12 +83,12 @@ const Sun = ({ timeOfDay, cloudCover }) => {
   const opacity = (timeOfDay >= 6 && timeOfDay <= 18) ? 1 : 0;
   const cloudOpacityMod = Math.max(0.3, 1 - (cloudCover / 100));
   
-  // Sun position follows an arc across the sky
-  // At 6am (sunrise): left side, low
+  // Sun position follows an arc across the sky from RIGHT to LEFT (Western Australia, looking north)
+  // At 6am (sunrise): right side, low
   // At 12pm (noon): center, high
-  // At 6pm (sunset): right side, low
+  // At 6pm (sunset): left side, low
   const sunProgress = (timeOfDay - 6) / 12; // 0 to 1 from sunrise to sunset
-  const cx = 200 + (sunProgress * 1600); // Move from left to right
+  const cx = 1000 - (sunProgress * 800); // Move from right (1000) to left (200) - adjusted for 1200px viewBox
   const cy = 200 - (Math.sin(sunProgress * Math.PI) * 120); // Arc up and down
   const r = 40;
   
@@ -136,7 +136,7 @@ const Clouds = ({ cover, windSpeed, windDir }) => {
   const cloudCount = 6;
   const clouds = useMemo(() => Array.from({ length: cloudCount }).map((_, i) => ({
       id: i,
-      x: seededRandom(i) * 2200 - 100,
+      x: seededRandom(i) * 1300 - 100,
       y: 30 + seededRandom(i + 100) * 80,
       scale: 0.6 + seededRandom(i + 200) * 1.2,
       speed: 0.2 + seededRandom(i) * 0.5
@@ -165,7 +165,7 @@ const Clouds = ({ cover, windSpeed, windDir }) => {
         })
       )
     ),
-    React.createElement('style', null, '@keyframes float { 0% { transform: translateX(-200px); } 100% { transform: translateX(2400px); } }')
+    React.createElement('style', null, '@keyframes float { 0% { transform: translateX(-200px); } 100% { transform: translateX(1400px); } }')
   );
 };
 
@@ -188,13 +188,13 @@ const Water = ({ tideLevel, windSpeed, landscapeType }) => {
     React.createElement('path', { 
       fill: colors.primary, 
       fillOpacity: '0.6', 
-      d: `M0,${yPos} Q500,${yPos - waveHeight} 1000,${yPos} T2000,${yPos} V400 H0 Z`,
+      d: `M0,${yPos} Q300,${yPos - waveHeight} 600,${yPos} T1200,${yPos} V400 H0 Z`,
       style: { animation: `wave ${waveSpeed}s linear infinite` }
     }),
     React.createElement('path', { 
       fill: colors.secondary, 
       fillOpacity: '0.8', 
-      d: `M0,${yPos + 8} Q500,${yPos + 8 + waveHeight} 1000,${yPos + 8} T2000,${yPos + 8} V400 H0 Z`,
+      d: `M0,${yPos + 8} Q300,${yPos + 8 + waveHeight} 600,${yPos + 8} T1200,${yPos + 8} V400 H0 Z`,
       style: { animation: `wave ${waveSpeed * 0.8}s linear infinite reverse` }
     }),
     React.createElement('style', null, '@keyframes wave { 0% { transform: scaleY(1); } 50% { transform: scaleY(1.05); } 100% { transform: scaleY(1); } }')
@@ -206,7 +206,7 @@ const Rain = ({ intensity, windSpeed, windDir }) => {
   const dropCount = Math.floor(intensity * 2);
   const angle = (windDir > 180 ? -1 : 1) * (windSpeed / 4);
   const drops = useMemo(() => Array.from({ length: 150 }).map((_, i) => ({
-    id: i, x: Math.random() * 2000, y: Math.random() * 400, len: 8 + Math.random() * 15, speed: 0.5 + Math.random() * 0.5
+    id: i, x: Math.random() * 1200, y: Math.random() * 400, len: 8 + Math.random() * 15, speed: 0.5 + Math.random() * 0.5
   })), []);
 
   return React.createElement('g', { className: 'rain' },
@@ -233,9 +233,9 @@ const WindIndicator = ({ speed, direction }) => {
   const rotation = isBlowingRight ? -lift : lift; 
   const scaleX = isBlowingRight ? 1 : -1;
   
-  // Position on right side but within visible area (viewBox is 0 0 2000 400)
-  const posX = 1750; // Changed from 1850 to keep it within view
-  const posY = 180; // Changed from 300 to position it better in the scene
+  // Position on right side but within visible area (viewBox is 0 0 1200 400)
+  const posX = 1050; // Changed to fit in 1200px viewBox
+  const posY = 180; // Position it better in the scene
 
   return React.createElement('g', { className: 'wind-indicator', transform: `translate(${posX}, ${posY})` },
     // Wind sock pole
@@ -358,6 +358,7 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
   const [state, setState] = useState('idle');
   const [catchingFish, setCatchingFish] = useState(false);
   const [fishCaught, setFishCaught] = useState(false);
+  const [lineEndX, setLineEndX] = useState(-240); // Fishing line enters water at 600px (onJettyX is ~840, so -240 relative)
 
   useEffect(() => {
     const loop = setInterval(() => {
@@ -368,16 +369,20 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
         setCatchingFish(true);
         setState('fishing_bite');
         
-        // Sequence: bite (2s) -> reel (3s) -> fling (1s) -> back to idle
+        // Sequence: bite (2s) -> reel (3s) -> fling (1s) -> cast (1s) -> back to idle
         setTimeout(() => setState('fishing_reel'), 2000);
         setTimeout(() => setState('fishing_fling'), 5000);
         setTimeout(() => {
           setFishCaught(true);
-          setState('idle');
+          setState('fishing_cast');
           setCatchingFish(false);
           // Reset fish caught after animation
           setTimeout(() => setFishCaught(false), 1000);
         }, 6000);
+        setTimeout(() => {
+          setState('idle');
+          setLineEndX(-240); // Reset line to far position
+        }, 7000);
       } else if (roll > 0.85 && !catchingFish) {
         setState('fishing_jerk');
       } else if (roll > 0.65 && !catchingFish) {
@@ -397,17 +402,29 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
       return () => clearTimeout(timer);
     }
   }, [state, catchingFish]);
+  
+  // Update line position during reeling
+  useEffect(() => {
+    if (state === 'fishing_reel') {
+      const reelInterval = setInterval(() => {
+        setLineEndX(prev => Math.min(prev + 5, -60)); // Reel in towards fisherman
+      }, 50);
+      return () => clearInterval(reelInterval);
+    }
+  }, [state]);
 
   const isBite = state === 'fishing_bite';
   const isReel = state === 'fishing_reel';
   const isFling = state === 'fishing_fling';
+  const isCast = state === 'fishing_cast';
   const isJerk = state === 'fishing_jerk';
   const isDrinking = state === 'drinking';
   const isSmoking = state === 'smoking';
   
   // Calculate rod rotation based on state
   const getRodRotation = () => {
-    if (isFling) return -45; // Fling up high
+    if (isFling) return -60; // Fling up high
+    if (isCast) return -45; // Cast position
     if (isReel) return -20; // Reel in with slight lift
     if (isBite || isJerk) return -10; // Small jerk
     return 0; // Idle position
@@ -415,20 +432,87 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
   
   // Calculate fish position for catching animation
   const getFishPosition = () => {
-    if (isFling) return { x: -30, y: -80 }; // Flying through air
-    if (isReel) return { x: -50, y: -20 }; // Being reeled in
-    if (isBite) return { x: -65, y: 30 }; // At hook in water
+    if (isFling) return { x: 50, y: -80 }; // Flying through air towards bucket
+    if (isReel) return { x: lineEndX, y: 0 }; // Being reeled in, follows line
+    if (isBite) return { x: lineEndX, y: 30 }; // At hook in water
     return null; // No fish visible
   };
   
+  // Calculate water splash position (follows line end during reel)
+  const getWaterY = () => 320 - onJettyY; // Approximate water surface
+  
   const fishPos = getFishPosition();
+  
+  // Ripple size based on state
+  const rippleSize = (isBite || isJerk) ? 'large' : 'small';
 
   return React.createElement('g', { className: 'fisherman', transform: `translate(${onJettyX + 15}, ${onJettyY}) scale(3.0)` },
-    // Ripple effect when fish bites
-    (isBite || isJerk) && React.createElement('g', { className: 'water-ripple', transform: 'translate(-65, 35) scale(1.2, 0.3)' },
+    // Continuous ripple effect at line end - always visible
+    React.createElement('g', { className: 'water-ripple-continuous', transform: `translate(${lineEndX}, ${getWaterY()}) scale(1.2, 0.3)` },
+      // Multiple ripple circles for continuous effect
       React.createElement('circle', { r: '10', stroke: 'white', strokeWidth: '0.5', fill: 'none', opacity: '0.8' },
-        React.createElement('animate', { attributeName: 'r', values: '5;30', dur: '1s', repeatCount: 'indefinite' }),
-        React.createElement('animate', { attributeName: 'opacity', values: '0.8;0', dur: '1s', repeatCount: 'indefinite' })
+        React.createElement('animate', { 
+          attributeName: 'r', 
+          values: rippleSize === 'large' ? '5;40' : '3;20', 
+          dur: rippleSize === 'large' ? '0.8s' : '1.2s', 
+          repeatCount: 'indefinite' 
+        }),
+        React.createElement('animate', { attributeName: 'opacity', values: '0.8;0', dur: rippleSize === 'large' ? '0.8s' : '1.2s', repeatCount: 'indefinite' })
+      ),
+      React.createElement('circle', { r: '10', stroke: 'white', strokeWidth: '0.5', fill: 'none', opacity: '0.6' },
+        React.createElement('animate', { 
+          attributeName: 'r', 
+          values: rippleSize === 'large' ? '5;40' : '3;20', 
+          dur: rippleSize === 'large' ? '0.8s' : '1.2s', 
+          repeatCount: 'indefinite',
+          begin: rippleSize === 'large' ? '0.2s' : '0.3s'
+        }),
+        React.createElement('animate', { 
+          attributeName: 'opacity', 
+          values: '0.6;0', 
+          dur: rippleSize === 'large' ? '0.8s' : '1.2s', 
+          repeatCount: 'indefinite',
+          begin: rippleSize === 'large' ? '0.2s' : '0.3s'
+        })
+      ),
+      React.createElement('circle', { r: '10', stroke: 'white', strokeWidth: '0.5', fill: 'none', opacity: '0.4' },
+        React.createElement('animate', { 
+          attributeName: 'r', 
+          values: rippleSize === 'large' ? '5;40' : '3;20', 
+          dur: rippleSize === 'large' ? '0.8s' : '1.2s', 
+          repeatCount: 'indefinite',
+          begin: rippleSize === 'large' ? '0.4s' : '0.6s'
+        }),
+        React.createElement('animate', { 
+          attributeName: 'opacity', 
+          values: '0.4;0', 
+          dur: rippleSize === 'large' ? '0.8s' : '1.2s', 
+          repeatCount: 'indefinite',
+          begin: rippleSize === 'large' ? '0.4s' : '0.6s'
+        })
+      )
+    ),
+    
+    // Splash effect during fling
+    isFling && React.createElement('g', { className: 'splash-fling', transform: `translate(${lineEndX}, ${getWaterY()})` },
+      [...Array(8)].map((_, i) => 
+        React.createElement('line', {
+          key: i,
+          x1: 0,
+          y1: 0,
+          x2: Math.cos(i * Math.PI / 4 - Math.PI/2) * 20,
+          y2: Math.sin(i * Math.PI / 4 - Math.PI/2) * 25,
+          stroke: '#3498db',
+          strokeWidth: 2,
+          opacity: 0
+        },
+          React.createElement('animate', {
+            attributeName: 'opacity',
+            values: '0;1;0',
+            dur: '0.6s',
+            begin: '0s'
+          })
+        )
       )
     ),
     
@@ -444,7 +528,7 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
     ),
     
     // Splash effect when fish lands in bucket
-    fishCaught && React.createElement('g', { className: 'splash', transform: 'translate(85, 20)' },
+    fishCaught && React.createElement('g', { className: 'splash', transform: 'translate(60, 0)' },
       [...Array(6)].map((_, i) => 
         React.createElement('line', {
           key: i,
@@ -523,18 +607,35 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
           React.createElement('path', { d: 'M-8,5 L-15,2', stroke: '#d35400', strokeWidth: '5', strokeLinecap: 'round' }),
           // Fishing rod
           React.createElement('line', { x1: '-12', y1: '2', x2: '-18', y2: '0', stroke: '#3e2723', strokeWidth: '2' }),
-          React.createElement('line', { x1: '-18', y1: '0', x2: '-65', y2: '-15', stroke: '#5d4037', strokeWidth: '1.5' }),
+          React.createElement('line', { x1: '-18', y1: '0', x2: '-32', y2: '-8', stroke: '#5d4037', strokeWidth: '1.5' }),
           // Reel
           React.createElement('circle', { cx: '-22', cy: '-2', r: '1.5', fill: '#9e9e9e' }),
-          // Fishing line with animation
+          // Fishing line - now extends to lineEndX (which changes during reel)
           React.createElement('path', { 
             className: 'fishing-line',
-            d: isBite || isJerk || isReel ? 'M-65,-15 L-65,35' : 'M-65,-15 Q-65,15 -60,30',
+            d: (isBite || isJerk || isReel) ? 
+              `M-32,-8 L${lineEndX},${getWaterY()}` : 
+              `M-32,-8 Q${lineEndX/2},${getWaterY()/2} ${lineEndX},${getWaterY()}`,
             stroke: 'white',
             strokeWidth: '0.3',
             fill: 'none',
-            opacity: '0.6'
-          })
+            opacity: '0.6',
+            style: { transition: 'all 0.1s linear' }
+          }),
+          // Fishing lure at end of line
+          !isFling && React.createElement('g', { 
+            className: 'fishing-lure', 
+            transform: `translate(${lineEndX}, ${getWaterY()})`,
+            style: { transition: 'all 0.1s linear' }
+          },
+            // Lure body
+            React.createElement('ellipse', { cx: 0, cy: 0, rx: 3, ry: 1.5, fill: '#e74c3c' }),
+            React.createElement('ellipse', { cx: 1, cy: 0, rx: 1.5, ry: 1, fill: '#c0392b' }),
+            // Lure hook
+            React.createElement('path', { d: 'M-2,0 Q-3,2 -2.5,3 L-3,3.5', stroke: '#888', strokeWidth: '0.3', fill: 'none' }),
+            // Lure shine
+            React.createElement('circle', { cx: 0.5, cy: -0.5, r: 0.5, fill: 'white', opacity: 0.6 })
+          )
         )
       ),
       
@@ -669,20 +770,20 @@ const MarineLife = ({ tideLevel, timeOfDay, waterY }) => {
   
   const activeSpecies = useMemo(getActiveSpecies, [tideLevel, timeOfDay]);
   
-  // Generate fish positions - fish now jump/breach above water surface
+  // Generate fish positions - fish should swim just below or at the water surface
   const generateFish = (species, count, index) => {
-    // Position fish near water surface or just above it
-    const baseY = waterY - 10 - (index * 25); // Slightly above or at water level
+    // Position fish at or just below water surface (not in the sky)
+    const baseY = waterY + 15 + (index * 8); // Below water surface
     const fishes = [];
     
     for (let i = 0; i < count; i++) {
-      const x = 300 + (i * 250) + (index * 80);
-      const jumpHeight = Math.sin((i * 2 + index) * 0.5) * 20; // Some fish jump higher
+      const x = 200 + (i * 180) + (index * 50);
+      const swimDepth = Math.sin((i * 2 + index) * 0.5) * 10; // Fish swim at various depths
       fishes.push({
         id: `${species}-${i}`,
         type: species,
         x: x,
-        y: baseY - jumpHeight,
+        y: baseY + swimDepth,
         size: species === 'squid' ? 20 : (species === 'flathead' ? 28 : 18),
         swimDelay: i * 0.7 + index * 0.3
       });
@@ -745,17 +846,19 @@ const MarineLife = ({ tideLevel, timeOfDay, waterY }) => {
         })
       )
     ),
-    // Swimming animation keyframes
+    // Swimming animation keyframes - ensure continuous looping
     React.createElement('style', null, `
       @keyframes swimHorizontal {
-        0%, 100% { transform: translateX(0) scaleX(1); }
+        0% { transform: translateX(0) scaleX(1); }
         25% { transform: translateX(50px) scaleX(1); }
         50% { transform: translateX(100px) scaleX(-1); }
         75% { transform: translateX(50px) scaleX(-1); }
+        100% { transform: translateX(0) scaleX(1); }
       }
       @keyframes swimVertical {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-15px); }
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0); }
       }
     `)
   );
@@ -776,7 +879,7 @@ const UnderwaterView = ({ waterY, tideLevel }) => {
     React.createElement('rect', {
       x: 0,
       y: waterY,
-      width: 2000,
+      width: 1200,
       height: 400 - waterY,
       fill: 'url(#underwaterGradient)'
     }),
@@ -813,22 +916,22 @@ const LandscapeBackground = ({ landscapeType, waterY }) => {
   switch(landscapeType) {
     case 'beach':
       return React.createElement('g', null,
-        React.createElement('path', { d: 'M0,400 L0,200 L250,120 L500,220 L800,140 L1200,240 L1600,160 L2000,180 L2000,400 Z', fill: '#8e7cc3', opacity: '0.3' }),
-        React.createElement('path', { d: `M0,${waterY} L0,400 L2000,400 L2000,${waterY + 35} Q1600,${waterY + 42} 1200,${waterY + 38} Q800,${waterY + 35} 400,${waterY + 42} Q200,${waterY + 38} 0,${waterY} Z`, fill: '#f4d03f' }),
-        React.createElement('path', { d: `M0,${waterY + 25} Q400,${waterY + 32} 800,${waterY + 28} Q1200,${waterY + 25} 1600,${waterY + 30} L2000,${waterY + 32} L2000,400 L0,400 Z`, fill: '#f39c12', opacity: '0.3' })
+        React.createElement('path', { d: 'M0,400 L0,200 L150,120 L300,220 L480,140 L720,240 L960,160 L1200,180 L1200,400 Z', fill: '#8e7cc3', opacity: '0.3' }),
+        React.createElement('path', { d: `M0,${waterY} L0,400 L1200,400 L1200,${waterY + 35} Q960,${waterY + 42} 720,${waterY + 38} Q480,${waterY + 35} 240,${waterY + 42} Q120,${waterY + 38} 0,${waterY} Z`, fill: '#f4d03f' }),
+        React.createElement('path', { d: `M0,${waterY + 25} Q240,${waterY + 32} 480,${waterY + 28} Q720,${waterY + 25} 960,${waterY + 30} L1200,${waterY + 32} L1200,400 L0,400 Z`, fill: '#f39c12', opacity: '0.3' })
       );
     
     case 'river':
       return React.createElement('g', null,
-        React.createElement('path', { d: 'M0,400 L0,180 Q200,150 400,170 Q600,180 800,160 Q1000,175 1200,165 Q1400,155 1600,175 Q1800,160 2000,180 L2000,400 Z', fill: '#27ae60', opacity: '0.4' }),
-        React.createElement('path', { d: `M1700,${waterY - 15} L2000,${waterY} L2000,400 L1700,400 Q1800,${waterY + 80} 1900,${waterY + 50} Z`, fill: '#2ecc71' }),
-        React.createElement('path', { d: `M1600,${waterY + 8} L1700,${waterY - 15} Q1800,${waterY + 15} 1900,${waterY + 50} L2000,400 L1600,400 Z`, fill: '#27ae60' }),
-        Array.from({ length: 30 }).map((_, i) => 
+        React.createElement('path', { d: 'M0,400 L0,180 Q120,150 240,170 Q360,180 480,160 Q600,175 720,165 Q840,155 960,175 Q1080,160 1200,180 L1200,400 Z', fill: '#27ae60', opacity: '0.4' }),
+        React.createElement('path', { d: `M1020,${waterY - 15} L1200,${waterY} L1200,400 L1020,400 Q1080,${waterY + 80} 1140,${waterY + 50} Z`, fill: '#2ecc71' }),
+        React.createElement('path', { d: `M960,${waterY + 8} L1020,${waterY - 15} Q1080,${waterY + 15} 1140,${waterY + 50} L1200,400 L960,400 Z`, fill: '#27ae60' }),
+        Array.from({ length: 18 }).map((_, i) => 
           React.createElement('line', { 
             key: i, 
-            x1: 1700 + i * 10, 
+            x1: 1020 + i * 10, 
             y1: waterY + 15 + Math.random() * 35, 
-            x2: 1700 + i * 10, 
+            x2: 1020 + i * 10, 
             y2: waterY + 25 + Math.random() * 45, 
             stroke: '#229954', 
             strokeWidth: '2', 
@@ -839,12 +942,12 @@ const LandscapeBackground = ({ landscapeType, waterY }) => {
     
     case 'estuary':
       return React.createElement('g', null,
-        React.createElement('path', { d: 'M0,400 L0,200 L400,160 L800,210 L1200,180 L1600,220 L2000,190 L2000,400 Z', fill: '#7d6608', opacity: '0.4' }),
-        React.createElement('path', { d: `M1700,${waterY} L2000,${waterY + 15} L2000,400 L1700,400 Q1800,${waterY + 65} 1900,${waterY + 40} Z`, fill: '#a98' }),
-        Array.from({ length: 25 }).map((_, i) => 
+        React.createElement('path', { d: 'M0,400 L0,200 L240,160 L480,210 L720,180 L960,220 L1200,190 L1200,400 Z', fill: '#7d6608', opacity: '0.4' }),
+        React.createElement('path', { d: `M1020,${waterY} L1200,${waterY + 15} L1200,400 L1020,400 Q1080,${waterY + 65} 1140,${waterY + 40} Z`, fill: '#a98' }),
+        Array.from({ length: 15 }).map((_, i) => 
           React.createElement('g', { 
             key: i, 
-            transform: `translate(${1720 + i * 12}, ${waterY + 25 + Math.random() * 25})`
+            transform: `translate(${1032 + i * 12}, ${waterY + 25 + Math.random() * 25})`
           },
             React.createElement('line', { x1: '0', y1: '0', x2: '0', y2: -35 - Math.random() * 15, stroke: '#8b7355', strokeWidth: '1.5' }),
             React.createElement('circle', { cx: '0', cy: -40 - Math.random() * 15, r: '2', fill: '#d4a574' })
@@ -854,10 +957,10 @@ const LandscapeBackground = ({ landscapeType, waterY }) => {
     
     case 'breakwater':
       return React.createElement('g', null,
-        React.createElement('path', { d: 'M0,400 L0,220 L500,190 L1000,230 L1500,200 L2000,210 L2000,400 Z', fill: '#566573', opacity: '0.5' }),
+        React.createElement('path', { d: 'M0,400 L0,220 L300,190 L600,230 L900,200 L1200,210 L1200,400 Z', fill: '#566573', opacity: '0.5' }),
         React.createElement('g', null,
           Array.from({ length: 12 }).map((_, i) => {
-            const x = 1700 + (i % 4) * 25 - Math.random() * 12;
+            const x = 1020 + (i % 4) * 25 - Math.random() * 12;
             const y = waterY + 15 + Math.floor(i / 4) * 20;
             const size = 18 + Math.random() * 12;
             return React.createElement('ellipse', { 
@@ -871,16 +974,16 @@ const LandscapeBackground = ({ landscapeType, waterY }) => {
               strokeWidth: '1'
             });
           }),
-          React.createElement('path', { d: `M1730,${waterY + 40} L1800,${waterY + 32} L1870,${waterY + 44} L2000,${waterY + 40} L2000,400 L1730,400 Z`, fill: '#4d5656' })
+          React.createElement('path', { d: `M1038,${waterY + 40} L1080,${waterY + 32} L1122,${waterY + 44} L1200,${waterY + 40} L1200,400 L1038,400 Z`, fill: '#4d5656' })
         )
       );
     
     case 'lake':
       return React.createElement('g', null,
-        React.createElement('path', { d: 'M0,400 L0,140 L200,110 L400,125 L600,100 L800,120 L1000,95 L1200,115 L1400,90 L1600,108 L1800,85 L2000,100 L2000,400 Z', fill: '#5f6a6a', opacity: '0.4' }),
-        React.createElement('path', { d: 'M0,160 L200,130 L400,145 L600,125 L800,140 L1000,120 L1200,135 L1400,115 L1600,128 L1800,110 L2000,125 L2000,400 L0,400 Z', fill: '#27ae60', opacity: '0.3' }),
-        React.createElement('path', { d: `M1700,${waterY - 8} L2000,${waterY + 8} L2000,400 L1700,400 Z`, fill: '#52be80' }),
-        React.createElement('path', { d: `M1750,${waterY + 8} Q1850,${waterY + 25} 1920,${waterY + 15} T2000,${waterY + 32} L2000,400 L1750,400 Z`, fill: '#45b39d' })
+        React.createElement('path', { d: 'M0,400 L0,140 L120,110 L240,125 L360,100 L480,120 L600,95 L720,115 L840,90 L960,108 L1080,85 L1200,100 L1200,400 Z', fill: '#5f6a6a', opacity: '0.4' }),
+        React.createElement('path', { d: 'M0,160 L120,130 L240,145 L360,125 L480,140 L600,120 L720,135 L840,115 L960,128 L1080,110 L1200,125 L1200,400 L0,400 Z', fill: '#27ae60', opacity: '0.3' }),
+        React.createElement('path', { d: `M1020,${waterY - 8} L1200,${waterY + 8} L1200,400 L1020,400 Z`, fill: '#52be80' }),
+        React.createElement('path', { d: `M1050,${waterY + 8} Q1110,${waterY + 25} 1152,${waterY + 15} T1200,${waterY + 32} L1200,400 L1050,400 Z`, fill: '#45b39d' })
       );
     
     default:
@@ -894,9 +997,9 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
   const waterY = 320 - (tide * 0.8); 
 
   return React.createElement('svg', { 
-    viewBox: '0 0 2000 400', 
+    viewBox: '0 0 1200 400', 
     className: 'w-full h-full rounded-lg shadow-2xl bg-gray-900 overflow-hidden',
-    preserveAspectRatio: 'xMidYMid slice',
+    preserveAspectRatio: 'xMidYMid meet',
     style: { width: '100%', height: '100%' }
   },
     // Sky gradient definition
@@ -931,11 +1034,11 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
     // Jetty structure and fisherman
     React.createElement('g', { className: 'jetty-group', transform: 'translate(0, 5)' },
       // Left jetty support pillar
-      React.createElement('rect', { x: '1450', y: '280', width: '10', height: '140', fill: '#5d4037' }),
+      React.createElement('rect', { x: '870', y: '280', width: '10', height: '140', fill: '#5d4037' }),
       // Right jetty support pillar
-      React.createElement('rect', { x: '1750', y: '280', width: '10', height: '140', fill: '#5d4037' }),
+      React.createElement('rect', { x: '1050', y: '280', width: '10', height: '140', fill: '#5d4037' }),
       // Center jetty pole with tide indicators
-      React.createElement('g', { className: 'center-pole', transform: 'translate(1600, 280)' },
+      React.createElement('g', { className: 'center-pole', transform: 'translate(960, 280)' },
         React.createElement('rect', { x: '0', y: '0', width: '12', height: '140', fill: '#4e342e' }),
         [...Array(8)].map((_, i) => React.createElement('rect', { key: i, x: '2', y: 15 + (i * 15), width: '8', height: '2', fill: 'white', opacity: '0.5' })),
         React.createElement('g', { className: 'tide-flow-indicator', transform: `translate(0, ${Math.max(0, waterY - 280)})` },
@@ -959,13 +1062,13 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
         )
       ),
       // Jetty deck planking (base layer)
-      React.createElement('rect', { className: 'jetty-deck-base', x: '1400', y: '288', width: '400', height: '18', fill: '#795548' }),
+      React.createElement('rect', { className: 'jetty-deck-base', x: '840', y: '288', width: '240', height: '18', fill: '#795548' }),
       // Jetty deck top layer
-      React.createElement('rect', { className: 'jetty-deck-top', x: '1400', y: '280', width: '400', height: '8', fill: '#8d6e63' }),
+      React.createElement('rect', { className: 'jetty-deck-top', x: '840', y: '280', width: '240', height: '8', fill: '#8d6e63' }),
       // Tackle box on jetty
-      React.createElement(TackleBox, { onJettyX: 1600, onJettyY: 288 }),
+      React.createElement(TackleBox, { onJettyX: 960, onJettyY: 288 }),
       // White bucket for caught fish (positioned behind fisherman)
-      React.createElement('g', { className: 'fish-bucket', transform: 'translate(1700, 288)' },
+      React.createElement('g', { className: 'fish-bucket', transform: 'translate(1020, 288)' },
         // Bucket body
         React.createElement('ellipse', { cx: '0', cy: '15', rx: '15', ry: '8', fill: '#f0f0f0', stroke: '#ddd', strokeWidth: '2' }),
         React.createElement('rect', { x: '-15', y: '15', width: '30', height: '20', fill: '#f8f8f8' }),
@@ -983,7 +1086,7 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
         )
       ),
       // Fisherman on jetty
-      React.createElement(Fisherman, { onJettyX: 1400, onJettyY: 288 })
+      React.createElement(Fisherman, { onJettyX: 840, onJettyY: 288 })
     ),
     // Wind indicator (repositioned to be visible on screen)
     React.createElement(WindIndicator, { speed: windSpeed, direction: windDir }),
