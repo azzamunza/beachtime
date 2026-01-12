@@ -4,10 +4,107 @@ var isLoading = true;
 var searchController;
 var viewMode = 'daily'; // 'daily' or 'weekly'
 
+// Dataset colors configuration
+var datasetColors = {
+    pressure: {
+        rgb: '102, 126, 234',  // Blue-purple #667eea
+        hex: '#667eea'
+    },
+    temperature: {
+        rgb: '242, 140, 40',   // Orange #F28C28
+        hex: '#F28C28'
+    },
+    water: {
+        rgb: '31, 95, 168',    // Dark blue #1F5FA8
+        hex: '#1F5FA8'
+    },
+    windSpeed: {
+        rgb: '50, 219, 174',   // Teal/Cyan #32dbae
+        hex: '#32dbae'
+    },
+    cloudCover: {
+        rgb: '193, 202, 217',  // Light gray-blue #c1cad9
+        hex: '#c1cad9'
+    },
+    rain: {
+        rgb: '121, 147, 232',  // Light blue #7993e8
+        hex: '#7993e8'
+    },
+    waveHeight: {
+        rgb: '0, 128, 255',    // Bright blue #0080ff (changed for distinction from water)
+        hex: '#0080ff'
+    },
+    tide: {
+        rgb: '255, 0, 128',    // Bright pink/magenta #ff0080 (changed for distinction)
+        hex: '#ff0080'
+    }
+};
+
 // Chart color scheme (for future refactoring: consider extracting to config object)
 // Pressure: #667eea (blue-purple), Temperature: #F28C28 (orange), Water: #1F5FA8 (dark blue)
-// Wind: #7FB3D5 (light blue), Wave Height: #1F5FA8 (dark blue), Tide: #32dbae (teal)
+// Wind: #7FB3D5 (light blue), Wave Height: #0080ff (bright blue), Tide: #ff0080 (magenta/pink)
 // Cloud: #c1cad9 (light gray), Rain: #7993e8 (blue)
+
+// Function to get rgba color string
+function getRGBAColor(dataset, alpha) {
+    if (datasetColors[dataset]) {
+        return 'rgba(' + datasetColors[dataset].rgb + ', ' + alpha + ')';
+    }
+    return 'rgba(128, 128, 128, ' + alpha + ')'; // Fallback gray
+}
+
+// Function to get hex color
+function getHexColor(dataset) {
+    if (datasetColors[dataset]) {
+        return datasetColors[dataset].hex;
+    }
+    return '#808080'; // Fallback gray
+}
+
+// Get dataset name from checkbox ID
+function getDatasetNameFromId(id) {
+    if (id === 'showPressure') return 'pressure';
+    if (id === 'showTemperature') return 'temperature';
+    if (id === 'showWindSpeed') return 'windSpeed';
+    if (id === 'showCloudCover') return 'cloudCover';
+    if (id === 'showRain') return 'rain';
+    if (id === 'showWaveHeight') return 'waveHeight';
+    if (id === 'showTide') return 'tide';
+    return null;
+}
+
+// Initialize dataset checkbox colors
+function initDatasetCheckboxColors() {
+    var checkboxes = document.querySelectorAll('.dataset-checkbox-item');
+    checkboxes.forEach(function(checkbox) {
+        var input = checkbox.querySelector('input[type="checkbox"]');
+        if (input) {
+            var datasetName = getDatasetNameFromId(input.id);
+            if (datasetName && datasetColors[datasetName]) {
+                checkbox.style.backgroundColor = datasetColors[datasetName].hex;
+                checkbox.style.color = 'white';
+                checkbox.style.border = '2px solid ' + datasetColors[datasetName].hex;
+                checkbox.style.fontWeight = '600';
+                
+                // Add transparency when unchecked
+                input.addEventListener('change', function() {
+                    if (this.checked) {
+                        checkbox.style.opacity = '1';
+                    } else {
+                        checkbox.style.opacity = '0.4';
+                    }
+                });
+                
+                // Initialize opacity based on checked state
+                if (input.checked) {
+                    checkbox.style.opacity = '1';
+                } else {
+                    checkbox.style.opacity = '0.4';
+                }
+            }
+        }
+    });
+}
 
 // Weight factors for normalized rating calculation
 var ratingWeights = {
@@ -1396,9 +1493,9 @@ function drawRadialSpline(scores) {
         ctx.stroke();
     }
     
-    // Draw wave height ring - #1F5FA8 (dark blue) - only if enabled
+    // Draw wave height ring - #0080ff (bright blue) - only if enabled
     if (activeDatasets.waveHeight && smoothWaveHeight && smoothWaveHeightInner) {
-        ctx.fillStyle = 'rgba(31, 95, 168, 0.5)';
+        ctx.fillStyle = getRGBAColor('waveHeight', 0.5);
         ctx.beginPath();
         for (var i = 0; i < smoothWaveHeight.length; i++) {
             var x = cx + Math.cos(smoothWaveHeight[i].angle) * smoothWaveHeight[i].radius;
@@ -1418,9 +1515,9 @@ function drawRadialSpline(scores) {
         ctx.stroke();
     }
     
-    // Draw tide ring - #32dbae (teal) - only if enabled
+    // Draw tide ring - #ff0080 (magenta/pink) - only if enabled
     if (activeDatasets.tide && smoothTide && smoothTideInner) {
-        ctx.fillStyle = 'rgba(50, 219, 174, 0.5)';
+        ctx.fillStyle = getRGBAColor('tide', 0.5);
         ctx.beginPath();
         for (var i = 0; i < smoothTide.length; i++) {
             var x = cx + Math.cos(smoothTide[i].angle) * smoothTide[i].radius;
@@ -3095,6 +3192,9 @@ function resetWeights() {
 document.addEventListener('DOMContentLoaded', function() {
     initializeWeightSliders();
     initializeRangeSliders();
+    
+    // Initialize dataset checkbox colors
+    initDatasetCheckboxColors();
     
     // Attach event listeners to buttons (only if they exist)
     var saveWeightsBtn = document.getElementById('saveWeightsBtn');

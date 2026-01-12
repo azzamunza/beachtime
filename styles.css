@@ -1539,6 +1539,28 @@ canvas {
     user-select: none;
 }
 
+.edit-colors-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.edit-colors-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.edit-colors-btn:active {
+    transform: translateY(0);
+}
+
 /* Time Slider Styling */
 .time-slider-container {
     background: white;

@@ -134,6 +134,7 @@
                 <input type="checkbox" id="showTide" checked>
                 <span>Tide</span>
             </label>
+            <button class="edit-colors-btn" id="editColorsBtn">🎨 Edit Chart Colours</button>
         </div>
         
         <!-- Fishing Map and Chart Container (50/50 split) -->
@@ -421,8 +422,12 @@
                 <span><strong>Rain</strong> (background)</span>
             </div>
             <div class="legend-item">
-                <div class="legend-color" style="background: #1F5FA8;"></div>
+                <div class="legend-color" style="background: #0080ff;"></div>
                 <span><strong>Wave Height</strong> (ideal: 0-1.5m)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff0080;"></div>
+                <span><strong>Tide Level</strong> (varies)</span>
             </div>
         </div>
         
@@ -444,6 +449,23 @@
                 </div>
                 <div id="dataTableContent" style="overflow-x: auto; padding: 20px;">
                     <!-- Data table will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Color Editor Modal -->
+        <div class="modal-overlay" id="colorEditorModal" style="display: none;">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">🎨 Edit Chart Colours</h2>
+                    <button class="close-btn" id="closeColorEditorModal">&times;</button>
+                </div>
+                <div class="color-editor-content">
+                    <p style="margin-bottom: 15px;">Customize the chart colors for each dataset. Changes will be saved automatically.</p>
+                    <div id="colorPickersContainer"></div>
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="edit-colors-btn" id="resetColorsBtn">Reset to Default</button>
+                    </div>
                 </div>
             </div>
         </div>
