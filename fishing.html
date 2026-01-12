@@ -53,6 +53,18 @@
         <div class="time-slider-container">
             <div class="time-slider-header">
                 <span class="time-slider-label">Time of Day</span>
+                <div class="animation-controls">
+                    <button class="anim-btn" id="playBtn" title="Play animation">▶️</button>
+                    <button class="anim-btn" id="pauseBtn" title="Pause animation" style="display:none;">⏸️</button>
+                    <button class="anim-btn" id="rewindBtn" title="Rewind to start">⏮️</button>
+                    <label class="anim-checkbox" title="Toggle week/day loop">
+                        <input type="checkbox" id="loopModeCheckbox">
+                        <span id="loopModeLabel">Day Loop</span>
+                    </label>
+                    <button class="anim-btn small" id="speedDownBtn" title="Slow down">➖</button>
+                    <span class="speed-display" id="speedDisplay">1x</span>
+                    <button class="anim-btn small" id="speedUpBtn" title="Speed up">➕</button>
+                </div>
                 <span class="time-slider-value" id="timeSliderValue">12:00</span>
             </div>
             <div class="time-slider-track">

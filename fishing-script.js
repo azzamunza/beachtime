@@ -855,6 +855,9 @@ function syncSliderControls() {
 var currentAnimationTime = 12; // Default to noon
 var tideStations = [];
 var currentTideStation = null;
+var animationInterval = null;
+var animationSpeed = 1; // 1x speed
+var isLoopingWeek = false;
 
 // Initialize time slider
 function initTimeSlider() {
@@ -874,6 +877,124 @@ function initTimeSlider() {
     
     // Initialize display
     updateTimeDisplay();
+    
+    // Initialize animation controls
+    initAnimationControls();
+}
+
+// Initialize animation control buttons
+function initAnimationControls() {
+    var playBtn = document.getElementById('playBtn');
+    var pauseBtn = document.getElementById('pauseBtn');
+    var rewindBtn = document.getElementById('rewindBtn');
+    var speedUpBtn = document.getElementById('speedUpBtn');
+    var speedDownBtn = document.getElementById('speedDownBtn');
+    var loopModeCheckbox = document.getElementById('loopModeCheckbox');
+    var loopModeLabel = document.getElementById('loopModeLabel');
+    var speedDisplay = document.getElementById('speedDisplay');
+    var timeSlider = document.getElementById('timeSlider');
+    
+    if (!playBtn || !pauseBtn || !rewindBtn) return;
+    
+    // Play button
+    playBtn.addEventListener('click', function() {
+        startAnimation();
+        playBtn.style.display = 'none';
+        pauseBtn.style.display = 'inline-block';
+    });
+    
+    // Pause button
+    pauseBtn.addEventListener('click', function() {
+        stopAnimation();
+        playBtn.style.display = 'inline-block';
+        pauseBtn.style.display = 'none';
+    });
+    
+    // Rewind button
+    rewindBtn.addEventListener('click', function() {
+        stopAnimation();
+        currentAnimationTime = 0;
+        if (timeSlider) timeSlider.value = 0;
+        updateTimeDisplay();
+        updateAnimationForTime(currentAnimationTime);
+        playBtn.style.display = 'inline-block';
+        pauseBtn.style.display = 'none';
+    });
+    
+    // Speed up button
+    if (speedUpBtn) {
+        speedUpBtn.addEventListener('click', function() {
+            if (animationSpeed < 4) {
+                animationSpeed *= 2;
+                if (speedDisplay) speedDisplay.textContent = animationSpeed + 'x';
+                if (animationInterval) {
+                    stopAnimation();
+                    startAnimation();
+                }
+            }
+        });
+    }
+    
+    // Speed down button
+    if (speedDownBtn) {
+        speedDownBtn.addEventListener('click', function() {
+            if (animationSpeed > 0.25) {
+                animationSpeed /= 2;
+                if (speedDisplay) speedDisplay.textContent = animationSpeed + 'x';
+                if (animationInterval) {
+                    stopAnimation();
+                    startAnimation();
+                }
+            }
+        });
+    }
+    
+    // Loop mode checkbox
+    if (loopModeCheckbox && loopModeLabel) {
+        loopModeCheckbox.addEventListener('change', function() {
+            isLoopingWeek = this.checked;
+            loopModeLabel.textContent = isLoopingWeek ? 'Week Loop' : 'Day Loop';
+        });
+    }
+}
+
+// Start animation
+function startAnimation() {
+    if (animationInterval) return;
+    
+    var timeSlider = document.getElementById('timeSlider');
+    var baseInterval = 100; // Base interval in ms
+    var interval = baseInterval / animationSpeed;
+    
+    animationInterval = setInterval(function() {
+        currentAnimationTime += 0.1 * animationSpeed;
+        
+        // Handle looping
+        if (isLoopingWeek) {
+            // Week loop: cycle through days
+            if (currentAnimationTime > 24) {
+                currentAnimationTime = 0;
+                // TODO: Advance to next day in week
+            }
+        } else {
+            // Day loop: reset to start of day
+            if (currentAnimationTime > 24) {
+                currentAnimationTime = 0;
+            }
+        }
+        
+        if (timeSlider) timeSlider.value = currentAnimationTime;
+        updateTimeDisplay();
+        updateAnimationForTime(currentAnimationTime);
+    }, interval);
+}
+
+// Stop animation
+function stopAnimation() {
+    if (animationInterval) {
+        clearInterval(animationInterval);
+        animationInterval = null;
+    }
 }
 
 // Load tide stations data

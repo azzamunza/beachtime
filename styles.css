@@ -1544,6 +1544,76 @@ canvas {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.animation-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.anim-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.anim-btn:hover {
+    background: #5568d3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.anim-btn:active {
+    transform: translateY(0);
+}
+
+.anim-btn.small {
+    padding: 4px 8px;
+    font-size: 0.9em;
+}
+
+.anim-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+}
+
+.anim-checkbox:hover {
+    background: #f0f2ff;
+}
+
+.anim-checkbox input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.anim-checkbox span {
+    font-weight: 500;
+    color: #333;
+    user-select: none;
+}
+
+.speed-display {
+    font-weight: 600;
+    color: #667eea;
+    min-width: 35px;
+    text-align: center;
 }
 
 .time-slider-label {
