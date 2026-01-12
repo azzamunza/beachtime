@@ -751,6 +751,13 @@ function processFishingWeatherData(data, marineData) {
             updateDayButtons();
         }
     }
+    
+    // If currently in weekly view, redraw the weekly overview chart
+    if (typeof viewMode !== 'undefined' && viewMode === 'weekly' && typeof drawWeeklyOverviewChart === 'function') {
+        setTimeout(function() {
+            drawWeeklyOverviewChart();
+        }, 100);
+    }
 }
 
 // Initialise fishing page when DOM is ready

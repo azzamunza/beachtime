@@ -2299,15 +2299,23 @@ function drawHourlyRatingChart(scores) {
 }
 
 function drawWeeklyOverviewChart() {
+    console.log('Drawing weekly overview chart, weatherData length:', weatherData ? weatherData.length : 'undefined');
+    
     var canvas = document.getElementById('weeklyOverviewCanvas');
     if (!canvas) {
         canvas = document.getElementById('weeklyOverviewCanvasFishing');
     }
-    if (!canvas) return;
+    if (!canvas) {
+        console.error('Weekly overview canvas not found');
+        return;
+    }
     var ctx = canvas.getContext('2d');
     
     var container = canvas.parentElement;
-    if (!container) return;
+    if (!container) {
+        console.error('Canvas container not found');
+        return;
+    }
     var containerWidth = container.clientWidth;
     var width = containerWidth || 1000;
     var height = width * 0.5;
@@ -2318,7 +2326,11 @@ function drawWeeklyOverviewChart() {
     ctx.clearRect(0, 0, width, height);
     
     var weeklyRatings = calculateWeeklyRatings();
-    if (weeklyRatings.length === 0) return;
+    console.log('Weekly ratings calculated:', weeklyRatings.length);
+    if (weeklyRatings.length === 0) {
+        console.warn('No weekly ratings data available');
+        return;
+    }
     
     var padding = 80;
     var chartWidth = width - 2 * padding;
