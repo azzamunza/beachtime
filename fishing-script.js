@@ -794,15 +794,13 @@ function initSlideOutPanel() {
         return;
     }
     
-    // Move dataset controls to slide-out panel
-    var datasetControls = document.querySelector('.right-side-controls');
+    // Move dataset controls to slide-out panel (not clone, actually move)
+    var datasetControls = document.getElementById('fishingDatasetControls');
     if (datasetControls && slideOutContent) {
-        // Clone the controls to the slide-out panel
-        var clonedControls = datasetControls.cloneNode(true);
-        slideOutContent.appendChild(clonedControls);
+        slideOutContent.appendChild(datasetControls);
         
-        // Keep original controls visible on desktop, hide on mobile
-        // The slide-out will overlay on top
+        // Initialize slider event handlers
+        initFishingDatasetSliders();
     }
     
     // Toggle slide-out panel
@@ -836,6 +834,59 @@ function initSlideOutPanel() {
     
     // Sync slider changes between original and cloned controls
     syncSliderControls();
+}
+
+// Initialize fishing dataset sliders
+function initFishingDatasetSliders() {
+    // Pressure sliders
+    setupSlider('fishPressureMinRange', 'fishPressureMinValue', ' hPa');
+    setupSlider('fishPressureIdealMinRange', 'fishPressureIdealMinValue', ' hPa');
+    setupSlider('fishPressureIdealMaxRange', 'fishPressureIdealMaxValue', ' hPa');
+    setupSlider('fishPressureMaxRange', 'fishPressureMaxValue', ' hPa');
+    
+    // Temperature sliders
+    setupSlider('fishTempMinRange', 'fishTempMinValue', '°C');
+    setupSlider('fishTempIdealMinRange', 'fishTempIdealMinValue', '°C');
+    setupSlider('fishTempIdealMaxRange', 'fishTempIdealMaxValue', '°C');
+    setupSlider('fishTempMaxRange', 'fishTempMaxValue', '°C');
+    
+    // Wind sliders
+    setupSlider('fishWindMinRange', 'fishWindMinValue', ' km/h');
+    setupSlider('fishWindIdealMinRange', 'fishWindIdealMinValue', ' km/h');
+    setupSlider('fishWindIdealMaxRange', 'fishWindIdealMaxValue', ' km/h');
+    setupSlider('fishWindMaxRange', 'fishWindMaxValue', ' km/h');
+    
+    // Cloud sliders
+    setupSlider('fishCloudMinRange', 'fishCloudMinValue', '%');
+    setupSlider('fishCloudMaxRange', 'fishCloudMaxValue', '%');
+    
+    // Wave height sliders
+    setupSlider('fishWaveMinRange', 'fishWaveMinValue', 'm');
+    setupSlider('fishWaveIdealMinRange', 'fishWaveIdealMinValue', 'm');
+    setupSlider('fishWaveIdealMaxRange', 'fishWaveIdealMaxValue', 'm');
+    setupSlider('fishWaveMaxRange', 'fishWaveMaxValue', 'm');
+    
+    // Tide sliders
+    setupSlider('fishTideMinRange', 'fishTideMinValue', '%');
+    setupSlider('fishTideIdealMinRange', 'fishTideIdealMinValue', '%');
+    setupSlider('fishTideIdealMaxRange', 'fishTideIdealMaxValue', '%');
+    setupSlider('fishTideMaxRange', 'fishTideMaxValue', '%');
+}
+
+// Setup individual slider with its display value
+function setupSlider(sliderId, displayId, unit) {
+    var slider = document.getElementById(sliderId);
+    var display = document.getElementById(displayId);
+    
+    if (slider && display) {
+        slider.addEventListener('input', function() {
+            display.textContent = this.value + unit;
+            // Trigger chart update if needed
+            if (typeof updateChart === 'function') {
+                updateChart();
+            }
+        });
+    }
 }
 
 // Synchronise slider controls between original and cloned versions

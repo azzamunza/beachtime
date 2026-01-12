@@ -359,6 +359,15 @@ h2 {
     top: 20px;
 }
 
+/* Hide fishing dataset controls from main page, only show in slide-out panel */
+#fishingDatasetControls {
+    display: none;
+}
+
+.slide-out-content #fishingDatasetControls {
+    display: block;
+}
+
 .right-side-controls::-webkit-scrollbar {
     width: 8px;
 }
