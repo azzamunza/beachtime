@@ -719,7 +719,7 @@ function processFishingWeatherData(data, marineData) {
     
     // Map fishing data to the format expected by script.js
     // For fishing: rain -> precipitation, estimate water temp from air temp
-    // Also include fishing-specific data: pressure, waveHeight, and tideHeight
+    // Also include fishing-specific data: pressure, waveHeight, tideLevelMeters and tideHeight (%)
     weatherData = fishingWeatherData.map(function(day) {
         return {
             date: day.date,
@@ -731,10 +731,14 @@ function processFishingWeatherData(data, marineData) {
             cloudCover: day.cloudCover,
             pressure: day.pressure,
             waveHeight: day.waveHeight,
-            // Tide data will be added later from tide harmonics
-            tideHeight: day.hours.map(function() { return 50; }) // Default 50% tide for now
+            // Tide data - will be calculated for each hour
+            tideHeight: day.hours.map(function() { return 50; }), // Default 50% tide (for internal calculations)
+            tideLevelMeters: day.hours.map(function() { return null; }) // Will be calculated from tide data
         };
     });
+    
+    // Calculate tide levels in meters for each hour
+    calculateTideLevelsForWeatherData();
     
     // Trigger chart rendering
     if (typeof updateChart === 'function') {
@@ -1116,6 +1120,58 @@ function calculateTideHeightForTime(timeOfDay) {
     return tideHeight;
 }
 
+// Calculate tide level in meters for a specific time
+function calculateTideLevelInMeters(dateObj, hour) {
+    try {
+        // Try to use CSV tide data first if available
+        if (typeof getTideHeightAtTime === 'function' && typeof tideCSVData !== 'undefined' && tideCSVData.length > 0) {
+            var locationName = currentFishingLocation.name || 'FREMANTLE';
+            var targetDate = new Date(dateObj);
+            targetDate.setHours(hour);
+            targetDate.setMinutes(0);
+            var heightMeters = getTideHeightAtTime(locationName, targetDate);
+            
+            if (heightMeters !== null) {
+                return Math.round(heightMeters * 100) / 100; // Round to 2 decimal places
+            }
+        }
+        
+        // Use tide harmonic prediction if CSV not available
+        if (typeof predictTideHeight === 'function' && currentTideStation) {
+            var targetDate = new Date(dateObj);
+            targetDate.setHours(hour);
+            targetDate.setMinutes(0);
+            var heightMeters = predictTideHeight(currentTideStation, targetDate);
+            return Math.round(heightMeters * 100) / 100;
+        }
+    } catch (error) {
+        console.warn('Tide level calculation error:', error);
+    }
+    
+    return null; // No tide data available
+}
+
+// Calculate tide levels for all hours in weather data
+function calculateTideLevelsForWeatherData() {
+    if (!weatherData || weatherData.length === 0) return;
+    
+    for (var d = 0; d < weatherData.length; d++) {
+        var day = weatherData[d];
+        var dateObj = new Date(day.date + 'T00:00:00');
+        
+        for (var h = 0; h < day.hours.length; h++) {
+            var hour = day.hours[h];
+            var tideLevelMeters = calculateTideLevelInMeters(dateObj, hour);
+            day.tideLevelMeters[h] = tideLevelMeters;
+            
+            // Also update the percentage value if we got a meters value
+            if (tideLevelMeters !== null && typeof tideHeightToPercentage === 'function') {
+                day.tideHeight[h] = tideHeightToPercentage(tideLevelMeters);
+            }
+        }
+    }
+}
+
 // Dataset Checkboxes Functionality
 var activeDatasets = {
     pressure: true,
@@ -1212,7 +1268,7 @@ function generateDataTable() {
     if (activeDatasets.cloudCover) html += '<th style="padding: 12px; border: 1px solid #ddd;">Cloud Cover (%)</th>';
     if (activeDatasets.rain) html += '<th style="padding: 12px; border: 1px solid #ddd;">Rain (%)</th>';
     if (activeDatasets.waveHeight) html += '<th style="padding: 12px; border: 1px solid #ddd;">Wave Height (m)</th>';
-    if (activeDatasets.tide) html += '<th style="padding: 12px; border: 1px solid #ddd;">Tide (%)</th>';
+    if (activeDatasets.tide) html += '<th style="padding: 12px; border: 1px solid #ddd;">Tide Level (m)</th>';
     
     html += '</tr></thead><tbody>';
     
@@ -1240,8 +1296,8 @@ function generateDataTable() {
                 html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.precipitation[h] || 'N/A') + '</td>';
             if (activeDatasets.waveHeight && day.waveHeight) 
                 html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.waveHeight[h] || 'N/A') + '</td>';
-            if (activeDatasets.tide && day.tideHeight) 
-                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.tideHeight[h] || 'N/A') + '</td>';
+            if (activeDatasets.tide && day.tideLevelMeters) 
+                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.tideLevelMeters[h] !== null ? day.tideLevelMeters[h] : 'N/A') + '</td>';
             
             html += '</tr>';
         }
