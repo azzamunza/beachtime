@@ -435,6 +435,52 @@ function updateLocationDisplay() {
     });
 }
 
+// Check if fish is in season
+function isInSeason(fish) {
+    if (!fish.closedSeasons || fish.closedSeasons.length === 0) {
+        return true; // No closed seasons, so always in season
+    }
+    
+    var now = new Date();
+    var currentMonth = now.getMonth() + 1; // 1-12
+    var currentDay = now.getDate();
+    
+    for (var i = 0; i < fish.closedSeasons.length; i++) {
+        var closure = fish.closedSeasons[i];
+        // closure format: { start: 'MM-DD', end: 'MM-DD' }
+        var startParts = closure.start.split('-');
+        var endParts = closure.end.split('-');
+        
+        var startMonth = parseInt(startParts[0]);
+        var startDay = parseInt(startParts[1]);
+        var endMonth = parseInt(endParts[0]);
+        var endDay = parseInt(endParts[1]);
+        
+        // Check if current date falls within closed season
+        var inClosedSeason = false;
+        
+        if (startMonth < endMonth || (startMonth === endMonth && startDay <= endDay)) {
+            // Normal range (doesn't wrap around year)
+            if ((currentMonth > startMonth || (currentMonth === startMonth && currentDay >= startDay)) &&
+                (currentMonth < endMonth || (currentMonth === endMonth && currentDay <= endDay))) {
+                inClosedSeason = true;
+            }
+        } else {
+            // Range wraps around year (e.g., Nov-Feb)
+            if ((currentMonth > startMonth || (currentMonth === startMonth && currentDay >= startDay)) ||
+                (currentMonth < endMonth || (currentMonth === endMonth && currentDay <= endDay))) {
+                inClosedSeason = true;
+            }
+        }
+        
+        if (inClosedSeason) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 // Update fish species table with enhanced accordion display
 function updateFishSpeciesTable(locationName) {
     var tableContainer = document.getElementById('fishSpeciesTable');
@@ -467,12 +513,17 @@ function updateFishSpeciesTable(locationName) {
     // Create accordion-style list
     var html = '';
     species.forEach(function(fish) {
-        html += '<div class="fish-item" data-fish-id="' + fish.id + '">';
+        var inSeason = isInSeason(fish);
+        
+        html += '<div class="fish-item' + (!inSeason ? ' out-of-season' : '') + '" data-fish-id="' + fish.id + '">';
         html += '  <div class="fish-item-header">';
         html += '    <img src="' + fish.image + '" alt="' + fish.name + '" class="fish-item-image" />';
         html += '    <div class="fish-item-info">';
         html += '      <div class="fish-item-name">' + fish.name;
         html += '        <span class="category-badge">' + fish.category + '</span>';
+        if (!inSeason) {
+            html += '        <span class="out-of-season-badge">NOT IN SEASON</span>';
+        }
         html += '      </div>';
         html += '      <div class="fish-item-scientific">' + fish.scientificName + '</div>';
         html += '      <div class="fish-item-basic">' + fish.basicInfo + '</div>';

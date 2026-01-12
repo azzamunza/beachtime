@@ -1419,6 +1419,55 @@ canvas {
     margin-left: 8px;
 }
 
+/* Out of Season Styling */
+.fish-item.out-of-season {
+    position: relative;
+    opacity: 0.7;
+}
+
+.fish-item.out-of-season::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 0, 0, 0.15) 10px,
+        rgba(255, 0, 0, 0.15) 20px
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+
+.out-of-season-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: bold;
+    background: #ff0000;
+    color: white;
+    margin-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: pulse-red 2s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
 .location-info-fish {
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     padding: 10px;
