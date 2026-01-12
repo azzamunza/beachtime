@@ -343,7 +343,7 @@ const Birds = ({ landscapeType, timeOfDay }) => {
 };
 
 const TackleBox = ({ onJettyX, onJettyY }) => {
-  return React.createElement('g', { transform: `translate(${onJettyX - 100}, ${onJettyY + 12})` },
+  return React.createElement('g', { transform: `translate(${onJettyX}, ${onJettyY})` },
     React.createElement('rect', { x: '0', y: '0', width: '35', height: '22', fill: '#4a4a4a', rx: '2' }),
     React.createElement('rect', { x: '0', y: '0', width: '35', height: '10', fill: '#666', rx: '2' }),
     React.createElement('path', { d: 'M10,0 Q17.5,-4 25,0', stroke: '#888', strokeWidth: '2', fill: 'none' }),
@@ -448,7 +448,7 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
 
   return React.createElement('g', { className: 'fisherman', transform: `translate(${onJettyX + 15}, ${onJettyY}) scale(3.0)` },
     // Continuous ripple effect at line end - always visible
-    React.createElement('g', { className: 'water-ripple-continuous', transform: `translate(${lineEndX}, ${getWaterY()}) scale(1.2, 0.3)` },
+    React.createElement('g', { className: 'water-ripple-continuous', transform: `translate(-235, 18) scale(1.2, 0.3)` },
       // Multiple ripple circles for continuous effect
       React.createElement('circle', { r: '10', stroke: 'white', strokeWidth: '0.5', fill: 'none', opacity: '0.8' },
         React.createElement('animate', { 
@@ -555,9 +555,9 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
       // Legs
       React.createElement('g', { transform: 'translate(1, -1)' },
         React.createElement('path', { d: 'M0,0 L-14,0', stroke: '#263238', strokeWidth: '7', strokeLinecap: 'round' }),
-        React.createElement('g', { className: 'leg-swing-offset' },
-          React.createElement('path', { d: 'M-14,0 L-14,16', stroke: '#263238', strokeWidth: '7', strokeLinecap: 'round' }),
-          React.createElement('path', { d: 'M-14,16 L-18,18', stroke: '#212121', strokeWidth: '5', strokeLinecap: 'round' })
+        React.createElement('g', { className: 'leg-swing-offset', transform: 'translate(-14, 0)' },
+          React.createElement('path', { d: 'M0,0 L0,16', stroke: '#263238', strokeWidth: '7', strokeLinecap: 'round' }),
+          React.createElement('path', { d: 'M0,16 L-4,18', stroke: '#212121', strokeWidth: '5', strokeLinecap: 'round' })
         )
       ),
       React.createElement('g', null,
@@ -605,17 +605,17 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
         },
           React.createElement('path', { d: 'M0,0 L-8,5', stroke: '#d35400', strokeWidth: '5', strokeLinecap: 'round' }),
           React.createElement('path', { d: 'M-8,5 L-15,2', stroke: '#d35400', strokeWidth: '5', strokeLinecap: 'round' }),
-          // Fishing rod
-          React.createElement('line', { x1: '-12', y1: '2', x2: '-18', y2: '0', stroke: '#3e2723', strokeWidth: '2' }),
-          React.createElement('line', { x1: '-18', y1: '0', x2: '-32', y2: '-8', stroke: '#5d4037', strokeWidth: '1.5' }),
+          // Fishing rod - extended length
+          React.createElement('line', { x1: '-12', y1: '2', x2: '-24', y2: '-2', stroke: '#3e2723', strokeWidth: '2' }),
+          React.createElement('line', { x1: '-24', y1: '-2', x2: '-48', y2: '-16', stroke: '#5d4037', strokeWidth: '1.5' }),
           // Reel
-          React.createElement('circle', { cx: '-22', cy: '-2', r: '1.5', fill: '#9e9e9e' }),
+          React.createElement('circle', { cx: '-30', cy: '-6', r: '1.5', fill: '#9e9e9e' }),
           // Fishing line - now extends to lineEndX (which changes during reel)
           React.createElement('path', { 
             className: 'fishing-line',
             d: (isBite || isJerk || isReel) ? 
-              `M-32,-8 L${lineEndX},${getWaterY()}` : 
-              `M-32,-8 Q${lineEndX/2},${getWaterY()/2} ${lineEndX},${getWaterY()}`,
+              `M-48,-16 L${lineEndX},${getWaterY()}` : 
+              `M-48,-16 Q${lineEndX/2},${getWaterY()/2} ${lineEndX},${getWaterY()}`,
             stroke: 'white',
             strokeWidth: '0.3',
             fill: 'none',
@@ -657,7 +657,7 @@ const Fisherman = ({ onJettyX, onJettyY }) => {
     // Animation styles
     React.createElement('style', null, `
       .leg-swing { animation: swing 3s ease-in-out infinite; transform-origin: 0 0; }
-      .leg-swing-offset { animation: swing 3s ease-in-out infinite; animation-delay: 0.5s; transform-origin: -14px 0; }
+      .leg-swing-offset { animation: swing 3s ease-in-out infinite; animation-delay: 0.5s; transform-origin: 0 0; }
       @keyframes swing { 0% { transform: rotate(-10deg); } 50% { transform: rotate(20deg); } 100% { transform: rotate(-10deg); } }
       .arm-drink { animation: drink-move 2.5s ease-in-out forwards; transform-origin: 0 0; }
       @keyframes drink-move { 
@@ -1112,9 +1112,9 @@ const Landscape = ({ data, tideStats, landscapeType = 'beach' }) => {
       // Jetty deck top layer
       React.createElement('rect', { className: 'jetty-deck-top', x: '840', y: '280', width: '240', height: '8', fill: '#8d6e63' }),
       // Tackle box on jetty
-      React.createElement(TackleBox, { onJettyX: 960, onJettyY: 288 }),
+      React.createElement(TackleBox, { onJettyX: 890, onJettyY: 270 }),
       // White bucket for caught fish (positioned behind fisherman)
-      React.createElement('g', { className: 'fish-bucket', transform: 'translate(1020, 288)' },
+      React.createElement('g', { className: 'fish-bucket', transform: 'translate(950, 250)' },
         // Bucket body
         React.createElement('ellipse', { cx: '0', cy: '15', rx: '15', ry: '8', fill: '#f0f0f0', stroke: '#ddd', strokeWidth: '2' }),
         React.createElement('rect', { x: '-15', y: '15', width: '30', height: '20', fill: '#f8f8f8' }),

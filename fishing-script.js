@@ -435,6 +435,52 @@ function updateLocationDisplay() {
     });
 }
 
+// Check if fish is in season
+function isInSeason(fish) {
+    if (!fish.closedSeasons || fish.closedSeasons.length === 0) {
+        return true; // No closed seasons, so always in season
+    }
+    
+    var now = new Date();
+    var currentMonth = now.getMonth() + 1; // 1-12
+    var currentDay = now.getDate();
+    
+    for (var i = 0; i < fish.closedSeasons.length; i++) {
+        var closure = fish.closedSeasons[i];
+        // closure format: { start: 'MM-DD', end: 'MM-DD' }
+        var startParts = closure.start.split('-');
+        var endParts = closure.end.split('-');
+        
+        var startMonth = parseInt(startParts[0]);
+        var startDay = parseInt(startParts[1]);
+        var endMonth = parseInt(endParts[0]);
+        var endDay = parseInt(endParts[1]);
+        
+        // Check if current date falls within closed season
+        var inClosedSeason = false;
+        
+        if (startMonth < endMonth || (startMonth === endMonth && startDay <= endDay)) {
+            // Normal range (doesn't wrap around year)
+            if ((currentMonth > startMonth || (currentMonth === startMonth && currentDay >= startDay)) &&
+                (currentMonth < endMonth || (currentMonth === endMonth && currentDay <= endDay))) {
+                inClosedSeason = true;
+            }
+        } else {
+            // Range wraps around year (e.g., Nov-Feb)
+            if ((currentMonth > startMonth || (currentMonth === startMonth && currentDay >= startDay)) ||
+                (currentMonth < endMonth || (currentMonth === endMonth && currentDay <= endDay))) {
+                inClosedSeason = true;
+            }
+        }
+        
+        if (inClosedSeason) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
 // Update fish species table with enhanced accordion display
 function updateFishSpeciesTable(locationName) {
     var tableContainer = document.getElementById('fishSpeciesTable');
@@ -467,12 +513,17 @@ function updateFishSpeciesTable(locationName) {
     // Create accordion-style list
     var html = '';
     species.forEach(function(fish) {
-        html += '<div class="fish-item" data-fish-id="' + fish.id + '">';
+        var inSeason = isInSeason(fish);
+        
+        html += '<div class="fish-item' + (!inSeason ? ' out-of-season' : '') + '" data-fish-id="' + fish.id + '">';
         html += '  <div class="fish-item-header">';
         html += '    <img src="' + fish.image + '" alt="' + fish.name + '" class="fish-item-image" />';
         html += '    <div class="fish-item-info">';
         html += '      <div class="fish-item-name">' + fish.name;
         html += '        <span class="category-badge">' + fish.category + '</span>';
+        if (!inSeason) {
+            html += '        <span class="out-of-season-badge">NOT IN SEASON</span>';
+        }
         html += '      </div>';
         html += '      <div class="fish-item-scientific">' + fish.scientificName + '</div>';
         html += '      <div class="fish-item-basic">' + fish.basicInfo + '</div>';
@@ -719,7 +770,7 @@ function processFishingWeatherData(data, marineData) {
     
     // Map fishing data to the format expected by script.js
     // For fishing: rain -> precipitation, estimate water temp from air temp
-    // Also include fishing-specific data: pressure, waveHeight, and tideHeight
+    // Also include fishing-specific data: pressure, waveHeight, tideLevelMeters and tideHeight (%)
     weatherData = fishingWeatherData.map(function(day) {
         return {
             date: day.date,
@@ -731,10 +782,14 @@ function processFishingWeatherData(data, marineData) {
             cloudCover: day.cloudCover,
             pressure: day.pressure,
             waveHeight: day.waveHeight,
-            // Tide data will be added later from tide harmonics
-            tideHeight: day.hours.map(function() { return 50; }) // Default 50% tide for now
+            // Tide data - will be calculated for each hour
+            tideHeight: day.hours.map(function() { return 50; }), // Default 50% tide (for internal calculations)
+            tideLevelMeters: day.hours.map(function() { return null; }) // Will be calculated from tide data
         };
     });
+    
+    // Calculate tide levels in meters for each hour
+    calculateTideLevelsForWeatherData();
     
     // Trigger chart rendering
     if (typeof updateChart === 'function') {
@@ -746,6 +801,13 @@ function processFishingWeatherData(data, marineData) {
         if (typeof updateDayButtons === 'function') {
             updateDayButtons();
         }
+    }
+    
+    // If currently in weekly view, redraw the weekly overview chart
+    if (typeof viewMode !== 'undefined' && viewMode === 'weekly' && typeof drawWeeklyOverviewChart === 'function') {
+        setTimeout(function() {
+            drawWeeklyOverviewChart();
+        }, 100);
     }
 }
 
@@ -783,15 +845,13 @@ function initSlideOutPanel() {
         return;
     }
     
-    // Move dataset controls to slide-out panel
-    var datasetControls = document.querySelector('.right-side-controls');
+    // Move dataset controls to slide-out panel (not clone, actually move)
+    var datasetControls = document.getElementById('fishingDatasetControls');
     if (datasetControls && slideOutContent) {
-        // Clone the controls to the slide-out panel
-        var clonedControls = datasetControls.cloneNode(true);
-        slideOutContent.appendChild(clonedControls);
+        slideOutContent.appendChild(datasetControls);
         
-        // Keep original controls visible on desktop, hide on mobile
-        // The slide-out will overlay on top
+        // Initialize slider event handlers
+        initFishingDatasetSliders();
     }
     
     // Toggle slide-out panel
@@ -827,6 +887,59 @@ function initSlideOutPanel() {
     syncSliderControls();
 }
 
+// Initialize fishing dataset sliders
+function initFishingDatasetSliders() {
+    // Pressure sliders
+    setupSlider('fishPressureMinRange', 'fishPressureMinValue', ' hPa');
+    setupSlider('fishPressureIdealMinRange', 'fishPressureIdealMinValue', ' hPa');
+    setupSlider('fishPressureIdealMaxRange', 'fishPressureIdealMaxValue', ' hPa');
+    setupSlider('fishPressureMaxRange', 'fishPressureMaxValue', ' hPa');
+    
+    // Temperature sliders
+    setupSlider('fishTempMinRange', 'fishTempMinValue', '°C');
+    setupSlider('fishTempIdealMinRange', 'fishTempIdealMinValue', '°C');
+    setupSlider('fishTempIdealMaxRange', 'fishTempIdealMaxValue', '°C');
+    setupSlider('fishTempMaxRange', 'fishTempMaxValue', '°C');
+    
+    // Wind sliders
+    setupSlider('fishWindMinRange', 'fishWindMinValue', ' km/h');
+    setupSlider('fishWindIdealMinRange', 'fishWindIdealMinValue', ' km/h');
+    setupSlider('fishWindIdealMaxRange', 'fishWindIdealMaxValue', ' km/h');
+    setupSlider('fishWindMaxRange', 'fishWindMaxValue', ' km/h');
+    
+    // Cloud sliders
+    setupSlider('fishCloudMinRange', 'fishCloudMinValue', '%');
+    setupSlider('fishCloudMaxRange', 'fishCloudMaxValue', '%');
+    
+    // Wave height sliders
+    setupSlider('fishWaveMinRange', 'fishWaveMinValue', 'm');
+    setupSlider('fishWaveIdealMinRange', 'fishWaveIdealMinValue', 'm');
+    setupSlider('fishWaveIdealMaxRange', 'fishWaveIdealMaxValue', 'm');
+    setupSlider('fishWaveMaxRange', 'fishWaveMaxValue', 'm');
+    
+    // Tide sliders
+    setupSlider('fishTideMinRange', 'fishTideMinValue', '%');
+    setupSlider('fishTideIdealMinRange', 'fishTideIdealMinValue', '%');
+    setupSlider('fishTideIdealMaxRange', 'fishTideIdealMaxValue', '%');
+    setupSlider('fishTideMaxRange', 'fishTideMaxValue', '%');
+}
+
+// Setup individual slider with its display value
+function setupSlider(sliderId, displayId, unit) {
+    var slider = document.getElementById(sliderId);
+    var display = document.getElementById(displayId);
+    
+    if (slider && display) {
+        slider.addEventListener('input', function() {
+            display.textContent = this.value + unit;
+            // Trigger chart update if needed
+            if (typeof updateChart === 'function') {
+                updateChart();
+            }
+        });
+    }
+}
+
 // Synchronise slider controls between original and cloned versions
 function syncSliderControls() {
     // Find all range inputs in both original and cloned controls
@@ -855,6 +968,9 @@ function syncSliderControls() {
 var currentAnimationTime = 12; // Default to noon
 var tideStations = [];
 var currentTideStation = null;
+var animationInterval = null;
+var animationSpeed = 1; // 1x speed
+var isLoopingWeek = false;
 
 // Initialize time slider
 function initTimeSlider() {
@@ -874,6 +990,124 @@ function initTimeSlider() {
     
     // Initialize display
     updateTimeDisplay();
+    
+    // Initialize animation controls
+    initAnimationControls();
+}
+
+// Initialize animation control buttons
+function initAnimationControls() {
+    var playBtn = document.getElementById('playBtn');
+    var pauseBtn = document.getElementById('pauseBtn');
+    var rewindBtn = document.getElementById('rewindBtn');
+    var speedUpBtn = document.getElementById('speedUpBtn');
+    var speedDownBtn = document.getElementById('speedDownBtn');
+    var loopModeCheckbox = document.getElementById('loopModeCheckbox');
+    var loopModeLabel = document.getElementById('loopModeLabel');
+    var speedDisplay = document.getElementById('speedDisplay');
+    var timeSlider = document.getElementById('timeSlider');
+    
+    if (!playBtn || !pauseBtn || !rewindBtn) return;
+    
+    // Play button
+    playBtn.addEventListener('click', function() {
+        startAnimation();
+        playBtn.style.display = 'none';
+        pauseBtn.style.display = 'inline-block';
+    });
+    
+    // Pause button
+    pauseBtn.addEventListener('click', function() {
+        stopAnimation();
+        playBtn.style.display = 'inline-block';
+        pauseBtn.style.display = 'none';
+    });
+    
+    // Rewind button
+    rewindBtn.addEventListener('click', function() {
+        stopAnimation();
+        currentAnimationTime = 0;
+        if (timeSlider) timeSlider.value = 0;
+        updateTimeDisplay();
+        updateAnimationForTime(currentAnimationTime);
+        playBtn.style.display = 'inline-block';
+        pauseBtn.style.display = 'none';
+    });
+    
+    // Speed up button
+    if (speedUpBtn) {
+        speedUpBtn.addEventListener('click', function() {
+            if (animationSpeed < 4) {
+                animationSpeed *= 2;
+                if (speedDisplay) speedDisplay.textContent = animationSpeed + 'x';
+                if (animationInterval) {
+                    stopAnimation();
+                    startAnimation();
+                }
+            }
+        });
+    }
+    
+    // Speed down button
+    if (speedDownBtn) {
+        speedDownBtn.addEventListener('click', function() {
+            if (animationSpeed > 0.25) {
+                animationSpeed /= 2;
+                if (speedDisplay) speedDisplay.textContent = animationSpeed + 'x';
+                if (animationInterval) {
+                    stopAnimation();
+                    startAnimation();
+                }
+            }
+        });
+    }
+    
+    // Loop mode checkbox
+    if (loopModeCheckbox && loopModeLabel) {
+        loopModeCheckbox.addEventListener('change', function() {
+            isLoopingWeek = this.checked;
+            loopModeLabel.textContent = isLoopingWeek ? 'Week Loop' : 'Day Loop';
+        });
+    }
+}
+
+// Start animation
+function startAnimation() {
+    if (animationInterval) return;
+    
+    var timeSlider = document.getElementById('timeSlider');
+    var baseInterval = 100; // Base interval in ms
+    var interval = baseInterval / animationSpeed;
+    
+    animationInterval = setInterval(function() {
+        currentAnimationTime += 0.1 * animationSpeed;
+        
+        // Handle looping
+        if (isLoopingWeek) {
+            // Week loop: cycle through days
+            if (currentAnimationTime > 24) {
+                currentAnimationTime = 0;
+                // TODO: Advance to next day in week
+            }
+        } else {
+            // Day loop: reset to start of day
+            if (currentAnimationTime > 24) {
+                currentAnimationTime = 0;
+            }
+        }
+        
+        if (timeSlider) timeSlider.value = currentAnimationTime;
+        updateTimeDisplay();
+        updateAnimationForTime(currentAnimationTime);
+    }, interval);
+}
+
+// Stop animation
+function stopAnimation() {
+    if (animationInterval) {
+        clearInterval(animationInterval);
+        animationInterval = null;
+    }
 }
 
 // Load tide stations data
@@ -995,6 +1229,58 @@ function calculateTideHeightForTime(timeOfDay) {
     return tideHeight;
 }
 
+// Calculate tide level in meters for a specific time
+function calculateTideLevelInMeters(dateObj, hour) {
+    try {
+        // Try to use CSV tide data first if available
+        if (typeof getTideHeightAtTime === 'function' && typeof tideCSVData !== 'undefined' && tideCSVData.length > 0) {
+            var locationName = currentFishingLocation.name || 'FREMANTLE';
+            var targetDate = new Date(dateObj);
+            targetDate.setHours(hour);
+            targetDate.setMinutes(0);
+            var heightMeters = getTideHeightAtTime(locationName, targetDate);
+            
+            if (heightMeters !== null) {
+                return Math.round(heightMeters * 100) / 100; // Round to 2 decimal places
+            }
+        }
+        
+        // Use tide harmonic prediction if CSV not available
+        if (typeof predictTideHeight === 'function' && currentTideStation) {
+            var targetDate = new Date(dateObj);
+            targetDate.setHours(hour);
+            targetDate.setMinutes(0);
+            var heightMeters = predictTideHeight(currentTideStation, targetDate);
+            return Math.round(heightMeters * 100) / 100;
+        }
+    } catch (error) {
+        console.warn('Tide level calculation error:', error);
+    }
+    
+    return null; // No tide data available
+}
+
+// Calculate tide levels for all hours in weather data
+function calculateTideLevelsForWeatherData() {
+    if (!weatherData || weatherData.length === 0) return;
+    
+    for (var d = 0; d < weatherData.length; d++) {
+        var day = weatherData[d];
+        var dateObj = new Date(day.date + 'T00:00:00');
+        
+        for (var h = 0; h < day.hours.length; h++) {
+            var hour = day.hours[h];
+            var tideLevelMeters = calculateTideLevelInMeters(dateObj, hour);
+            day.tideLevelMeters[h] = tideLevelMeters;
+            
+            // Also update the percentage value if we got a meters value
+            if (tideLevelMeters !== null && typeof tideHeightToPercentage === 'function') {
+                day.tideHeight[h] = tideHeightToPercentage(tideLevelMeters);
+            }
+        }
+    }
+}
+
 // Dataset Checkboxes Functionality
 var activeDatasets = {
     pressure: true,
@@ -1091,7 +1377,7 @@ function generateDataTable() {
     if (activeDatasets.cloudCover) html += '<th style="padding: 12px; border: 1px solid #ddd;">Cloud Cover (%)</th>';
     if (activeDatasets.rain) html += '<th style="padding: 12px; border: 1px solid #ddd;">Rain (%)</th>';
     if (activeDatasets.waveHeight) html += '<th style="padding: 12px; border: 1px solid #ddd;">Wave Height (m)</th>';
-    if (activeDatasets.tide) html += '<th style="padding: 12px; border: 1px solid #ddd;">Tide (%)</th>';
+    if (activeDatasets.tide) html += '<th style="padding: 12px; border: 1px solid #ddd;">Tide Level (m)</th>';
     
     html += '</tr></thead><tbody>';
     
@@ -1119,8 +1405,8 @@ function generateDataTable() {
                 html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.precipitation[h] || 'N/A') + '</td>';
             if (activeDatasets.waveHeight && day.waveHeight) 
                 html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.waveHeight[h] || 'N/A') + '</td>';
-            if (activeDatasets.tide && day.tideHeight) 
-                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.tideHeight[h] || 'N/A') + '</td>';
+            if (activeDatasets.tide && day.tideLevelMeters) 
+                html += '<td style="padding: 10px; border: 1px solid #ddd;">' + (day.tideLevelMeters[h] !== null ? day.tideLevelMeters[h] : 'N/A') + '</td>';
             
             html += '</tr>';
         }

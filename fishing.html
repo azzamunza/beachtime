@@ -53,6 +53,18 @@
         <div class="time-slider-container">
             <div class="time-slider-header">
                 <span class="time-slider-label">Time of Day</span>
+                <div class="animation-controls">
+                    <button class="anim-btn" id="playBtn" title="Play animation">▶️</button>
+                    <button class="anim-btn" id="pauseBtn" title="Pause animation" style="display:none;">⏸️</button>
+                    <button class="anim-btn" id="rewindBtn" title="Rewind to start">⏮️</button>
+                    <label class="anim-checkbox" title="Toggle week/day loop">
+                        <input type="checkbox" id="loopModeCheckbox">
+                        <span id="loopModeLabel">Day Loop</span>
+                    </label>
+                    <button class="anim-btn small" id="speedDownBtn" title="Slow down">➖</button>
+                    <span class="speed-display" id="speedDisplay">1x</span>
+                    <button class="anim-btn small" id="speedUpBtn" title="Speed up">➕</button>
+                </div>
                 <span class="time-slider-value" id="timeSliderValue">12:00</span>
             </div>
             <div class="time-slider-track">
@@ -122,6 +134,7 @@
                 <input type="checkbox" id="showTide" checked>
                 <span>Tide</span>
             </label>
+            <button class="edit-colors-btn" id="editColorsBtn">🎨 Edit Chart Colours</button>
         </div>
         
         <!-- Fishing Map and Chart Container (50/50 split) -->
@@ -209,8 +222,8 @@
             </div>
         </div>
         
-        <!-- Dataset Controls (moved to slide-out panel only) -->
-        <div class="right-side-controls" style="display: none;">
+        <!-- Dataset Controls (for slide-out panel only) -->
+        <div class="right-side-controls" id="fishingDatasetControls">
             <div class="controls-section-title">⚙️ Fishing Dataset Controls</div>
             
             <div class="slider-section">
@@ -409,8 +422,12 @@
                 <span><strong>Rain</strong> (background)</span>
             </div>
             <div class="legend-item">
-                <div class="legend-color" style="background: #1F5FA8;"></div>
+                <div class="legend-color" style="background: #0080ff;"></div>
                 <span><strong>Wave Height</strong> (ideal: 0-1.5m)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff0080;"></div>
+                <span><strong>Tide Level</strong> (varies)</span>
             </div>
         </div>
         
@@ -432,6 +449,23 @@
                 </div>
                 <div id="dataTableContent" style="overflow-x: auto; padding: 20px;">
                     <!-- Data table will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Color Editor Modal -->
+        <div class="modal-overlay" id="colorEditorModal" style="display: none;">
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">🎨 Edit Chart Colours</h2>
+                    <button class="close-btn" id="closeColorEditorModal">&times;</button>
+                </div>
+                <div class="color-editor-content">
+                    <p style="margin-bottom: 15px;">Customize the chart colors for each dataset. Changes will be saved automatically.</p>
+                    <div id="colorPickersContainer"></div>
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="edit-colors-btn" id="resetColorsBtn">Reset to Default</button>
+                    </div>
                 </div>
             </div>
         </div>

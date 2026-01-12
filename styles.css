@@ -359,6 +359,15 @@ h2 {
     top: 20px;
 }
 
+/* Hide fishing dataset controls from main page, only show in slide-out panel */
+#fishingDatasetControls {
+    display: none;
+}
+
+.slide-out-content #fishingDatasetControls {
+    display: block;
+}
+
 .right-side-controls::-webkit-scrollbar {
     width: 8px;
 }
@@ -1410,6 +1419,55 @@ canvas {
     margin-left: 8px;
 }
 
+/* Out of Season Styling */
+.fish-item.out-of-season {
+    position: relative;
+    opacity: 0.7;
+}
+
+.fish-item.out-of-season::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 0, 0, 0.15) 10px,
+        rgba(255, 0, 0, 0.15) 20px
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+
+.out-of-season-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: bold;
+    background: #ff0000;
+    color: white;
+    margin-left: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    animation: pulse-red 2s ease-in-out infinite;
+}
+
+@keyframes pulse-red {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
 .location-info-fish {
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
     padding: 10px;
@@ -1530,6 +1588,28 @@ canvas {
     user-select: none;
 }
 
+.edit-colors-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.edit-colors-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+}
+
+.edit-colors-btn:active {
+    transform: translateY(0);
+}
+
 /* Time Slider Styling */
 .time-slider-container {
     background: white;
@@ -1544,6 +1624,76 @@ canvas {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.animation-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.anim-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.anim-btn:hover {
+    background: #5568d3;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.anim-btn:active {
+    transform: translateY(0);
+}
+
+.anim-btn.small {
+    padding: 4px 8px;
+    font-size: 0.9em;
+}
+
+.anim-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    background: white;
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+}
+
+.anim-checkbox:hover {
+    background: #f0f2ff;
+}
+
+.anim-checkbox input[type="checkbox"] {
+    cursor: pointer;
+}
+
+.anim-checkbox span {
+    font-weight: 500;
+    color: #333;
+    user-select: none;
+}
+
+.speed-display {
+    font-weight: 600;
+    color: #667eea;
+    min-width: 35px;
+    text-align: center;
 }
 
 .time-slider-label {
