@@ -3,6 +3,47 @@
 ## Overview
 This document outlines the remaining tasks from the problem statement that require additional implementation work.
 
+## Recently Completed (Latest Session)
+
+### ✅ Animation Controls
+- Added Play, Pause, Rewind buttons to time-slider-header
+- Added Week Loop/Day Loop Cycle checkbox
+- Added speed-up/down buttons for animation control
+- Implemented full animation control functionality
+
+### ✅ Fishing Animation Positioning Fixes
+- Moved fish bucket to position: translate(950, 250)
+- Moved toolbox to position: translate(890, 270)
+- Positioned water ripples at: translate(-235, 18) scale(1.2, 0.3)
+- Extended fishing rod length for better visual representation
+- Fixed front leg swing positioning (both legs now swing correctly)
+
+### ✅ Tide Data Display
+- Changed Weather Data Table header from "Tide (%)" to "Tide Level (m)"
+- Implemented calculation of tide levels in meters
+- Tide data now shows actual tide heights instead of constant 50%
+
+### ✅ Weekly Overview Chart
+- Added debugging and fixes for weekly overview chart in fishing.html
+- Chart now properly loads and displays data when switched to weekly view
+
+### ✅ Dataset Control Sliders
+- Recovered Dataset Control sliders
+- Moved sliders to slide-out panel only (no longer on main page)
+- Implemented slider event handlers for all fishing-specific controls
+
+### ✅ Chart Colors Enhancement
+- Updated Wave Height color to bright blue (#0080ff) for distinction from water temp
+- Updated Tide color to magenta/pink (#ff0080) for better visibility
+- Applied dataset colors to checkbox buttons with background colors
+- Checkboxes now show opacity changes when toggled
+
+### ✅ Marine Species "NOT IN SEASON" Overlay
+- Implemented season checking based on closedSeasons data
+- Added diagonal red line overlay pattern for out-of-season species
+- Added "NOT IN SEASON" badge with pulse animation
+- Fish items now visually indicate when species are not legally catchable
+
 ## 1. Fishing Chart Data Rings
 
 ### Issue
@@ -437,18 +478,31 @@ function getAvailableFish(species, currentDate) {
 ## Priority Recommendations
 
 1. **High Priority:**
-   - Fix fishing chart data rings (pressure, wave, tide)
-   - Weekly overview chart fix
-   - Hide duplicate controls (DONE)
+   - Fix fishing chart data rings (pressure, wave, tide) - PARTIALLY COMPLETE (tide % vs meters issue addressed)
+   - Weekly overview chart fix - ✅ COMPLETE
+   - Hide duplicate controls - ✅ COMPLETE
+   - Dataset control sliders recovery - ✅ COMPLETE
 
 2. **Medium Priority:**
    - Swan River fishing locations
-   - Marine species restrictions
-   - Fishing animation improvements (DONE)
+   - Marine species restrictions - ✅ COMPLETE (NOT IN SEASON overlay added)
+   - Fishing animation improvements - ✅ COMPLETE (positioning fixes done)
+   - Chart color improvements - ✅ COMPLETE
 
 3. **Low Priority:**
    - BOM integration (requires server-side proxy due to CORS)
    - Algal bloom overlay (requires data source identification)
+   - Edit Chart Colours button functionality (UI added, cookie storage pending)
+
+## Incomplete from Latest Session
+
+### Edit Chart Colours Feature
+- **Status**: Partially complete
+- **Completed**: UI button and modal structure added
+- **Remaining**: 
+  - Implement color picker functionality
+  - Add cookie storage for custom colors
+  - Wire up color changes to update charts dynamically
 
 ## Testing Recommendations
 
